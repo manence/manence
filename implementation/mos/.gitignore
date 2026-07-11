@@ -1,0 +1,16 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Système
+.DS_Store
+
+# Dépendances
+node_modules/
+
+# Config Claude Code locale (jamais commitée)
+CLAUDE.local.md
+
+# Obsidian
+.obsidian/workspace*

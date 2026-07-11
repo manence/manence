@@ -1,0 +1,9 @@
+# CLAUDE.local.md
+
+This file is **never committed** (gitignored). It declares the **local/confidential** adapters specific to this machine: the ones the shared core doesn't know about (zero-knowledge, Spec §12). Each operator has their own; it doesn't travel with the repo.
+
+## Local connectors
+
+| Path | Role |
+|---|---|
+| <…> | <…> |

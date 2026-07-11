@@ -1,0 +1,9 @@
+# CLAUDE.local.md
+
+Ce fichier n'est **jamais commité** (gitignored). Il déclare les adaptateurs **locaux/confidentiels** propres à ce poste : ceux que le cœur partagé ne connaît pas (zéro-connaissance, Spec §12). Chaque opérateur a le sien ; il ne voyage pas avec le dépôt.
+
+## Connecteurs locaux
+
+| Chemin | Rôle |
+|---|---|
+| <…> | <…> |

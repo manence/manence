@@ -1,0 +1,33 @@
+{
+  "//": "Exemple de .claude/settings.json (couche 5). Deux voies « dures » (Spec §12) : les hooks (garde-fous déterministes avant/après une action) et permissions.deny (liste noire évaluée par le moteur de permissions lui-même). Structure conforme à la doc Claude Code.",
+
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint.sh --hook" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.sh" }
+        ]
+      }
+    ]
+  },
+
+  "permissions": {
+    "//": "2e voie dure (Spec §12) : liste noire évaluée avant tout appel, redondante avec guard.sh par design (défense en profondeur), pas un remplacement.",
+    "deny": [
+      "Bash(sudo:*)",
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Read(./.env)",
+      "Read(./.env.*)"
+    ]
+  }
+}

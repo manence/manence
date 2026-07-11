@@ -1,0 +1,5 @@
+# Fins de ligne : les scripts bash doivent rester en LF. En CRLF (autocrlf de
+# Git pour Windows), bash meurt sur '\r': command not found.
+*.sh text eol=lf
+# Binaires : jamais de conversion.
+*.png binary
