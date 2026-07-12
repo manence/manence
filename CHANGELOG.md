@@ -9,6 +9,16 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.3.1] - 2026-07-12
+
+Hardening release, following a full external audit of the repository and of a real running MOS.
+
+- **The guard keeps exactly what it promises.** Its published promise is recalibrated to what it is: an **error barrier** against an agent's most common destructive slips, not a security boundary (strong protection belongs to the runtime's permissions). Two common escapes are closed (`rm --recursive --force` long options, `git -c … push --force`), and `guard.sh` now **fails closed** when `jq` is missing: without it the hook cannot read the command, so it blocks and says so, instead of silently letting everything through.
+- **The lint announces its parsing level** (full YAML with PyYAML, degraded without) instead of degrading silently, and **`inbox/` is exempt from frontmatter**: capture is frictionless by doctrine; the weekly review sorts or deletes any capture older than 14 days.
+- **Closing a workstream can no longer break links**: workstream folders are dated at opening (`in-progress/YYYYMMDD-<slug>/`), so closing becomes a pure move — no rename, no broken backlink, by construction.
+- **BOOTSTRAP refuses to run inside an existing repository.** The ritual now checks first and stops with a clear message (copy the MOS to a fresh folder, restart there): a core entangled in another project's history is not a Manence OS. Prerequisites (jq, python3) are also checked as the very first gesture, before anything the guard would block.
+- **Exact license wording everywhere**: "MIT code, CC BY-NC-SA doctrine" replaces the "free and open" shorthand on every surface, repo description included.
+
 ## [0.3.0] - 2026-07-11
 
 **This release refounds the repository.** The git history restarts at this version (the repo had no external users yet); this changelog remains the memory of 0.1.0 and 0.2.0.

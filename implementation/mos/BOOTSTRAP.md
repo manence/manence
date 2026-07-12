@@ -17,7 +17,7 @@ timestamp: 2026-07-11
 
 Run `jq --version` and `python3 --version`. **Without jq, `guard.sh` fails closed: it blocks every tool action until jq is installed** — so this check comes before any other gesture. Without python3, `lint.sh` can't run; with python3 but no PyYAML, it runs in a degraded YAML mode and says so in its report. If something is missing, offer the install command for the human's OS and wait for their decision.
 
-Then, version control: if this folder is not a git repository yet, `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
+Then, version control. This folder must become **its own** repository: run `git rev-parse --git-dir` first. If it reports an existing repository — the manence clone you copied from, or a project of the human's — **stop the ritual** and tell the human: copy the default MOS to a fresh folder outside any repository, then restart there. A core entangled in another history is not a Manence OS (its journal, its commits and its guardrails assume they own the repository). Otherwise: `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
 
 ## 2. Language
 
