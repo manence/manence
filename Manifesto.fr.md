@@ -139,8 +139,8 @@ Une installation complète du cadre, dédiée à une activité, s'appelle un **M
     log.md                        COUCHE 6 : épisodique, append-only
   production/                    ← COUCHE 6, HORS git ($<PROJET>_PRODUCTION_ROOT, défaut ../production)
     <domaine>/                    un domaine par métier, créé au premier besoin
-      in-progress/<slug>/         les chantiers en cours (l'atelier) : textes ET assets ensemble
-      done/YYYYMMDD-<slug>/       clos, daté, jamais réécrit (préfixe date = tri chrono)
+      in-progress/YYYYMMDD-<slug>/ les chantiers en cours (l'atelier) : textes ET assets ensemble
+      done/YYYYMMDD-<slug>/       clos, jamais réécrit (même nom depuis l'ouverture : clore ne casse aucun lien)
 
 ~/.claude/   (OPTIONNEL, seulement si plusieurs activités)   ← noyau d'identité dé-dupliqué
   CLAUDE.md                       le noyau invariant (langue, façon de bosser, éthique)

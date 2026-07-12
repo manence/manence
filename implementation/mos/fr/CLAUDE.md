@@ -17,8 +17,8 @@ Avant de créer ou déplacer un fichier, deux questions : **statique ou dynamiqu
 | C'est... | Ça va... |
 |---|---|
 | un fait stable (marque, produit, entité, règle métier) | `knowledge-base/` (OKF, un concept = un fichier ; via `kb-ingest` si ça vient d'une source) |
-| du travail en cours (campagne, livrable, exploration) | un **chantier** `<domaine>/in-progress/<slug>/` dans la **production du conteneur** (hors git : `$<PROJET>_PRODUCTION_ROOT`, défaut `../production/`), ouvert par `open-work`. **Créer un dossier de travail là = ouvrir un chantier** : la discipline (About, contexte lié, trace) s'applique d'office |
-| un livrable terminé | `<domaine>/done/YYYYMMDD-<slug>/`, via `close-work` (distillation KB + log **obligatoire** : les artefacts de production sont jetables) |
+| du travail en cours (campagne, livrable, exploration) | un **chantier** `<domaine>/in-progress/YYYYMMDD-<slug>/` (daté à l'ouverture) dans la **production du conteneur** (hors git : `$<PROJET>_PRODUCTION_ROOT`, défaut `../production/`), ouvert par `open-work`. **Créer un dossier de travail là = ouvrir un chantier** : la discipline (About, contexte lié, trace) s'applique d'office |
+| un livrable terminé | `<domaine>/done/`, via `close-work` (même nom de dossier, jamais renommé : les liens survivent ; distillation KB + log **obligatoire**, les artefacts de production sont jetables) |
 | une capture brute pas encore triée | `inbox/` |
 | une procédure réutilisable | `.claude/skills/<nom>/SKILL.md` (règle des 3 occurrences : ad-hoc 2 fois, skill la 3e) |
 | un événement, une décision | une entrée datée de `log.md` (append-only) |

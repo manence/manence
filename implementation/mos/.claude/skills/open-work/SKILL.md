@@ -6,7 +6,7 @@ description: Opens a workstream (a unit of work with an identifiable deliverable
 # open-work, opening a workstream
 
 ## Purpose
-So that every piece of work is born **in the right place, with its context**, instead of ending up as an orphan folder. A workstream is a folder `<domain>/in-progress/<slug>/` in the container's **production** (outside git), with a typed `About.md`, an identifiable deliverable, and a trace.
+So that every piece of work is born **in the right place, with its context**, instead of ending up as an orphan folder. A workstream is a folder `<domain>/in-progress/YYYYMMDD-<slug>/` in the container's **production** (outside git), with a typed `About.md`, an identifiable deliverable, and a trace.
 
 ## Procedure
 1. **Resolve the production root.** `$<PROJECT>_PRODUCTION_ROOT` (see `.env` / `.env.example`), default: `../production/` from the core. Resolve it to an **absolute path**: that is the one you use everywhere (and pass as-is to any subagent, never left "to guess", Spec §18).
@@ -17,8 +17,8 @@ So that every piece of work is born **in the right place, with its context**, in
    - a decision on its own → an entry in `log.md`;
    - a periodic report → the KB (consolidated knowledge), not a workstream.
 3. **Choose the domain.** Production is organized by business domain (`ads/`, `content/`, `reporting/`…), **created on first need** with its two subfolders `in-progress/` and `done/`. Reuse an existing domain if the work belongs there.
-4. **Name it.** A readable slug (`meta-back-to-school-campaign`, `product-x-webinar`), no date prefix (that comes at close time). Check that no similar workstream already exists in `in-progress/`, `done/`, or `inbox/` (if so: pick up the existing one, don't duplicate).
-5. **Create** `<domain>/in-progress/<slug>/About.md` from `templates/workstream/About.template.md` (in the core) and fill in the **brief** with the user: the goal in one sentence, the expected deliverable, and a deadline if there is one.
+4. **Name it.** The opening date + a readable slug: `YYYYMMDD-<slug>` (`20260712-meta-back-to-school-campaign`). The prefix is set **at birth** and never changes: closing just moves the folder, so no incoming link ever breaks. Check that no similar workstream already exists in `in-progress/`, `done/`, or `inbox/` (if so: pick up the existing one, don't duplicate).
+5. **Create** `<domain>/in-progress/YYYYMMDD-<slug>/About.md` from `templates/workstream/About.template.md` (in the core) and fill in the **brief** with the user: the goal in one sentence, the expected deliverable, and a deadline if there is one.
 6. **Wire up the context, without copying it**: link the relevant KB pages, the pertinent measures (connectors), and the previous workstream of the same kind if there is one. The links are **computed from the workstream's final location** (you alone know both roots: verify them by resolving, not by assuming). You link, you don't recopy (L2).
 7. **Trace it**: an entry `## [YYYY-MM-DD] work-open | <domain>/<slug>` in the core's `log.md` (one line: the goal).
 8. **Announce** the next concrete step of the workstream.

@@ -13,9 +13,11 @@ timestamp: 2026-07-11
 
 **To the agent.** You are performing the one-time setup of a new Manence OS — one installation for one activity. Work through every step, in order. Ask; never invent an answer. When every check passes, this file gets deleted: a system that still contains BOOTSTRAP.md is not set up.
 
-## 1. Version control first
+## 1. Prerequisites first
 
-If this folder is not a git repository yet: `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
+Run `jq --version` and `python3 --version`. **Without jq, `guard.sh` fails closed: it blocks every tool action until jq is installed** — so this check comes before any other gesture. Without python3, `lint.sh` can't run; with python3 but no PyYAML, it runs in a degraded YAML mode and says so in its report. If something is missing, offer the install command for the human's OS and wait for their decision.
+
+Then, version control: if this folder is not a git repository yet, `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
 
 ## 2. Language
 
@@ -45,13 +47,12 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 - **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository. Propose the default: `../production/` next to this folder. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
 - **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
-- **Prerequisites.** Run `jq --version` and `python3 --version`. If either is missing, tell the human plainly: the safety hooks (`guard.sh`, `lint.sh`) degrade silently without them — nothing breaks, but the guardrails stop guarding. Offer the install command for their OS and wait for their decision.
 
 ## 5. Verify — run the checks, don't assume
 
 - `bash .claude/hooks/lint.sh .` → must report **0 findings**.
 - `grep -rn '<project name>\|<PROJECT>\|<nom du projet>\|<PROJET>\|<YYYY-MM-DD>' --exclude=BOOTSTRAP.md *.md knowledge-base/ .env.example` → must return **nothing** (this file quotes those tokens, hence the exclude).
-- In `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `CLAUDE.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/<slug>/` and kin), never an identity gap.
+- In `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `CLAUDE.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
 - `CLAUDE.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup).
 
 If a check fails, fix and re-run. Do not proceed on red.

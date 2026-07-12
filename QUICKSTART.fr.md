@@ -18,7 +18,7 @@ timestamp: 2026-07-02
 
 - **git**, pour récupérer le cadre et versionner ton système.
 - [Claude Code](https://claude.com/claude-code), l'agent avec lequel le cadre travaille.
-- **jq** et **python3**, utilisés par les hooks de sécurité (`guard.sh`, `lint.sh`). Le premier démarrage les vérifie et propose de t'aider ; sans eux l'installation fonctionne, mais les garde-fous laissent tout passer. Sous Windows, les hooks sont des scripts bash : [Git pour Windows](https://git-scm.com/download/win) fournit le bash qu'il leur faut.
+- **jq** et **python3**, utilisés par les hooks de sécurité (`guard.sh`, `lint.sh`). Le premier démarrage les vérifie et propose de t'aider. Sans jq, `guard.sh` **échoue fermé** : il bloque les actions outillées tant que jq n'est pas installé (mieux vaut muet que aveugle). Sans python3, le lint ne tourne pas ; avec python3 mais sans **PyYAML**, il tourne en mode YAML dégradé et son rapport l'annonce. Sous Windows, les hooks sont des scripts bash : [Git pour Windows](https://git-scm.com/download/win) fournit le bash qu'il leur faut.
 
 ## Les 3 premiers gestes
 

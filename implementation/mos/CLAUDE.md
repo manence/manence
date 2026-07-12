@@ -17,8 +17,8 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 | It's... | It goes... |
 |---|---|
 | a stable fact (brand, product, entity, business rule) | `knowledge-base/` (OKF, one concept per file; through `kb-ingest` if it comes from a source) |
-| work in progress (a campaign, a deliverable, an exploration) | a **workstream** `<domain>/in-progress/<slug>/` in the **container's production** (outside git: `$<PROJECT>_PRODUCTION_ROOT`, default `../production/`), opened by `open-work`. **Creating a working folder there = opening a workstream**: the discipline (About, linked context, trace) applies by default |
-| a finished deliverable | `<domain>/done/YYYYMMDD-<slug>/`, through `close-work` (KB distillation + log **required**: production artifacts are disposable) |
+| work in progress (a campaign, a deliverable, an exploration) | a **workstream** `<domain>/in-progress/YYYYMMDD-<slug>/` (dated at opening) in the **container's production** (outside git: `$<PROJECT>_PRODUCTION_ROOT`, default `../production/`), opened by `open-work`. **Creating a working folder there = opening a workstream**: the discipline (About, linked context, trace) applies by default |
+| a finished deliverable | `<domain>/done/`, through `close-work` (same folder name — never renamed, so links survive; KB distillation + log **required**: production artifacts are disposable) |
 | raw capture not yet sorted | `inbox/` |
 | a reusable procedure | `.claude/skills/<name>/SKILL.md` (the rule of three: ad hoc twice, a skill the third time) |
 | an event, a decision | a dated entry in `log.md` (append-only) |

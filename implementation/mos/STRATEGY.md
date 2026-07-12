@@ -23,7 +23,7 @@ timestamp: <YYYY-MM-DD>
 - <…>
 
 ## Cadence
-<Review rhythm: e.g. `weekly-review` every <day>, a monthly check-in on <…>.>
+<Review rhythm — for instance: weekly-review every Friday, a monthly check-in on the metrics table.>
 
 ## Metrics tracked
 | Metric | Source | Frequency |

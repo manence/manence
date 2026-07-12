@@ -1,7 +1,7 @@
 ---
 type: project
 title: Manence
-description: "The work system that makes your AI reliable on long-running projects. The knowledge that holds true, the real world wired in, the gesture carried through: markdown + git, free and open, installs in one command."
+description: "The work system that makes your AI reliable on long-running projects. The knowledge that holds true, the real world wired in, the gesture carried through: markdown + git — code and templates open source (MIT), doctrine free to read and share (CC BY-NC-SA) — installs in one conversation."
 tags: [ai-os, knowledge-management, claude-code, method]
 timestamp: 2026-07-09
 ---

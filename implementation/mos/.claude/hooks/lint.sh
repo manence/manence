@@ -96,10 +96,12 @@ _lintignore_cache = {}
 
 
 def _repo_root(start_dir):
-    """Remonte jusqu'au dossier qui contient .git (ou s'arrête à /)."""
+    """Remonte jusqu'au premier dossier qui contient un .lintignore ou un .git
+    (la production vit hors git par doctrine : son .lintignore doit porter quand
+    même — sémantique .gitignore)."""
     d = os.path.abspath(start_dir) or "/"
     while True:
-        if os.path.isdir(os.path.join(d, ".git")):
+        if os.path.isfile(os.path.join(d, ".lintignore")) or os.path.isdir(os.path.join(d, ".git")):
             return d
         parent = os.path.dirname(d)
         if parent == d:
@@ -154,6 +156,9 @@ def is_exempt_from_frontmatter(path, basename):
     if basename == "SKILL.md":
         return True  # format skill Claude Code : frontmatter name/description, pas OKF
     parts = os.path.normpath(path).split(os.sep)
+    if "inbox" in parts:
+        return True  # inbox/ : capture brute pré-contrat, frictionless par doctrine ;
+        # le garde-temps est à la weekly-review : capture > 14 j = triée ou supprimée
     if "sources" in parts:
         return True  # sources/ : inputs bruts immuables (méthode wiki), pas des pages de connaissance
     if ".claude" in parts and "agents" in parts:
@@ -298,7 +303,8 @@ def main():
         lint_file(path)
     for line in findings:
         print(line)
-    print(f"--- lint.sh : {len(findings)} constat(s) sur {len(paths)} fichier(s) ---")
+    yaml_mode = "YAML complet (PyYAML)" if HAS_YAML else "YAML NAÏF (PyYAML absent : la validité complète n'est PAS vérifiée)"
+    print(f"--- lint.sh : {len(findings)} constat(s) sur {len(paths)} fichier(s) — parsing {yaml_mode} ---")
     sys.exit(1 if findings else 0)
 
 

@@ -139,8 +139,8 @@ A complete install of the framework, dedicated to one activity, is called a **MO
     log.md                        LAYER 6: episodic, append-only
   production/                    ← LAYER 6, OUTSIDE git ($<PROJECT>_PRODUCTION_ROOT, default ../production)
     <domain>/                     one domain per line of work, created on first need
-      in-progress/<slug>/         the workstreams in progress (the workshop): text AND assets together
-      done/YYYYMMDD-<slug>/       closed, dated, never rewritten (date prefix = chrono sort)
+      in-progress/YYYYMMDD-<slug>/ the workstreams in progress (the workshop): text AND assets together
+      done/YYYYMMDD-<slug>/       closed, never rewritten (same name since opening: closing breaks no link)
 
 ~/.claude/   (OPTIONAL, only if several activities)   ← de-duplicated identity kernel
   CLAUDE.md                       the invariant kernel (language, way of working, ethics)

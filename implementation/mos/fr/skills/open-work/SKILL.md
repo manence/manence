@@ -6,7 +6,7 @@ description: Ouvre un chantier (une unité de travail avec un livrable identifia
 # open-work, ouvrir un chantier
 
 ## But
-Que tout travail naisse **au bon endroit, avec son contexte**, au lieu de finir en dossier orphelin. Un chantier = un dossier `<domaine>/in-progress/<slug>/` dans la **production du conteneur** (hors git), avec un `About.md` typé, un livrable identifiable et une trace.
+Que tout travail naisse **au bon endroit, avec son contexte**, au lieu de finir en dossier orphelin. Un chantier = un dossier `<domaine>/in-progress/YYYYMMDD-<slug>/` dans la **production du conteneur** (hors git), avec un `About.md` typé, un livrable identifiable et une trace.
 
 ## Procédure
 1. **Résoudre la racine de production.** `$<PROJET>_PRODUCTION_ROOT` (voir `.env` / `.env.example`), défaut : `../production/` depuis le cœur. Résoudre en **chemin absolu** : c'est lui qu'on utilisera partout (et qu'on passera tel quel à tout sous-agent, jamais « à deviner », Spec §18).
@@ -17,8 +17,8 @@ Que tout travail naisse **au bon endroit, avec son contexte**, au lieu de finir 
    - une décision seule → une entrée de `log.md` ;
    - un rapport périodique → la KB (savoir consolidé), pas un chantier.
 3. **Choisir le domaine.** La production s'organise par domaine métier (`pub/`, `contenu/`, `reporting/`…), **créé au premier besoin** avec ses deux sous-dossiers `in-progress/` et `done/`. Réutiliser un domaine existant si le travail s'y range.
-4. **Nommer.** Un slug lisible (`campagne-meta-rentree`, `webinaire-produit-x`), pas de date en préfixe (elle viendra à la clôture). Vérifier qu'aucun chantier semblable n'existe déjà dans les `in-progress/`, `done/` ou `inbox/` (sinon : reprendre l'existant, pas dupliquer).
-5. **Créer** `<domaine>/in-progress/<slug>/About.md` depuis `templates/chantier/About.template.md` (dans le cœur) et remplir le **brief** avec l'utilisateur : objectif en une phrase, livrable attendu, échéance s'il y en a une.
+4. **Nommer.** La date d'ouverture + un slug lisible : `YYYYMMDD-<slug>` (`20260712-campagne-meta-rentree`). Le préfixe se pose **à la naissance** et ne change plus jamais : la clôture ne fait que déplacer le dossier, aucun lien entrant ne casse. Vérifier qu'aucun chantier semblable n'existe déjà dans les `in-progress/`, `done/` ou `inbox/` (sinon : reprendre l'existant, pas dupliquer).
+5. **Créer** `<domaine>/in-progress/YYYYMMDD-<slug>/About.md` depuis `templates/chantier/About.template.md` (dans le cœur) et remplir le **brief** avec l'utilisateur : objectif en une phrase, livrable attendu, échéance s'il y en a une.
 6. **Brancher le contexte, sans le copier** : lier les pages de la KB concernées, les mesures pertinentes (connecteurs), le chantier précédent du même type s'il existe. Les liens se **calculent depuis l'emplacement final** du chantier (toi seul connais les deux racines : les vérifier en les résolvant, pas en les supposant). On lie, on ne recopie pas (L2).
 7. **Tracer** : entrée `## [YYYY-MM-DD] work-open | <domaine>/<slug>` dans le `log.md` du cœur (une ligne : l'objectif).
 8. **Annoncer** la prochaine étape concrète du chantier.

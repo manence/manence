@@ -52,6 +52,6 @@ An autonomous agent acts; sooner or later it will encounter the dangerous comman
 
 ## → Alongside (the how)
 - [Spec §12: Security & confidentiality: hard vs soft](../implementation/Spec.md): the full rule.
-- [templates/hooks/guard.sh](../implementation/mos/.claude/hooks/guard.sh) (`PreToolUse` blocking) + [templates/settings.example.json](../implementation/mos/.claude/settings.json): the guardrail ready to plug in.
+- [mos/.claude/hooks/guard.sh](../implementation/mos/.claude/hooks/guard.sh) (`PreToolUse` blocking) + [mos/.claude/settings.json](../implementation/mos/.claude/settings.json): the guardrail ready to plug in.
 
 Related concepts: [The hexagonal architecture](architecture-hexagonale.md) (confidentiality = composition) · [The loops](loops.md) (stopping a loop is a boundary) · [Manifesto](../Manifesto.md).

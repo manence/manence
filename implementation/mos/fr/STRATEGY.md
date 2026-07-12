@@ -23,7 +23,7 @@ timestamp: <YYYY-MM-DD>
 - <…>
 
 ## Cadence
-<Rythme de revue : ex. `weekly-review` chaque <jour>, point mensuel le <…>.>
+<Rythme de revue, par exemple : weekly-review chaque vendredi, point mensuel sur la table des indicateurs.>
 
 ## Indicateurs suivis
 | Indicateur | Source | Fréquence |

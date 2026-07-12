@@ -1,7 +1,7 @@
 ---
 type: project
 title: Manence
-description: "Le système de travail qui rend ton IA fiable sur les projets qui durent. Le savoir qui fait foi, le réel branché, le geste qui va au bout : markdown + git, gratuit et ouvert, s'installe en une commande."
+description: "Le système de travail qui rend ton IA fiable sur les projets qui durent. Le savoir qui fait foi, le réel branché, le geste qui va au bout : markdown + git — code et gabarits open source (MIT), doctrine libre à lire et partager (CC BY-NC-SA) — s'installe en une conversation."
 tags: [ai-os, knowledge-management, claude-code, méthode]
 timestamp: 2026-07-09
 ---
