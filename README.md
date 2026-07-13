@@ -41,14 +41,17 @@ The framework builds on Karpathy's model (*Software 3.0*): the AI model is the *
 
 ## Installation
 
-Get the framework, copy the default MOS, and let the agent finish the job:
+Get the framework, copy the default MOS into a container of its own, and let the agent finish the job:
 
 ```bash
 git clone https://github.com/manence/manence.git
-cp -R manence/implementation/mos ~/my-project
+mkdir ~/my-project                                    # the container — this is your MOS
+cp -R manence/implementation/mos ~/my-project/core    # the core — a git repo of its own
 ```
 
-Then open Claude Code in the new folder and say: **"run my first startup"**. The agent reads `BOOTSTRAP.md` — the one-time ritual: it asks your language (English or French), interviews you, fills in your identity files from your answers, checks the guardrails, then deletes itself. Installing the system is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
+`~/my-project/` is the **container**: it will hold the core (versioned) and, alongside it, `production/` (your working artifacts, outside git — the first startup creates it). Copy the **folder**, never its contents: the core carries dotfiles (`.claude/`, `.gitignore`) that a file manager hides by default.
+
+Then open Claude Code in the core (`cd ~/my-project/core`) and say: **"run my first startup"**. The agent reads `BOOTSTRAP.md` — the one-time ritual: it asks your language (English or French), interviews you, fills in your identity files from your answers, checks the guardrails, then deletes itself. Installing the system is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
 
 ## The proof: it already runs on real work
 

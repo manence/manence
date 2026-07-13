@@ -14,40 +14,48 @@ The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([S
 
 ```bash
 git clone https://github.com/manence/manence.git
-cp -R manence/implementation/mos my-project
+mkdir my-project                                    # the container (the MOS, Spec §0)
+cp -R manence/implementation/mos my-project/core    # the core (its own git repo)
 ```
 
-Then open Claude Code in the new folder and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
+Two folders, two jobs: the **container** is the MOS (Spec §0) — it holds the core and, alongside it, production (Spec §16); the **core** is what you copy, and it becomes a git repository of its own. Copy the folder, never its contents: the core's dotfiles (`.claude/`, `.gitignore`, `.env.example`) are hidden by default in a file manager, and a core without `.claude/` is a core without guardrails. The ritual's step 0 checks this.
+
+Then open Claude Code in the core (`cd my-project/core`) and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
 
 There is no frozen `starter/` directory *and* no assembly script: `mos/` **is** the single source (law **L2**) — what you copy is what you run, and the personalization is a conversation, not a `sed`.
 
 The result: a self-contained core **plus its production alongside, outside git** (Spec §16; location chosen at first startup):
 
 ```
-my-project/           ← THE CORE (git repository: the system + the knowledge)
-  CLAUDE.md            identity + direction + routing table (filled by the first startup)
-  SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first startup, openclaw convention)
-  .claude/
-    skills/            the 6 base skills (open-work, close-work, weekly-review, kb-ingest, kb-lint, connect-adapter)
-    agents/            empty at start; a subagent template sits in templates/agent.template.md
-    settings.json      hook wiring
-    hooks/             guard.sh, lint.sh (executable)
-  .mcp.json.example     MCP connectors (copy to .mcp.json if needed)
-  .env.example          env variables, including $MY_PROJECT_PRODUCTION_ROOT (copy to .env, gitignored)
-  CLAUDE.local.md.example  map of local/confidential connectors (copy to CLAUDE.local.md, gitignored)
-  .gitignore
-  templates/           workstream template (About.template.md) + OKF templates, within the project's reach
-  scripts/   sources/  direct API calls; immutable raw sources (wiki method)
-  knowledge-base/      the wiki (layer 2), see §3
-    index.md  log.md   skeletons, stamped by the first startup; ready for kb-ingest
-  inbox/               raw capture to be sorted
-  log.md               the project journal (append-only)
+my-project/             ← THE CONTAINER = THE MOS (not a repository: it just holds)
+  core/                 ← THE CORE (git repository: the system + the knowledge)
+    CLAUDE.md            identity + direction + routing table (filled by the first startup)
+    SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first startup, openclaw convention)
+    .claude/
+      skills/            the 6 base skills (open-work, close-work, weekly-review, kb-ingest, kb-lint, connect-adapter)
+      agents/            empty at start; a subagent template sits in templates/agent.template.md
+      settings.json      hook wiring
+      hooks/             guard.sh, lint.sh (executable)
+    .mcp.json.example     MCP connectors (copy to .mcp.json if needed)
+    .env.example          env variables, including $MY_PROJECT_PRODUCTION_ROOT (copy to .env, gitignored)
+    CLAUDE.local.md.example  map of local/confidential connectors (copy to CLAUDE.local.md, gitignored)
+    .gitignore
+    templates/           workstream template (About.template.md) + OKF templates, within the project's reach
+    scripts/   sources/  direct API calls; immutable raw sources (wiki method)
+    knowledge-base/      the wiki (layer 2), see §3
+      index.md  log.md   skeletons, stamped by the first startup; ready for kb-ingest
+    inbox/               raw capture to be sorted
+    log.md               the project journal (append-only)
 
-production/           ← OUTSIDE git, in the container (default ../production/, created by the first startup)
-  <domain>/           a business domain, created on first need by open-work
-    in-progress/       ongoing workstreams
-    done/              closed workstreams (moved as-is by close-work; the YYYYMMDD- prefix is set at opening)
+  production/           ← OUTSIDE git (default ../production/ from the core, created by the first startup)
+    <domain>/           a business domain, created on first need by open-work
+      in-progress/       ongoing workstreams
+      done/              closed workstreams (moved as-is by close-work; the YYYYMMDD- prefix is set at opening)
+
+  <adapter>/            ← later: a connected repo (a site, a workshop), plugged in by connect-adapter
 ```
+
+The container is the perimeter of one activity (Spec §0): everything that belongs to this MOS lives under it. It is **not** a repository — only the core (and each adapter) is versioned.
 
 `.gitignore` provided: `.env`, `.env.*` (except `.env.example`), `node_modules/`, `.DS_Store`, `CLAUDE.local.md`, `.obsidian/workspace*`.
 

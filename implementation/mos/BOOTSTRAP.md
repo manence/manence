@@ -13,6 +13,26 @@ timestamp: 2026-07-11
 
 **To the agent.** You are performing the one-time setup of a new Manence OS — one installation for one activity. Work through every step, in order. Ask; never invent an answer. When every check passes, this file gets deleted: a system that still contains BOOTSTRAP.md is not set up.
 
+## 0. Integrity — is the copy whole?
+
+Before anything else, check that this core still has all its organs. A copy made through a file manager silently drops the **dotfiles** (they are hidden by default), and a core without `.claude/` is a core without skills and without guardrails — a failure you must catch now, not at step 5.
+
+Every one of these must exist, here, at the root:
+
+```
+.claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
+.env.example   .gitignore   .mcp.json.example   CLAUDE.local.md.example
+CLAUDE.md   SOUL.md   STRATEGY.md   log.md   knowledge-base/   templates/   inbox/
+```
+
+If anything is missing, **stop the ritual** and say so plainly. The near-certain cause: the *contents* of `mos/` were copied instead of the folder itself (a drag-and-drop, hidden files off). The fix is not to hand-craft the missing pieces — it is to recopy properly, from the manence clone:
+
+```bash
+cp -R manence/implementation/mos <container>/core
+```
+
+(Or, to repair in place without losing what has already been written: `cp -R manence/implementation/mos/. .` — the trailing `/.` is what carries the dotfiles.) Then restart the ritual. Also check `.claude/hooks/*.sh` are executable (`chmod +x` otherwise): some copy paths drop the bit.
+
 ## 1. Prerequisites first
 
 Run `jq --version` and `python3 --version`. **Without jq, `guard.sh` fails closed: it blocks every tool action until jq is installed** — so this check comes before any other gesture. Without python3, `lint.sh` can't run; with python3 but no PyYAML, it runs in a degraded YAML mode and says so in its report. If something is missing, offer the install command for the human's OS and wait for their decision.
@@ -45,7 +65,7 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 ## 4. Configuration
 
-- **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository. Propose the default: `../production/` next to this folder. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
+- **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
 - **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
 
 ## 5. Verify — run the checks, don't assume

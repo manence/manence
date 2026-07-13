@@ -24,16 +24,21 @@ timestamp: 2026-07-02
 
 1. **Read the [Manifesto](Manifesto.md) (5 min).** The single thread: the mental model, the 7 layers, the 9 laws. It's the one document you need to grasp the framework; each idea then unfolds in [`concept/`](concept/index.md).
 
-2. **Copy the default MOS.** Get the framework, then copy the ready-made system wherever yours should live:
+2. **Copy the default MOS.** Get the framework, then copy the ready-made system into a container of its own:
 
    ```bash
    git clone https://github.com/manence/manence.git
-   cp -R manence/implementation/mos ~/my-project
+   mkdir ~/my-project                                    # the container — this is your MOS
+   cp -R manence/implementation/mos ~/my-project/core    # the core — a git repo of its own
    ```
 
-   (Copying the folder in your file manager works just as well.) Everything is in the copy: identity files, the routing table, 6 base skills, safety hooks, knowledge base — plus `BOOTSTRAP.md`, the one-time startup ritual.
+   Two folders, two jobs. `~/my-project/` is the **container**: it holds the **core** (`core/` — the system and the knowledge, versioned) and, once the first startup has created it, `production/` alongside (your working artifacts, outside git). Running several MOS? Name each core after its activity (`my-project-core`) so your terminal tabs stay tellable apart.
 
-3. **Run your first startup.** Open Claude Code inside the new folder (`cd ~/my-project`, then `claude`) and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) and takes it from there: it asks your language (**English or French**), interviews you — name, what the activity does, who works here, the voice, the direction — fills in your identity files from your answers, checks the guardrails, verifies everything, then deletes the ritual file. That's also your first lesson: **skills are invoked by talking to the agent**, not on a command line. When it's done, hand it real work: *"open a workstream for ‹something you're working on this week›"*.
+   ⚠️ **Copy the folder, never its contents.** The core carries dotfiles — `.claude/` (the skills and the safety hooks), `.gitignore`, `.env.example` — and a file manager hides them by default: dragging the *contents* of `mos/` silently leaves them behind, and you get a core with no hooks. Either use the command above, or drag the `mos` **folder** itself. (The first startup checks this and tells you if anything is missing.)
+
+   Everything else is in the copy: identity files, the routing table, 6 base skills, safety hooks, knowledge base — plus `BOOTSTRAP.md`, the one-time startup ritual.
+
+3. **Run your first startup.** Open Claude Code inside the core (`cd ~/my-project/core`, then `claude`) and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) and takes it from there: it asks your language (**English or French**), interviews you — name, what the activity does, who works here, the voice, the direction — fills in your identity files from your answers, checks the guardrails, verifies everything, then deletes the ritual file. That's also your first lesson: **skills are invoked by talking to the agent**, not on a command line. When it's done, hand it real work: *"open a workstream for ‹something you're working on this week›"*.
 
 > **Bonus**: open the project folder in [Obsidian](https://obsidian.md) (free) — the relative links draw the **graph** of your knowledge: clusters, orphans, and gaps, all visible at a glance. An optional human view, never a dependency (see [the memory model](concept/modele-memoire.md)).
 

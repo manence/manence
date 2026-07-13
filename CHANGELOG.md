@@ -9,6 +9,11 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [Unreleased]
+
+- **The install path finally builds the container.** The doctrine has always said a MOS *is* the container that holds the core, production, and the adapters (Spec §0, §16) — but no install command created it: the core was copied straight into `~/my-project`, and production then landed *beside* it, in the home directory. Installing now makes both: `mkdir my-project` (the container), then `cp -R manence/implementation/mos my-project/core` (the core). What the doctrine describes is what the commands produce.
+- **The ritual checks its own organs before it starts.** New step 0: BOOTSTRAP verifies that the copy is whole — `.claude/` (skills, hooks), `.gitignore`, `.env.example` — and stops with the diagnosis and the repair command if anything is missing. Copying the *contents* of `mos/` through a file manager silently drops the dotfiles, and a core without `.claude/` is a core without guardrails; the failure used to surface at step 5, after the whole interview. The QUICKSTART now warns instead of encouraging the drag-and-drop that causes it.
+
 ## [0.3.1] - 2026-07-12
 
 Hardening release, following a full external audit of the repository and of a real running MOS.

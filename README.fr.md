@@ -41,14 +41,17 @@ Le cadre repose sur le modèle de Karpathy (*Software 3.0*) : le modèle d'IA es
 
 ## Installation
 
-Récupère le cadre, copie le MOS par défaut, et laisse l'agent finir le travail :
+Récupère le cadre, copie le MOS par défaut dans un conteneur à lui, et laisse l'agent finir le travail :
 
 ```bash
 git clone https://github.com/manence/manence.git
-cp -R manence/implementation/mos ~/mon-projet
+mkdir ~/mon-projet                                    # le conteneur — c'est ton MOS
+cp -R manence/implementation/mos ~/mon-projet/core    # le cœur — un dépôt git à lui seul
 ```
 
-Puis ouvre Claude Code dans le nouveau dossier et dis-lui : **« fais mon premier démarrage »**. L'agent lit `BOOTSTRAP.md` — le rituel unique : il demande ta langue (réponds français, tout ton système s'installe en français), t'interviewe, remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, puis se supprime. Installer le système, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
+`~/mon-projet/` est le **conteneur** : il abritera le cœur (versionné) et, à côté, `production/` (tes artefacts de travail, hors git — le premier démarrage le crée). Copie le **dossier**, jamais son contenu : le cœur porte des fichiers cachés (`.claude/`, `.gitignore`) que ton explorateur masque par défaut.
+
+Puis ouvre Claude Code dans le cœur (`cd ~/mon-projet/core`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit `BOOTSTRAP.md` — le rituel unique : il demande ta langue (réponds français, tout ton système s'installe en français), t'interviewe, remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, puis se supprime. Installer le système, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
 
 ## La preuve : il tourne déjà sur du vrai travail
 

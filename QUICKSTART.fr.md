@@ -24,16 +24,21 @@ timestamp: 2026-07-02
 
 1. **Lire le [Manifeste](Manifesto.fr.md) (5 min).** Le fil unique : le modèle mental, les 7 couches, les 9 lois. C'est le seul document à comprendre pour saisir le cadre ; chaque idée se déplie ensuite dans [`concept/`](concept/index.md) (en anglais).
 
-2. **Copier le MOS par défaut.** Récupérer le cadre, puis copier le système prêt à l'emploi là où le tien doit vivre :
+2. **Copier le MOS par défaut.** Récupérer le cadre, puis copier le système prêt à l'emploi dans un conteneur à lui :
 
    ```bash
    git clone https://github.com/manence/manence.git
-   cp -R manence/implementation/mos ~/mon-projet
+   mkdir ~/mon-projet                                    # le conteneur — c'est ton MOS
+   cp -R manence/implementation/mos ~/mon-projet/core    # le cœur — un dépôt git à lui seul
    ```
 
-   (Copier le dossier dans ton explorateur de fichiers marche tout aussi bien.) Tout est dans la copie : fichiers d'identité, table de routage, 6 skills de base, hooks de sécurité, knowledge-base — plus `BOOTSTRAP.md`, le rituel de premier démarrage.
+   Deux dossiers, deux rôles. `~/mon-projet/` est le **conteneur** : il abrite le **cœur** (`core/` — le système et la connaissance, versionnés) et, dès que le premier démarrage l'aura créée, `production/` à côté (tes artefacts de travail, hors git). Plusieurs MOS ? Nomme chaque cœur d'après son activité (`mon-projet-core`), tes onglets de terminal resteront lisibles.
 
-3. **Faire son premier démarrage.** Ouvre Claude Code dans le nouveau dossier (`cd ~/mon-projet` puis `claude`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) et prend la main : il demande ta langue (**français ou anglais** — réponds français, et tout ton système s'installe en français : identité, skills, gabarits), t'interviewe — le nom, ce que fait l'activité, qui travaille ici, la voix, le cap — remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, contrôle tout, puis supprime le fichier du rituel. C'est aussi ta première leçon : **les skills s'invoquent en parlant à l'agent**, pas en ligne de commande. Quand c'est fini, donne-lui du vrai travail : *« ouvre un chantier pour ‹ce sur quoi tu bosses cette semaine› »*.
+   ⚠️ **Copie le dossier, jamais son contenu.** Le cœur porte des fichiers cachés — `.claude/` (les skills et les hooks de sécurité), `.gitignore`, `.env.example` — que ton explorateur masque par défaut : glisser le *contenu* de `mos/` les laisse silencieusement derrière, et tu obtiens un cœur sans garde-fous. Passe par la commande ci-dessus, ou glisse le **dossier** `mos` lui-même. (Le premier démarrage le vérifie et te le dit s'il manque quelque chose.)
+
+   Tout le reste est dans la copie : fichiers d'identité, table de routage, 6 skills de base, hooks de sécurité, knowledge-base — plus `BOOTSTRAP.md`, le rituel de premier démarrage.
+
+3. **Faire son premier démarrage.** Ouvre Claude Code dans le cœur (`cd ~/mon-projet/core` puis `claude`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) et prend la main : il demande ta langue (**français ou anglais** — réponds français, et tout ton système s'installe en français : identité, skills, gabarits), t'interviewe — le nom, ce que fait l'activité, qui travaille ici, la voix, le cap — remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, contrôle tout, puis supprime le fichier du rituel. C'est aussi ta première leçon : **les skills s'invoquent en parlant à l'agent**, pas en ligne de commande. Quand c'est fini, donne-lui du vrai travail : *« ouvre un chantier pour ‹ce sur quoi tu bosses cette semaine› »*.
 
 > **Bonus** : ouvre le dossier du projet dans [Obsidian](https://obsidian.md) (gratuit) — les liens relatifs dessinent le **graphe** de ta connaissance : clusters, orphelines et trous visibles d'un coup d'œil. Une vue humaine optionnelle, jamais une dépendance (voir [le modèle de mémoire](concept/modele-memoire.md), en anglais).
 
