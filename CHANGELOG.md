@@ -9,7 +9,7 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
-## [Unreleased]
+## [0.4.1] - 2026-07-24
 
 The reliability batch: the promises the repo already made now have machinery behind them.
 
