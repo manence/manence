@@ -87,7 +87,7 @@ The examples in this repository use **Claude Code**, the most direct path today.
 
 - **[QUICKSTART.md](QUICKSTART.md)**: the way in if you're new (who it's for, what it is, 3 moves).
 - **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts. **Start here.**
-- **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE, credited private source).
+- **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE).
 - **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 6 base skills, hooks, the startup ritual), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
 - **[CHANGELOG.md](CHANGELOG.md)**: the versions.
 
@@ -97,7 +97,7 @@ The examples in this repository use **Claude Code**, the most direct path today.
 
 ## Lineage and credits
 
-Manence synthesizes and builds tooling around ideas whose sources are named and documented in [`concept/research/`](concept/research/index.md): the computer model of **Andrej Karpathy** (*Software 3.0*), the **OKF** spec (Google), the **CoALA** memory model, the context-engineering practices of **Anthropic**, the identity conventions of the open source project **OpenClaw**, and **LIVING REFERENCE / CANON FLOTANT** by **JP Noto** (dual value, traced validation, status cycle). The hexagonal framing and the 9 laws are original syntheses of the framework.
+Manence synthesizes and builds tooling around ideas whose sources are named and documented in [`concept/research/`](concept/research/index.md): the computer model of **Andrej Karpathy** (*Software 3.0*), the **OKF** spec (Google), the **CoALA** memory model, the context-engineering practices of **Anthropic**, the identity conventions of the open source project **OpenClaw**, and **LIVING REFERENCE** by **JP Noto** (dual value, traced validation, the status lifecycle — and, since 0.4, the trace sieve, the revision trigger and the drift tests, under written agreement). The hexagonal framing and the 9 laws are original syntheses of the framework.
 
 Created by **Alexandre Noto** ([Alex Déclic](https://www.youtube.com/@alexdeclic)), a SaaS executive who runs his own company with this framework.
 

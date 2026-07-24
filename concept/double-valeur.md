@@ -1,7 +1,7 @@
 ---
 type: reference
 title: Double value
-description: "Every useful interaction does two things at once: it moves the work forward AND leaves behind a reusable trace. Law L8, the bridge between Execution and Memory, borrowed from LIVING REFERENCE / CANON FLOTANT (JP Noto)."
+description: "Every useful interaction does two things at once: it moves the work forward AND leaves behind a reusable trace. Law L8, the bridge between Execution and Memory, borrowed from LIVING REFERENCE (JP Noto)."
 tags: [ai-os, double-valeur, living-reference, jp-noto]
 timestamp: 2026-07-02
 ---
@@ -14,7 +14,7 @@ The "**one stone, two birds**" principle: every useful interaction does **two th
 
 A loop never emits *just* a deliverable: it **writes to memory by design**. This is the **bridge** between the **Execution layer (4)** and the **Memory layer (6)**, and it keeps the work from evaporating into the chat.
 
-> Borrowed from **LIVING REFERENCE / CANON FLOTANT** (**JP Noto**), a parallel line of thought coming from a different angle (the design of guided assistants), with a striking convergence on the core. Named credit, the same way Karpathy gets credit for the wiki method. LIVING REFERENCE is a private project of JP Noto's: credited here without publishing its source.
+> Borrowed from **LIVING REFERENCE** (**JP Noto**), a parallel line of thought coming from a different angle, with a striking convergence on the core. Named credit, the same way Karpathy gets credit for the wiki method. The source record — everything carried over, everything that merely converged — is kept in [research/06](research/06-living-reference.md).
 
 ## How it works
 
@@ -33,7 +33,7 @@ Not everything the AI produces is usable. An item carries a **status** that evol
 Without double value, an assistant **answers**: every session starts from scratch, and the experience never compounds. With it, the system **works alongside a workflow and banks the choices**: dynamic memory fills itself as the work happens, instead of being a separate documentation chore (that never gets done). This is what turns a series of interactions into an asset that grows.
 
 ## → Source (verified)
-LIVING REFERENCE / CANON FLOTANT (JP Noto): private project, credited without publication. The 3 concepts drawn from it: double value (L8), traced validation (Spec §11), status cycle (Spec §6).
+[research/06: LIVING REFERENCE](research/06-living-reference.md) (JP Noto): the source record — the mechanisms carried over (double value → L8, traced validation → Spec §11, the status lifecycle → Spec §6, and the 2026-07 wave: trace sieve, pruning test, `review_when:`, drift tests), what converged independently, and what was left out.
 
 ## → Alongside (the how)
 - [Spec §11: Human validation = trace](../implementation/Spec.md): the `log.md` block that captures who/what/why/set-aside.

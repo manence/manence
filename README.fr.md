@@ -97,7 +97,7 @@ Les exemples de ce dépôt utilisent **Claude Code**, le chemin le plus direct a
 
 ## Filiation et crédits
 
-Manence synthétise et outille des idées dont les sources sont nommées et documentées dans [`concept/research/`](concept/research/index.md) : le modèle ordinateur de **Andrej Karpathy** (*Software 3.0*), le spec **OKF** (Google), le modèle de mémoire **CoALA**, les pratiques d'ingénierie de contexte d'**Anthropic**, les conventions d'identité du projet open source **OpenClaw**, et **LIVING REFERENCE / CANON FLOTANT** de **JP Noto** (double valeur, validation tracée, cycle de statuts). Le cadrage hexagonal et les 9 lois sont des synthèses originales du cadre.
+Manence synthétise et outille des idées dont les sources sont nommées et documentées dans [`concept/research/`](concept/research/index.md) : le modèle ordinateur de **Andrej Karpathy** (*Software 3.0*), le spec **OKF** (Google), le modèle de mémoire **CoALA**, les pratiques d'ingénierie de contexte d'**Anthropic**, les conventions d'identité du projet open source **OpenClaw**, et **LIVING REFERENCE** de **JP Noto** (double valeur, validation tracée, cycle de statuts — et, depuis la 0.4, le tamis de trace, le déclencheur de révision et les tests de dérive, sur accord écrit). Le cadrage hexagonal et les 9 lois sont des synthèses originales du cadre.
 
 Créé par **Alexandre Noto** ([Alex Déclic](https://www.youtube.com/@alexdeclic)), dirigeant de SaaS, qui pilote sa propre entreprise avec ce cadre.
 

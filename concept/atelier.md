@@ -54,7 +54,7 @@ A gesture is written **ad hoc** the first and the second time; the **third**, it
 
 ## → Source
 
-No external source: a concept born from the framework's first real deployment, then refined by the pilot project's first full day of operation (the loop run twice; the lessons from that harvest were each worked through one by one into v1.1, see [CHANGELOG](../CHANGELOG.md)). The status cycle of workstreams reuses the proposal → canon of LIVING REFERENCE (JP Noto, credited private project).
+No external source: a concept born from the framework's first real deployment, then refined by the pilot project's first full day of operation (the loop run twice; the lessons from that harvest were each worked through one by one into v1.1, see [CHANGELOG](../CHANGELOG.md)). The status cycle of workstreams reuses the proposal → canon of LIVING REFERENCE (JP Noto, credited — [research/06](research/06-living-reference.md)).
 
 ## → Alongside (the how)
 

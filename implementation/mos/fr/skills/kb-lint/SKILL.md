@@ -11,14 +11,15 @@ Garder le wiki sain quand il grossit. Produire une liste de corrections **et** d
 ## Procédure
 Parcourir `knowledge-base/` et signaler, d'après la méthode Karpathy :
 1. **Contradictions** entre pages (mêmes faits, valeurs divergentes).
-2. **Claims périmés**, remplacés par des sources plus récentes (croiser `timestamp` et `superseded_by`).
+2. **Claims périmés**, remplacés par des sources plus récentes (croiser `timestamp` et `superseded_by`) ; et tout **`review_when:` échu** (date passée, ou événement déclencheur survenu) : la page cesse de faire foi seule, proposer sa reconfirmation ou sa mise à jour.
 3. **Pages orphelines**, aucun lien entrant.
 4. **Concepts cités sans page dédiée**, un nom revient dans plusieurs pages mais n'a pas la sienne.
 5. **Cross-références manquantes**, deux pages liées sémantiquement mais sans lien.
 6. **Trous de données**, questions ouvertes comblables par une recherche web.
 7. **Conformité OKF / L2**, `type:` manquant, `index.md` qui a dérivé, doublons (un fait à deux endroits). Exception : les fiches `type: research` (relevés de sources) sont **exclues** du contrôle de doublons, leur recouvrement avec le Manifesto et les concepts du cadre est normal.
 8. **Liens cassés / non graphables**, cible inexistante, ou lien à **slash initial** (`/dossier/page.md`) que le graphe Obsidian ne trace pas, signaler pour repasser en relatif au fichier.
-9. **Frontmatter valide + typographie** : chaque page (hors `index.md`/`log.md`) a un frontmatter YAML **parseable**, piège classique : un `:` non quoté dans `title`/`description` (ex. « Produit : le pitch ») casse le YAML, il faut quoter la valeur ; et **aucun tiret cadratin `—`** dans le frontmatter (virgule / deux-points / parenthèses ; le demi-cadratin `–` des plages reste permis).
+9. **Élagage (le test du refaire)** : une page que plus aucune décision vivante ne lie **et** dont la disparition ne ferait rien refaire → proposer sa consolidation ou son archivage. Deux questions vérifiables, jamais un jugement d'importance, et proposer seulement, jamais supprimer.
+10. **Frontmatter valide + typographie** : chaque page (hors `index.md`/`log.md`) a un frontmatter YAML **parseable**, piège classique : un `:` non quoté dans `title`/`description` (ex. « Produit : le pitch ») casse le YAML, il faut quoter la valeur ; et **aucun tiret cadratin `—`** dans le frontmatter (virgule / deux-points / parenthèses ; le demi-cadratin `–` des plages reste permis).
 
 ## Sortie
 Un rapport markdown, par catégorie : la liste des fichiers + l'action proposée. **Ne rien corriger automatiquement**, proposer, l'utilisateur valide.

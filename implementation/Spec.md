@@ -89,12 +89,14 @@ type: reference
 timestamp: 2026-06-30
 valid_from: 2026-06-22
 superseded_by: ../produit/v2.md   # when replaced
+review_when: "2026-08-15, opposition window opens"   # optional: when to re-check
 ---
 ```
 
 - git gives you the "when I learned it" axis for free (commit history).
 - The frontmatter gives you "from/until when it is true".
 - **Explicit statuses** (`shipped / upcoming / to confirm`, `obsolete`) are a lightweight form of invalidation.
+- **`review_when:`** (optional) looks *forward* where the other two fields look back: a date or a trigger event after which the page stops being authoritative **on its own** and asks to be reconfirmed or updated. Without it, a stale truth stays `canon` until someone trips over it; with it, the weekly review surfaces the page mechanically at the right moment. Only pages whose truth can expire carry it — the lint flags a due `review_when`, it never demands the field. *(The forward-looking trigger is borrowed from LIVING REFERENCE's freshness axis, JP Noto.)*
 
 ### Lifecycle of an item
 Not everything the AI produces is usable. An item carries an explicit **status**, which evolves:
@@ -105,7 +107,7 @@ proposal → evaluated → validated → canonized → archived | rejected
 
 - Frontmatter `status:` (`proposal` | `validated` | `canon` | `archived` | `rejected`).
 - **`canon`** = becomes a reusable reference you can lean on. It is the proposal→canon transition that creates the value.
-- Never treat a `proposal` as a fact. *(Status model borrowed from JP Noto's CANON FLOTANT / LIVING REFERENCE, a private project credited here.)*
+- Never treat a `proposal` as a fact. *(Status lifecycle borrowed from JP Noto's LIVING REFERENCE — source record in [research/06](../concept/research/06-living-reference.md); the freshness fields above come from the bi-temporal model of Zep/Graphiti, source 03.)*
 
 ## 7. Frictionless capture
 
@@ -114,7 +116,9 @@ proposal → evaluated → validated → canonized → archived | rejected
 
 ## 8. Periodic hygiene: the `lint` command
 
-A regular Claude pass that looks for: orphan pages, an `index.md` that has drifted, expired claims, **contradictions between files**, broken links, duplicates (L2 violations). To be turned into a `kb-lint` skill. Visual aid: the **Obsidian graph** makes orphans (isolated nodes) and clusters/gaps obvious at a glance.
+A regular Claude pass that looks for: orphan pages, an `index.md` that has drifted, expired claims (including a due `review_when`, §6), **contradictions between files**, broken links, duplicates (L2 violations). To be turned into a `kb-lint` skill. Visual aid: the **Obsidian graph** makes orphans (isolated nodes) and clusters/gaps obvious at a glance.
+
+Pruning has a test too, the mirror of the §11 sieve: a page that is **no longer tied to any living decision** and whose loss **would force nothing to be redone** gets consolidated or archived — two verifiable questions, never a judgment of importance, and always proposed rather than applied. The KB does not promise to keep everything; it promises that what it keeps either conditions a decision or spares a redo.
 
 Special case: `type: research` files are **source records** (they report what a primary source says). Their overlap with the Manifesto and the framework's concepts is **normal** and **excluded** from the duplicate check: law L2 targets the framework's own knowledge (one canonical file per fact), not its supporting evidence, which legitimately mirrors the content of the source it documents.
 
@@ -140,7 +144,7 @@ By default, for a solo/SMB operator: **markdown + git covers everything**, excep
 
 ## 11. Human validation = trace (double-value principle, law L8)
 
-A validation is not a plain go/no-go: it is an **artifact** to keep. Every important decision leaves a `log.md` entry that captures **who chose, what, why, and what was set aside**:
+A validation is not a plain go/no-go: it is an **artifact** to keep. What earns a `log.md` entry is settled by a test, not by a feeling of importance — the **trace sieve** *(borrowed from LIVING REFERENCE, JP Noto, like the status model in §6)*: an interaction leaves a trace **if and only if** it changes a status, a scope, or a constraint, **or** if losing it would force the work to be redone (the *redo test*). Two no's: no trace — "important" is an adjective, not a criterion, and a log that records everything is just a bloated prompt deferred. When a decision does trace, the entry captures **who chose, what, why, and what was set aside** — and the set-aside matters: before re-proposing an option, the agent checks it was not already rejected, because a kept reason is what stops the same mistake from coming back.
 
 ```
 ## [2026-06-30] validation | Option chosen

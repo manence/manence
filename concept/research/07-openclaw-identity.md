@@ -16,14 +16,14 @@ timestamp: 2026-07-11
 
 OpenClaw's workspace (`~/.openclaw/workspace/`, which the docs recommend backing up **to a private git repository**) loads a set of markdown files at the start of every session, each with a clear role:
 
-| File | Role |
-|---|---|
-| `SOUL.md` | the **voice**: tone, opinions, humor, behavioral limits |
-| `USER.md` | who the **human** is, to personalize responses |
-| `AGENTS.md` | persistent operating rules across sessions |
-| `IDENTITY.md` | the agent's name, energy, emoji |
-| `TOOLS.md` | local tooling conventions |
-| `MEMORY.md` + `memory/YYYY-MM-DD.md` | curated long-term memory + daily journals |
+| File                                      | Role                                                     |
+| ----------------------------------------- | -------------------------------------------------------- |
+| `SOUL.md`                                 | the **voice**: tone, opinions, humor, behavioral limits  |
+| `USER.md`                                 | who the **human** is, to personalize responses           |
+| `AGENTS.md`                               | persistent operating rules across sessions               |
+| `IDENTITY.md`                             | the agent's name, energy, emoji                          |
+| `TOOLS.md`                                | local tooling conventions                                |
+| `MEMORY.md` + `memory/YYYY-MM-DD.md`      | curated long-term memory + daily journals                |
 | `HEARTBEAT.md`, `BOOT.md`, `BOOTSTRAP.md` | optional rituals (periodic runs, restart, one-time init) |
 
 The core idea, the one that matters to Manence: **identity is not configuration, it's versioned text** — readable, editable, owned by the user, loaded every session.
