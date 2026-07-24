@@ -1,0 +1,7 @@
+# Frozen French 0.2 corpus (0.3 refoundation, 2026-07-11): never curated, never
+# maintained. Atelier-only entry; harmless on the release (no archive/ there).
+archive/
+# GitHub platform files (outside OKF scope: GitHub conventions, not knowledge
+# pages — issue templates carry their own frontmatter schema, no type:).
+.github/
+SECURITY.md

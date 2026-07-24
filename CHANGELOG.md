@@ -9,6 +9,17 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [Unreleased]
+
+The reliability batch: the promises the repo already made now have machinery behind them.
+
+- **The repo tests itself on every push.** GitHub Actions: the lint at zero findings, a bootstrap smoke test on real Ubuntu **and** Windows runners (the three install moves from a fresh checkout, the step-0 integrity manifest, lint on the blank core), a guard check (denies `rm -rf`, lets `ls` through), and an advisory secret scan (gitleaks).
+- **Curation is a mechanical gesture, not a discipline.** `scripts/publish.sh --check` compares the atelier and the release against a versioned manifest, replays every scan (lint on both, personal-marker scan over the **whole cured set — including files git doesn't track yet**, MOS organs at the root, version-vs-tag coherence, gitleaks), and `--write` only cures what a green safety check allows. Pushing stays a human decision.
+- **The lint grew real teeth.** Markdown links are parsed (code fences and inline code no longer fool it), **anchors are checked** (a `file.md#anchor` link fails if no heading slugs to it), the frontmatter verdict is **dependency-free and deterministic** (same result with or without PyYAML — PyYAML is gone), a dated `review_when:` past due is flagged, and without python3 the script announces its degraded mode instead of pretending.
+- **A copied core keeps its line endings.** `implementation/mos/` now ships its own `.gitattributes` (`*.sh text eol=lf`): the root repo's rule used to vanish after `cp -R … core` + a fresh `git init`, leaving Windows clones free to CRLF the hooks to death. The BOOTSTRAP step-0 manifest counts it among the organs it checks.
+- **Linux is a tested platform now, and the docs say exactly that.** The full install path — clone, container, BOOTSTRAP ritual EN and FR, step-0 integrity, the refusal of a pre-existing repo, lint at zero, the guard blocking with jq and failing closed without — was played by a mechanical user in a clean Ubuntu 24.04 container, from the clone. The QUICKSTART now states the tested matrix honestly: macOS and Linux; Windows pinned to LF but not fully qualified yet.
+- **A security policy that says what it can hold.** `SECURITY.md`: private vulnerability reporting, best-effort response, and the exact scope inherited from the Spec — the shipped guard is an anti-mistake barrier, not a hostile-proof boundary. Issue and PR templates aligned with the actual contribution policy.
+
 ## [0.4.0] - 2026-07-24
 
 The LIVING REFERENCE harvest: the framework carries over four mechanisms from JP Noto's method — under written agreement, credit and source record included — and the install fixes shipped since 0.3.1 land in a tagged release.

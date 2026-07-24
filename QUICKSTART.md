@@ -18,7 +18,8 @@ timestamp: 2026-07-02
 
 - **git**, to fetch the framework and version your system.
 - [Claude Code](https://claude.com/claude-code), the agent the framework works with.
-- **jq** and **python3**, used by the safety hooks (`guard.sh`, `lint.sh`). The first startup checks for them and offers to help. Without jq, `guard.sh` **fails closed**: it blocks tool actions until jq is installed (better mute than blind). Without python3, the lint can't run; with python3 but no **PyYAML**, it runs in a degraded YAML mode and its report says so. On Windows, the hooks are bash scripts: [Git for Windows](https://git-scm.com/download/win) provides the bash they need.
+- **jq** and **python3**, used by the safety hooks (`guard.sh`, `lint.sh`). The first startup checks for them and offers to help. Without jq, `guard.sh` **fails closed**: it blocks tool actions until jq is installed (better mute than blind). Without python3, the lint falls back to a degraded line-by-line mode and its report says so. On Windows, the hooks are bash scripts: [Git for Windows](https://git-scm.com/download/win) provides the bash they need.
+- **Tested where it counts:** the full install path — clone, container, BOOTSTRAP ritual, hooks, the guard's fail-closed path included — is exercised on **macOS and Linux** (Ubuntu). **Windows is not fully qualified yet**: the hooks' line endings are pinned to LF, but no complete install run has been played there.
 
 ## The first 3 moves
 

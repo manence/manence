@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Least privilege by default; the advisory gitleaks job needs no more than read.
+permissions:
+  contents: read
+
+jobs:
+  # ---------------------------------------------------------------------------
+  # lint: the repository lints itself. The same command CONTRIBUTING.md asks a
+  # contributor to run locally, run here on every push and PR. Must be green (0).
+  # ---------------------------------------------------------------------------
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install PyYAML (full YAML validation mode; without it the lint runs degraded)
+        run: python3 -m pip install --quiet pyyaml
+      - name: Lint the whole repository (OKF frontmatter, relative links)
+        run: bash implementation/mos/.claude/hooks/lint.sh .
+
+  # ---------------------------------------------------------------------------
+  # bootstrap-smoke: prove the framework still installs from a clean checkout,
+  # on Linux and on Windows (Git Bash is the default bash shell on the Windows
+  # runner). We reproduce the three install gestures from the README, check the
+  # integrity manifest of BOOTSTRAP step 0, then lint the fresh core: a pristine
+  # MOS must report zero findings.
+  # ---------------------------------------------------------------------------
+  bootstrap-smoke:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Provide a python3 shim on Windows if absent (lint.sh invokes python3)
+        if: runner.os == 'Windows'
+        run: |
+          if ! command -v python3 >/dev/null 2>&1; then
+            shimdir="$RUNNER_TEMP/py3shim"
+            mkdir -p "$shimdir"
+            printf '#!/usr/bin/env bash\nexec python "$@"\n' > "$shimdir/python3"
+            chmod +x "$shimdir/python3"
+            echo "$shimdir" >> "$GITHUB_PATH"
+          fi
+      - name: Install PyYAML (full YAML validation mode)
+        run: python3 -m pip install --quiet pyyaml
+      - name: Install the framework in three gestures (README) — container + copied core
+        run: |
+          mkdir container
+          cp -R implementation/mos container/core
+      - name: Integrity manifest — is the copied core whole? (BOOTSTRAP step 0)
+        run: |
+          cd container/core
+          missing=0
+          for organ in \
+            .claude/settings.json .claude/hooks/guard.sh .claude/hooks/lint.sh .claude/skills \
+            .env.example .gitattributes .gitignore .mcp.json.example CLAUDE.local.md.example \
+            CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox; do
+            if [ -e "$organ" ]; then
+              echo "ok      $organ"
+            else
+              echo "MISSING $organ"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            echo "::error::the copied core is missing organs listed in BOOTSTRAP step 0 — the copy dropped dotfiles"
+            exit 1
+          fi
+      - name: Lint the fresh core — zero findings expected on a pristine MOS
+        run: bash container/core/.claude/hooks/lint.sh container/core
+      - name: Guard smoke — the shipped guardrail denies destructive commands (Linux only; needs jq)
+        if: runner.os == 'Linux'
+        run: |
+          guard=container/core/.claude/hooks/guard.sh
+          # A destructive command must be denied.
+          out=$(printf '{"tool_input":{"command":"rm -rf /tmp/does-not-exist"}}' | bash "$guard")
+          echo "$out"
+          echo "$out" | grep -q '"permissionDecision": "deny"' \
+            || { echo "::error::guard.sh did not deny a destructive rm"; exit 1; }
+          # A benign command must pass untouched: no decision emitted, exit 0.
+          out=$(printf '{"tool_input":{"command":"ls -la"}}' | bash "$guard")
+          if [ -n "$out" ]; then
+            echo "::error::guard.sh reacted to a benign command: $out"
+            exit 1
+          fi
+
+  # ---------------------------------------------------------------------------
+  # gitleaks: advisory secret scan. A curated public release should carry no
+  # secret; this is a safety net, not a gate — it never fails the build.
+  # ---------------------------------------------------------------------------
+  gitleaks:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

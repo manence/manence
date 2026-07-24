@@ -21,7 +21,7 @@ Every one of these must exist, here, at the root:
 
 ```
 .claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
-.env.example   .gitignore   .mcp.json.example   CLAUDE.local.md.example
+.env.example   .gitattributes   .gitignore   .mcp.json.example   CLAUDE.local.md.example
 CLAUDE.md   SOUL.md   STRATEGY.md   log.md   knowledge-base/   templates/   inbox/
 ```
 

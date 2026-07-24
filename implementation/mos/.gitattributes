@@ -1,0 +1,5 @@
+# Line endings: the bash scripts must stay LF. Under CRLF (Git for Windows
+# autocrlf), bash dies on '\r': command not found. The release repo carries this
+# rule at its root, but a copied core with a fresh `git init` would lose it —
+# so the core ships its own.
+*.sh text eol=lf
