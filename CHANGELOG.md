@@ -9,6 +9,14 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.5.0] - 2026-07-26
+
+An installed MOS now knows whether it is up to date.
+
+- **The core knows its own version.** The shipped MOS carries `.claude/manence-version`, stamped at release time by the curation tooling (`publish.sh` fails the check if the stamp and the CHANGELOG head disagree). The BOOTSTRAP step-0 integrity manifest and the CI smoke test count it among the organs — a copy that lost its dotfiles loses its version too, and now says so.
+- **The weekly review checks the framework's freshness.** A new step compares the installed version to the latest published tag (`git ls-remote` on the public repo — a public read; nothing about your MOS is sent; without network it says "not checked" and moves on) and, when the repo is ahead, lists the missed versions with their CHANGELOG notes. The review signals, it never applies: updating stays a decision. This is the framework's own `review_when`, pointed at itself.
+- Installs that predate 0.5.0 have no stamp: the review says so and proposes stamping the version the core actually matches.
+
 ## [0.4.1] - 2026-07-24
 
 The reliability batch: the promises the repo already made now have machinery behind them.

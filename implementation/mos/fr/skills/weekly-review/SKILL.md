@@ -16,15 +16,16 @@ Empêcher les deux dérives qui tuent un Manence OS : le désordre qui s'install
 5. **Chantiers en cours** : lister les `<domaine>/in-progress/` avec, pour chacun : l'objectif (son `About.md`), son âge, sa dernière activité. Signaler ceux qui n'ont pas bougé depuis 2 semaines : avancer, ou clore (`close-work`, y compris en abandon assumé).
 6. **Mesures d'effet** : relever les actions externes closes dont la **date de mesure** est atteinte (inscrites par `close-work`) et signaler tout rapport de mesure manquant. La mesure appartient au rituel : c'est ici qu'on voit l'effet.
 7. **KB** : un `kb-lint` léger si la KB a bougé cette semaine (contradictions, index qui dérive) ; sinon le noter comme non fait. Vérifier au passage la fraîcheur du rapport périodique (dans la KB), et relever toute page dont le `review_when:` est échu (une page échue cesse de faire foi seule : proposer sa reconfirmation ou sa mise à jour).
-8. **Contrôles de dérive** *(cinq questions empruntées aux tests de dérive de LIVING REFERENCE, JP Noto)*, chacune tranchée contre la KB et le log, jamais contre une impression :
+8. **Fraîcheur du cadre** : le cœur installé porte sa version dans `.claude/manence-version`. La comparer au dernier tag du repo public du framework — `git ls-remote --tags https://github.com/manence/manence.git` (une lecture publique via le réseau ; rien de ton MOS n'est envoyé ; sans réseau, noter « non vérifié cette semaine » et passer). Si le repo est en avance : lister les versions manquées **avec leurs notes de CHANGELOG** (récupérer le `CHANGELOG.md` brut du repo) et mettre la mise à jour dans les actions proposées — la revue signale, elle n'applique jamais. Si `.claude/manence-version` manque, l'installation précède la 0.5.0 : le dire et proposer de l'estampiller avec la version à laquelle le cœur correspond réellement.
+9. **Contrôles de dérive** *(cinq questions empruntées aux tests de dérive de LIVING REFERENCE, JP Noto)*, chacune tranchée contre la KB et le log, jamais contre une impression :
    - Une production récente (chantier, livrable, surface publique) **contredit-elle une page `canon`** de la KB ?
    - Une option **écartée dans le log est-elle revenue**, re-proposée ou ré-appliquée en douce, alors que la raison de son rejet tient toujours ?
    - Une décision **prise pour un chantier est-elle appliquée au-delà**, comme si elle engageait tout le projet ?
    - Un **brouillon est-il cité quelque part comme s'il faisait foi** (`status: proposal` traité comme un fait) ?
    - Une **contrainte validée est-elle ignorée** quelque part (règle de publication, garde-fou, convention de nommage) ?
    Constat seulement : la réparation (rejeter, archiver, remplacer, revalider) part en synthèse comme proposition, et l'utilisateur décide.
-9. **Synthèse** : un état en 5-10 lignes (santé, chantiers, inbox, mesures, dérives) + **2-3 actions proposées** classées par valeur (candidats `open-work`, chantiers à clore, corrections). C'est l'utilisateur qui choisit.
-10. **Tracer** : entrée `## [YYYY-MM-DD] review | semaine <n°>` dans `log.md` avec la synthèse condensée et ce qui a été décidé.
+10. **Synthèse** : un état en 5-10 lignes (santé, chantiers, inbox, mesures, fraîcheur du cadre, dérives) + **2-3 actions proposées** classées par valeur (candidats `open-work`, chantiers à clore, corrections). C'est l'utilisateur qui choisit.
+11. **Tracer** : entrée `## [YYYY-MM-DD] review | semaine <n°>` dans `log.md` avec la synthèse condensée et ce qui a été décidé.
 
 ## Garde-fous
 - La revue **constate et propose**, elle ne corrige rien et n'ouvre aucun chantier sans validation.

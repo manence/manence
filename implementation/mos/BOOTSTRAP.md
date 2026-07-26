@@ -21,8 +21,9 @@ Every one of these must exist, here, at the root:
 
 ```
 .claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
-.env.example   .gitattributes   .gitignore   .mcp.json.example   CLAUDE.local.md.example
-CLAUDE.md   SOUL.md   STRATEGY.md   log.md   knowledge-base/   templates/   inbox/
+.claude/manence-version   .env.example   .gitattributes   .gitignore   .mcp.json.example
+CLAUDE.local.md.example   CLAUDE.md   SOUL.md   STRATEGY.md   log.md
+knowledge-base/   templates/   inbox/
 ```
 
 If anything is missing, **stop the ritual** and say so plainly. The near-certain cause: the *contents* of `mos/` were copied instead of the folder itself (a drag-and-drop, hidden files off). The fix is not to hand-craft the missing pieces — it is to recopy properly, from the manence clone:
