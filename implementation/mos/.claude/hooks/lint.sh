@@ -175,7 +175,11 @@ run_bash_fallback() {
   return 0
 }
 
-if command -v python3 >/dev/null 2>&1; then
+# Sonde d'exécution réelle, pas `command -v` : sous Windows 11, un stub
+# python3.exe (WindowsApps) qui ouvre le Microsoft Store répond « présent »
+# au command -v — le repli dégradé ne se déclenchait jamais et le lint cassait
+# (constat d'install réelle, 2026-08-06).
+if python3 -c 'pass' >/dev/null 2>&1; then
   # Le corps python part dans un fichier temporaire via une simple redirection
   # (jamais dans un $(...) : le scanner de substitution de bash 3.2 compte les
   # backticks même à l'intérieur d'un heredoc quoté, et un nombre impair casse

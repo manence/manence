@@ -18,7 +18,7 @@
 # FAIL-CLOSED : sans jq, ce guard ne peut pas lire la commande qu'on lui soumet.
 # Il bloque alors TOUT (exit 2 = deny) au lieu de laisser tout passer en silence.
 if ! command -v jq >/dev/null 2>&1; then
-  echo "guard.sh: jq not found — the guardrail cannot inspect commands, so it blocks everything (fail-closed). Install jq: brew install jq (macOS) / apt install jq (Linux)." >&2
+  echo "guard.sh: jq not found — the guardrail cannot inspect commands, so it blocks everything (fail-closed). Install jq: brew install jq (macOS) / apt install jq (Linux) / winget install jqlang.jq (Windows)." >&2
   exit 2
 fi
 

@@ -9,6 +9,15 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.5.1] - 2026-08-06
+
+The first real Windows install (run by JP Noto) surfaced what the CI smoke test could not, and LIVING REFERENCE's repository went public: a fix batch and the completed citation.
+
+- **The guard was silently absent on Windows — hooks now go through `bash` explicitly.** Under PowerShell, invoking a `.sh` file directly runs nothing and reports nothing. `settings.json` declared the hooks that way, so the "fail-closed" guard was **fail-open on Windows, silently**. The hook commands are now `bash "…/guard.sh"` — same behavior on every platform. Reported, and the fix verified, by JP Noto on a real Windows install.
+- **The lint detects a *runnable* python3, not a name.** Windows 11 ships a `python3.exe` stub that opens the Microsoft Store; it answered `command -v python3`, so the lint's degraded fallback never triggered and the lint broke. The check is now an execution probe.
+- **bash is a stated prerequisite.** The QUICKSTART (EN and FR) lists it with the Windows path: install Git for Windows **first**, run the install moves from Git Bash, check `Git\bin` is on the PATH. The guard's fail-closed message and BOOTSTRAP §1 offer winget equivalents next to brew/apt; §1 warns about the Store stub; §0 notes `chmod +x` is moot on NTFS. The tested matrix now reads: macOS, Linux, and a **complete real install on Windows** (2026-08-06).
+- **The LIVING REFERENCE citation is complete.** The repository is public: the canonical URL ([github.com/JP-Noto/LIVING-REFERENCE](https://github.com/JP-Noto/LIVING-REFERENCE)) lands in the source record (`research/06`) and the research index, and the pruning test (Spec §8) now carries its credit in place, like the sieve in §11 and the status model in §6.
+
 ## [0.5.0] - 2026-07-26
 
 An installed MOS now knows whether it is up to date.

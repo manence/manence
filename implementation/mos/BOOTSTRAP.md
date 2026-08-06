@@ -32,11 +32,11 @@ If anything is missing, **stop the ritual** and say so plainly. The near-certain
 cp -R manence/implementation/mos <container>/core
 ```
 
-(Or, to repair in place without losing what has already been written: `cp -R manence/implementation/mos/. .` — the trailing `/.` is what carries the dotfiles.) Then restart the ritual. Also check `.claude/hooks/*.sh` are executable (`chmod +x` otherwise): some copy paths drop the bit.
+(Or, to repair in place without losing what has already been written: `cp -R manence/implementation/mos/. .` — the trailing `/.` is what carries the dotfiles.) Then restart the ritual. Also check `.claude/hooks/*.sh` are executable (`chmod +x` otherwise): some copy paths drop the bit. (On Windows/NTFS `chmod` is moot — harmless: the hooks are invoked through `bash`, which does not need the bit.)
 
 ## 1. Prerequisites first
 
-Run `jq --version` and `python3 --version`. **Without jq, `guard.sh` fails closed: it blocks every tool action until jq is installed** — so this check comes before any other gesture. Without python3, `lint.sh` can't run; with python3 but no PyYAML, it runs in a degraded YAML mode and says so in its report. If something is missing, offer the install command for the human's OS and wait for their decision.
+Run `jq --version` and `python3 --version`. **Without jq, `guard.sh` fails closed: it blocks every tool action until jq is installed** — so this check comes before any other gesture. Without python3, `lint.sh` can't run; with python3 but no PyYAML, it runs in a degraded YAML mode and says so in its report. If something is missing, offer the install command for the human's OS and wait for their decision — e.g. `brew install jq` (macOS), `apt install jq` (Linux), `winget install jqlang.jq` / `winget install Python.Python.3.13` (Windows). Windows caution: a `python3 --version` that talks about the Microsoft Store is the WindowsApps **stub**, not an interpreter — treat python3 as absent (the python.org installer ships `python.exe` only; a real `python3` needs the Store install or a shim).
 
 Then, version control. This folder must become **its own** repository: run `git rev-parse --git-dir` first. If it reports an existing repository — the manence clone you copied from, or a project of the human's — **stop the ritual** and tell the human: copy the default MOS to a fresh folder outside any repository, then restart there. A core entangled in another history is not a Manence OS (its journal, its commits and its guardrails assume they own the repository). Otherwise: `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
 

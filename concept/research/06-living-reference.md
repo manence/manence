@@ -8,7 +8,7 @@ timestamp: 2026-07-24
 
 # LIVING REFERENCE
 
-> **Source**: **LIVING REFERENCE** (formerly circulated as *CANON FLOTANT*), by **JP Noto** — a method for human-AI production on long-running projects, developed independently of this framework and in parallel with it. State at the time of writing: SPEC 0.18, corpus 0.9.109, status Public Draft; **the repository will be made public shortly**, and its canonical URL will be added here at that point. Method texts CC BY-NC-SA 4.0; using the method is expressly free.
+> **Source**: **LIVING REFERENCE** (formerly circulated as *CANON FLOTANT*), by **JP Noto** — a method for human-AI production on long-running projects, developed independently of this framework and in parallel with it. State at the time of writing: SPEC 0.18, corpus 0.9.109, status Public Draft; canonical repository: **[github.com/JP-Noto/LIVING-REFERENCE](https://github.com/JP-Noto/LIVING-REFERENCE)** (public since 2026-08-06). Method texts CC BY-NC-SA 4.0; using the method is expressly free.
 
 ## What it is
 
@@ -37,5 +37,5 @@ Facet inheritance (partial validation), the formal sliding window, and declared 
 
 ## Sources
 
-- LIVING REFERENCE, JP Noto — canonical repository: *to be made public shortly; URL will be added here* (SPEC, whitepaper, seven operational sheets, SLIDING CANON profile, LINEAGE with prior-art journal).
-- Reuse agreement: written agreement of 2026-07-24 covering the second wave; the citation will be completed with the canonical URL once the repository is public.
+- LIVING REFERENCE, JP Noto — canonical repository: [github.com/JP-Noto/LIVING-REFERENCE](https://github.com/JP-Noto/LIVING-REFERENCE) (SPEC, whitepaper, seven operational sheets, SLIDING CANON profile, LINEAGE with prior-art journal). Public since 2026-08-06.
+- Reuse agreement: written agreement of 2026-07-24 covering the second wave.

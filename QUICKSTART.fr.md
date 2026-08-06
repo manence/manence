@@ -18,8 +18,9 @@ timestamp: 2026-07-02
 
 - **git**, pour récupérer le cadre et versionner ton système.
 - [Claude Code](https://claude.com/claude-code), l'agent avec lequel le cadre travaille.
-- **jq** et **python3**, utilisés par les hooks de sécurité (`guard.sh`, `lint.sh`). Le premier démarrage les vérifie et propose de t'aider. Sans jq, `guard.sh` **échoue fermé** : il bloque les actions outillées tant que jq n'est pas installé (mieux vaut muet que aveugle). Sans python3, le lint se replie en mode dégradé ligne à ligne et son rapport l'annonce. Sous Windows, les hooks sont des scripts bash : [Git pour Windows](https://git-scm.com/download/win) fournit le bash qu'il leur faut.
-- **Testé là où ça compte :** le parcours d'installation complet — clone, conteneur, rituel BOOTSTRAP, hooks, chemin fail-closed du guard compris — est exercé sur **macOS et Linux** (Ubuntu). **Windows n'est pas encore pleinement qualifié** : les fins de ligne des hooks sont verrouillées en LF, mais aucun parcours d'installation complet n'y a été joué.
+- **bash**, la langue des hooks de sécurité. Déjà là sur macOS et Linux. Sous Windows, [Git pour Windows](https://git-scm.com/download/win) le fournit — installe-le **en premier**, exécute les commandes ci-dessous depuis **Git Bash**, et vérifie que `C:\Program Files\Git\bin` est dans le PATH (l'installeur ne l'y met pas toujours).
+- **jq** et **python3**, utilisés par les hooks de sécurité (`guard.sh`, `lint.sh`). Le premier démarrage les vérifie et propose de t'aider. Sans jq, `guard.sh` **échoue fermé** : il bloque les actions outillées tant que jq n'est pas installé (mieux vaut muet que aveugle). Sans python3, le lint se replie en mode dégradé ligne à ligne et son rapport l'annonce. Note Windows : l'installeur python.org crée `python.exe` mais pas `python3.exe`, et Windows 11 livre un stub `python3.exe` qui ouvre le Microsoft Store — le lint sonde un python3 *réellement exécutable* et se dégrade proprement sinon.
+- **Testé là où ça compte :** le parcours d'installation complet — clone, conteneur, rituel BOOTSTRAP, hooks, chemin fail-closed du guard compris — est exercé sur **macOS et Linux** (Ubuntu), et un **parcours d'installation réel complet a été joué sous Windows** (via Git Bash, 2026-08-06) ; les pièges Windows qu'il a révélés sont corrigés dans cette version.
 
 ## Les 3 premiers gestes
 

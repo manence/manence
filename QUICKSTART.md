@@ -18,8 +18,9 @@ timestamp: 2026-07-02
 
 - **git**, to fetch the framework and version your system.
 - [Claude Code](https://claude.com/claude-code), the agent the framework works with.
-- **jq** and **python3**, used by the safety hooks (`guard.sh`, `lint.sh`). The first startup checks for them and offers to help. Without jq, `guard.sh` **fails closed**: it blocks tool actions until jq is installed (better mute than blind). Without python3, the lint falls back to a degraded line-by-line mode and its report says so. On Windows, the hooks are bash scripts: [Git for Windows](https://git-scm.com/download/win) provides the bash they need.
-- **Tested where it counts:** the full install path — clone, container, BOOTSTRAP ritual, hooks, the guard's fail-closed path included — is exercised on **macOS and Linux** (Ubuntu). **Windows is not fully qualified yet**: the hooks' line endings are pinned to LF, but no complete install run has been played there.
+- **bash**, the language of the safety hooks. Already there on macOS and Linux. On Windows, [Git for Windows](https://git-scm.com/download/win) provides it — install it **first**, run the commands below from **Git Bash**, and check that `C:\Program Files\Git\bin` is on the PATH (the installer does not always add it).
+- **jq** and **python3**, used by the safety hooks (`guard.sh`, `lint.sh`). The first startup checks for them and offers to help. Without jq, `guard.sh` **fails closed**: it blocks tool actions until jq is installed (better mute than blind). Without python3, the lint falls back to a degraded line-by-line mode and its report says so. Windows note: the python.org installer creates `python.exe` but no `python3.exe`, and Windows 11 ships a `python3.exe` stub that opens the Microsoft Store — the lint probes for a *runnable* python3 and degrades cleanly otherwise.
+- **Tested where it counts:** the full install path — clone, container, BOOTSTRAP ritual, hooks, the guard's fail-closed path included — is exercised on **macOS and Linux** (Ubuntu), and a **complete real install has been run on Windows** (via Git Bash, 2026-08-06); the Windows pitfalls that run surfaced are fixed in this version.
 
 ## The first 3 moves
 
