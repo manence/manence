@@ -9,6 +9,16 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.6.0] - 2026-08-12
+
+A MOS can now be *seen*.
+
+- **`mos-map`, the 7th base skill: the visual map of a MOS.** One command (`python3 .claude/skills/mos-map/build.py --coeur . --ouvrir`, python3 stdlib only) generates a single self-contained HTML file — no server, no network — that opens offline in any recent browser: the hexagon with its attachments (production north, knowledge base south, connectors on the diagonals), a file explorer, the local knowledge graph with full-text search, markdown records rendered with navigable internal links, the journal as a timeline. The map is a dated snapshot, regenerated on demand from the real files; nothing on it is drawn by hand. UI in English or French (`--lang`). Prototyped and hardened on three real installations (an independent audit closed its security and portability findings before this release).
+- **`.claude/mos-map.json` — the map's declaration** (schema 2, shipped with the two pillars): one attachment per connector — vertex 0-5, nature, display name, one-line summary, links, `visible`. The map edits its own declaration (drag a card onto a vertex, ＋ on a corner, save writes the file back); the file stays the source of truth. Two disclosure profiles (`interne` / `public`). A **confidential** adapter never enters it (Spec §12 applies to maps too). New Spec §19.
+- **`connect-adapter` writes both homes.** Wiring an adapter now also declares its map attachment (step 3 bis) — CLAUDE.md prose authoritative, JSON declaration mechanical, alignment guaranteed by the skill; never for confidential adapters.
+- **The first startup ends on the map.** BOOTSTRAP's closing ritual generates and opens the newborn system's map — "this is your MOS" — right where the setup hands over to the work.
+- Vendored: `d3-slim.min.js` (78 KB — the six D3 modules the map actually uses; ISC license, © Mike Bostock).
+
 ## [0.5.1] - 2026-08-06
 
 The first real Windows install (run by JP Noto) surfaced what the CI smoke test could not, and LIVING REFERENCE's repository went public: a fix batch and the completed citation.

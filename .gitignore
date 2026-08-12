@@ -2,3 +2,4 @@
 .DS_Store
 node_modules/
 .obsidian/
+__pycache__/

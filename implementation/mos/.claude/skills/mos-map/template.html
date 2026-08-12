@@ -1,0 +1,1409 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+  /* Monde : manence.ai (ardoise, sombre seul — parti pris assumé, pas une omission).
+     Grammaire : un type d'objet = un composant. v4 post-audit : classes préfixées mos-. */
+  :root{
+    --paper:#0F1420; --paper-deep:#0B101B; --paper-raise:#161C2C; --paper-card:#131928;
+    --ink:#E8E9E1; --ink-strong:#F6F6F0; --ghost:#8A93AD; --rule:#28304A; --rule-soft:#1E2536;
+    --encre:#8CA0F2; --savoir:#6FDEC0; --systeme:#5AA7FF; --deploy:#FF9C4A; --or:#E0B64F;
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--serif);line-height:1.5}
+  button{font-family:inherit}
+  a{color:var(--encre)}
+  :focus-visible{outline:2px solid var(--encre);outline-offset:2px}
+  .mos-wrap{max-width:1280px;margin:0 auto;padding:18px 22px 28px}
+  .mos-entete{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;flex-wrap:wrap}
+  .mos-kicker{font-family:var(--mono);font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ghost);margin:0 0 .3rem}
+  h1{font-size:clamp(1.3rem,2.8vw,1.8rem);font-weight:600;margin:0;color:var(--ink-strong)}
+  h1 .mos-fil{color:var(--ghost);font-weight:400;margin:0 .25rem}
+  h1 button{background:none;border:none;color:var(--encre);font:inherit;cursor:pointer;padding:0}
+  h1 button:hover{text-decoration:underline}
+  h1 .mos-ici{color:var(--ink-strong)}
+  .mos-meta{font-family:var(--mono);font-size:.68rem;color:var(--ghost);text-align:right}
+  .mos-meta b{color:var(--ink);font-weight:600}
+  mos-facade,mos-explorer,mos-graphe,mos-fiche,mos-frise{display:block}
+  .mos-erreur{margin-top:14px;border:1px solid var(--deploy);border-radius:12px;background:var(--paper-card);
+    padding:1rem 1.1rem;font-size:.9rem}
+  .mos-erreur b{color:var(--deploy)}
+
+  /* ===== mos-facade ===== */
+  .mos-stage{position:relative;margin-top:14px;border:1px solid var(--rule);border-radius:16px;
+    background:radial-gradient(ellipse 55% 60% at 50% 46%, #141B2E 0%, var(--paper-deep) 75%);
+    padding:26px 24px;overflow:hidden}
+  .mos-fils{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+  /* chaque sommet a un rôle : nord = production (au-dessus), sud = KB (en dessous),
+     les 4 diagonales = connecteurs (côté déductible de la famille, surchargeable par `cote`) */
+  .mos-grille{position:relative;display:flex;flex-direction:column;gap:12px;align-items:stretch}
+  .mos-haut,.mos-bas{display:flex;justify-content:center;z-index:2}
+  .mos-haut .mos-carte,.mos-bas .mos-carte{width:min(100%,440px)}
+  .mos-milieu{display:grid;grid-template-columns:285px 1fr 285px;gap:18px;align-items:center;min-height:340px}
+  .mos-colg,.mos-cold{display:flex;flex-direction:column;gap:14px;z-index:2;justify-content:center}
+  .mos-carte{background:var(--paper-card);border:1px solid var(--rule);border-radius:12px;
+    padding:.75rem .85rem .7rem 1rem;position:relative;cursor:pointer;text-align:left;color:var(--ink);
+    transition:border-color .15s, transform .15s;display:block;width:100%}
+  .mos-carte::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:3px;border-radius:3px;background:var(--acc,var(--ghost))}
+  .mos-carte:hover,.mos-carte:focus-visible{border-color:var(--acc,var(--ghost));transform:translateY(-1px)}
+  .mos-carte .t{display:block;font-size:.96rem;font-weight:600;color:var(--ink-strong)}
+  .mos-carte .n{display:block;font-family:var(--mono);font-size:.67rem;color:var(--ghost);margin-top:.18rem;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .mos-carte .n b{color:var(--acc,var(--ghost));font-weight:600}
+  .mos-carte .fleche{position:absolute;right:.7rem;top:.7rem;color:var(--acc,var(--ghost));opacity:0;transition:opacity .15s;font-size:.8rem}
+  .mos-carte:hover .fleche,.mos-carte:focus-visible .fleche{opacity:1}
+  .mos-carte.est-mos .fleche{opacity:.6}
+  .mos-centre{position:relative;display:flex;align-items:center;justify-content:center;z-index:1}
+  .mos-hexbox{width:min(100%,360px);aspect-ratio:1/0.92;position:relative}
+  .mos-hexsvg{width:100%;height:100%;display:block}
+  .mos-hexa{fill:rgba(140,160,242,.045);stroke:var(--encre);stroke-width:1.6;filter:drop-shadow(0 0 14px rgba(140,160,242,.35))}
+  .mos-sommet{stroke:var(--paper-deep);stroke-width:2.5}
+  /* pointer-events:none : la couche centrale ne doit pas voler le survol/clic des sommets du SVG dessous */
+  .mos-coeur-int{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4rem;text-align:center;padding:0 15%;pointer-events:none}
+  .mos-coeur-int .mos-organe{pointer-events:auto}
+  .mos-coeur-int .sur{font-family:var(--mono);font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:var(--encre)}
+  .mos-coeur-int .nom{font-size:1.4rem;font-weight:700;color:var(--ink-strong)}
+  .mos-coeur-int .quoi{font-size:.8rem;color:var(--ghost)}
+  .mos-organes{display:flex;gap:.4rem;flex-wrap:wrap;justify-content:center;margin-top:.5rem}
+  .mos-organe{font-family:var(--mono);font-size:.65rem;padding:.28rem .6rem;border-radius:999px;
+    border:1px solid var(--rule);background:var(--paper-raise);color:var(--ink);cursor:pointer}
+  .mos-organe b{color:var(--encre);font-weight:600}
+  .mos-organe:hover{border-color:var(--encre)}
+  .mos-legende{display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;margin-top:1rem;position:relative;z-index:2}
+  .mos-lg{display:inline-flex;align-items:center;gap:.4rem;font-family:var(--mono);font-size:.65rem;color:var(--ghost)}
+  .mos-lg i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--c)}
+  .mos-pouls{margin-top:.85rem;padding-top:.7rem;border-top:1px solid var(--rule-soft);display:flex;gap:.6rem;align-items:baseline;
+    font-family:var(--mono);font-size:.69rem;color:var(--ghost);flex-wrap:wrap;position:relative;z-index:2}
+  .mos-pouls .pt{width:7px;height:7px;border-radius:50%;background:var(--savoir);align-self:center;box-shadow:0 0 6px var(--savoir)}
+  .mos-pouls b{color:var(--ink);font-weight:600}
+  .mos-pouls .lien{margin-left:auto;color:var(--encre);cursor:pointer;background:none;border:none;font-family:var(--mono);font-size:.69rem;padding:0}
+  .mos-pouls .lien:hover{text-decoration:underline}
+  /* agencement : les sommets diagonaux SONT les cibles — halo pointillé pendant le drag,
+     ＋ au survol d'un coin pour ajouter un connecteur directement dessus */
+  .mos-carte[data-drag]{cursor:grab;touch-action:none}
+  .mos-carte.en-cours-drag{opacity:.4}
+  .som-cible{cursor:pointer}
+  .som-cible .halo{fill:none;stroke-dasharray:4 4;stroke-width:1.4;opacity:0;transition:opacity .15s, r .15s}
+  .mos-stage.drag-actif .som-cible .halo{opacity:.75}
+  @keyframes mos-fourmis{to{stroke-dashoffset:-16}}
+  /* même langage au survol souris (pour le ＋) et au survol de drag : halo pointillé animé + point agrandi */
+  .som-cible.survole .halo,.som-cible:hover .halo{opacity:1;stroke-width:2.2;r:18;animation:mos-fourmis .5s linear infinite}
+  .som-cible .pt-som{transition:r .15s}
+  .mos-stage.drag-actif .som-cible .pt-som{r:8}
+  .som-cible.survole .pt-som,.som-cible:hover .pt-som{r:10}
+  @media (prefers-reduced-motion:reduce){.som-cible.survole .halo,.som-cible:hover .halo{animation:none}}
+  /* le fantôme de drag : la carte suit le pointeur, SON POINT au bord droit est la référence —
+     on aligne le point de la boîte sur le point pointillé du sommet */
+  .carte-ghost{position:fixed;z-index:60;pointer-events:none;opacity:.93;box-shadow:0 10px 34px rgba(0,0,0,.55);
+    left:0;top:0;transition:none !important} /* sans ça, le premier placement ANIME depuis le coin de l'écran */
+  .carte-ghost::before{display:none} /* la barre d'accent disparaît : un seul point d'ancrage, à gauche
+     (la double ancre a été essayée puis écartée : les deux points pouvaient toucher deux angles à la fois) */
+  .carte-ghost::after{content:"";position:absolute;left:-8px;top:50%;transform:translateY(-50%);
+    width:15px;height:15px;border-radius:50%;background:var(--acc,var(--ghost));border:2.5px solid var(--paper-deep);
+    box-shadow:0 0 10px var(--acc,transparent)}
+  /* la corbeille : à droite de la carte Production (nord), visible seulement pendant un drag */
+  .mos-haut{position:relative}
+  .corbeille{position:absolute;left:calc(50% + 234px);top:50%;transform:translateY(-50%);z-index:4;
+    width:52px;height:52px;border-radius:50%;border:1.6px dashed var(--rule);display:none;
+    align-items:center;justify-content:center;font-size:1.2rem;background:var(--paper-deep);
+    transition:transform .12s, border-color .12s}
+  .mos-stage.drag-actif .corbeille{display:flex}
+  .corbeille.survole{border-color:#FF6B72;transform:translateY(-50%) scale(1.18);box-shadow:0 0 14px rgba(255,107,114,.35)}
+  .som-cible .pt-fantome{opacity:.22}
+  .som-cible:hover .pt-fantome{opacity:.55}
+  .som-cible .hit{fill:transparent;pointer-events:all}
+  .som-cible .som-plus{fill:var(--ink-strong);font-size:13px;text-anchor:middle;opacity:0;
+    pointer-events:none;font-family:var(--mono);transition:opacity .15s;paint-order:stroke;stroke:var(--paper-deep);stroke-width:2px}
+  .som-cible:hover .som-plus{opacity:1}
+  .mos-stage.drag-actif .som-cible .som-plus{opacity:0 !important}
+  .mos-agence{display:flex;gap:.5rem;justify-content:center;margin-top:.7rem;position:relative;z-index:2;flex-wrap:wrap}
+  .mos-agence button{font-family:var(--mono);font-size:.65rem;padding:.25rem .65rem;border-radius:999px;
+    border:1px solid var(--rule);background:var(--paper-raise);color:var(--ghost);cursor:pointer}
+  .mos-agence button:hover{border-color:var(--encre);color:var(--ink)}
+  dialog.mos-dialog label.choix{display:flex;align-items:baseline;gap:.5rem;border-top:1px solid var(--rule);
+    padding:.5rem 0;cursor:pointer;font-size:.85rem}
+  dialog.mos-dialog label.choix .n2{font-family:var(--mono);font-size:.66rem;color:var(--ghost)}
+  dialog.mos-dialog label.choix input{accent-color:#8CA0F2}
+
+  /* ===== mos-explorer ===== */
+  .mos-explo{display:grid;grid-template-columns:265px 1fr;gap:14px;margin-top:14px;align-items:start}
+  .mos-arbre{background:var(--paper-card);border:1px solid var(--rule);border-radius:12px;padding:.6rem .4rem;
+    max-height:74vh;overflow:auto;font-family:var(--mono);font-size:.74rem}
+  .mos-arbre ul{list-style:none;margin:0;padding:0 0 0 .85rem}
+  .mos-arbre>ul{padding-left:.2rem}
+  .mos-arbre li{margin:.05rem 0}
+  .mos-arbre .ligne{display:flex;align-items:center;border-radius:6px;color:var(--ghost)}
+  .mos-arbre li:focus-visible{outline:none}
+  .mos-arbre li:focus-visible>.ligne{outline:2px solid var(--encre);outline-offset:-1px}
+  .mos-arbre .ligne:hover{background:var(--paper-raise);color:var(--ink)}
+  .mos-arbre li[aria-selected="true"]>.ligne{background:var(--paper-raise);color:var(--ink-strong)}
+  .mos-arbre .tw{width:1.2em;flex:none;font-size:.62rem;color:var(--ghost);background:none;border:none;cursor:pointer;
+    padding:.16rem 0 .16rem .25rem;font-family:inherit;text-align:left}
+  .mos-arbre .tw:hover{color:var(--ink-strong)}
+  .mos-arbre span.tw{cursor:default}
+  .mos-arbre .nomb{display:flex;align-items:center;gap:.3rem;flex:1;min-width:0;padding:.16rem .4rem .16rem 0;cursor:pointer}
+  .mos-arbre .ico{flex:none;width:8px;height:8px;border-radius:2px;background:var(--ghost);opacity:.6}
+  .mos-arbre .ico.d-kb{background:var(--savoir)} .mos-arbre .ico.d-prod{background:var(--or)} .mos-arbre .ico.d-inbox{background:var(--encre)}
+  .mos-arbre .ico.f{border-radius:50%;opacity:.45}
+  .mos-contenu{min-width:0}
+  .mos-ariane{font-family:var(--mono);font-size:.7rem;color:var(--ghost);margin:.15rem 0 .75rem;display:flex;gap:.3rem;flex-wrap:wrap}
+  .mos-ariane button{background:none;border:none;color:var(--encre);font:inherit;cursor:pointer;padding:0}
+  .mos-ariane button:hover{text-decoration:underline}
+  .mos-ariane .sep{color:var(--ghost)}
+  .mos-ariane .ici{color:var(--ink)}
+  .mos-enfants{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:.6rem;margin-top:.9rem}
+  .mos-obj{background:var(--paper-card);border:1px solid var(--rule);border-radius:10px;padding:.6rem .75rem;
+    cursor:pointer;text-align:left;color:var(--ink);border-left:3px solid var(--acc,var(--rule));display:block;width:100%}
+  .mos-obj:hover,.mos-obj:focus-visible{border-color:var(--acc,var(--encre))}
+  .mos-obj .k{display:block;font-family:var(--mono);font-size:.62rem;color:var(--ghost)}
+  .mos-obj .t{display:block;margin:.12rem 0 .15rem;font-size:.88rem;font-weight:600;color:var(--ink-strong);line-height:1.3}
+  .mos-obj .p{display:block;margin:0;font-size:.76rem;color:var(--ghost);line-height:1.45}
+  .mos-puce{display:inline-block;font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.06em;
+    padding:.05rem .4rem;border-radius:999px;border:1px solid var(--rule)}
+  /* statuts : jaune proposal · vert validated · bleu canon · rouge rejected */
+  .mos-puce.st-proposal{color:#E0B64F} .mos-puce.st-validated{color:#8FB89B}
+  .mos-puce.st-canon{color:#5AA7FF} .mos-puce.st-rejected{color:#FF6B72}
+  .mos-obj{position:relative}
+  .st-pt{position:absolute;top:.6rem;right:.65rem;width:9px;height:9px;border-radius:50%;
+    box-shadow:0 0 0 2px var(--paper-card)}
+  .st-pt.st-proposal{background:#E0B64F} .st-pt.st-validated{background:#8FB89B}
+  .st-pt.st-canon{background:#5AA7FF} .st-pt.st-rejected{background:#FF6B72}
+  .mos-h3{font-family:var(--mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--or);font-weight:600;margin:.8rem 0 .1rem}
+  /* recherche KB (plein texte) */
+  .mos-cherche{margin:0 0 .6rem}
+  .mos-cherche input{width:100%;max-width:520px;background:var(--paper-card);border:1px solid var(--rule);
+    border-radius:9px;color:var(--ink);font-family:var(--mono);font-size:.8rem;padding:.45rem .7rem}
+  .mos-cherche input::placeholder{color:var(--ghost)}
+  .mos-cherche input:focus{outline:none;border-color:var(--encre)}
+  .mos-resultats{display:flex;flex-direction:column;gap:.4rem;margin:.2rem 0 .8rem;max-width:720px}
+  .mos-res{background:var(--paper-card);border:1px solid var(--rule);border-radius:9px;padding:.5rem .7rem;
+    cursor:pointer;text-align:left;color:var(--ink);position:relative}
+  .mos-res:hover,.mos-res:focus-visible{border-color:var(--encre)}
+  .mos-res .t{font-weight:600;color:var(--ink-strong);font-size:.86rem}
+  .mos-res .d{font-family:var(--mono);font-size:.62rem;margin-left:.4rem}
+  .mos-res .x{display:block;font-size:.76rem;color:var(--ghost);margin-top:.15rem;line-height:1.45}
+  .mos-res mark{background:rgba(140,160,242,.28);color:var(--ink-strong);border-radius:2px;padding:0 .08em}
+  .mos-noeud.efface{opacity:.1} .mos-arete.efface{opacity:.04}
+  .mos-noeud,.mos-arete{transition:opacity .15s}
+  .mos-detail{background:var(--paper-card);border:1px solid var(--rule);border-radius:12px;padding:.9rem 1rem;max-width:760px}
+  .mos-detail .k{font-family:var(--mono);font-size:.64rem;color:var(--or)}
+  .mos-detail h2{margin:.2rem 0 .3rem;font-size:1.15rem;color:var(--ink-strong)}
+  .mos-detail p{margin:.2rem 0;font-size:.85rem}
+  .mos-detail .g{color:var(--ghost)}
+  .mos-fichiers{font-family:var(--mono);font-size:.72rem;color:var(--ghost);columns:2;column-gap:2rem;margin-top:.6rem}
+  .mos-fichiers div{break-inside:avoid;padding:.1rem 0}
+  .mos-vide{color:var(--ghost);font-size:.85rem;margin:.9rem 0;font-style:italic}
+  .mos-h2{font-family:var(--mono);font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--ghost);font-weight:600;margin:1.2rem 0 .5rem;border-bottom:1px solid var(--rule-soft);padding-bottom:.3rem}
+  .mos-h2:first-of-type{margin-top:.2rem}
+  @media (max-width:860px){.mos-fichiers{columns:1}}
+
+  /* ===== mos-graphe ===== */
+  mos-graphe .scene{position:relative;height:min(68vh,660px);background:radial-gradient(ellipse 60% 55% at 50% 48%, #131A29 0%, var(--paper-deep) 78%);
+    border:1px solid var(--rule);border-radius:12px;overflow:hidden}
+  mos-graphe svg{cursor:grab} mos-graphe svg:active{cursor:grabbing}
+  mos-graphe .outils{position:absolute;right:.6rem;bottom:.6rem;display:flex;flex-direction:column;gap:.3rem;z-index:3}
+  mos-graphe .outils button{width:32px;height:32px;border-radius:8px;border:1px solid var(--rule);
+    background:var(--paper-raise);color:var(--ink);font-size:.95rem;cursor:pointer}
+  mos-graphe .outils button:hover{border-color:var(--encre)}
+  @media (min-width:721px){ .mos-enfants.avec-graphe{display:none} } /* la nav suffit : toute la hauteur va à la carte */
+  mos-graphe svg{width:100%;height:100%;display:block}
+  mos-graphe .titre-g{position:absolute;left:.8rem;top:.6rem;font-family:var(--mono);font-size:.64rem;
+    letter-spacing:.12em;text-transform:uppercase;color:var(--ghost)}
+  mos-graphe .mode-g{position:absolute;right:.6rem;top:.5rem;display:flex;gap:.25rem;z-index:3}
+  mos-graphe .mode-g button{font-family:var(--mono);font-size:.62rem;padding:.18rem .5rem;border-radius:999px;
+    border:1px solid var(--rule);background:var(--paper-raise);color:var(--ghost);cursor:pointer}
+  mos-graphe .mode-g button.actif{color:var(--ink);border-color:var(--encre)}
+  .mos-arete{fill:none;pointer-events:none;stroke:#8CA0F2;stroke-opacity:.6}
+  .mos-arete.vers-ghost{stroke-dasharray:4 4;stroke-opacity:.4}
+  .mos-noeud{cursor:pointer}
+  .mos-noeud .disque{fill:var(--paper-raise);stroke-width:2}
+  .mos-noeud.ghost .disque{stroke-dasharray:3 3;stroke-opacity:.6;fill:transparent}
+  .mos-noeud.ghost .etiquette{fill:var(--ghost)}
+  .mos-noeud .etiquette{text-anchor:middle;fill:var(--ink);font-family:var(--mono);font-size:9.4px;paint-order:stroke;stroke:var(--paper);stroke-width:3px}
+  .mos-bulle{position:absolute;max-width:300px;pointer-events:none;z-index:5;background:var(--paper-raise);
+    border:1px solid var(--rule);border-radius:8px;padding:.5rem .7rem;font-size:.77rem;line-height:1.45}
+  .mos-bulle .t{font-family:var(--mono);font-size:.63rem;letter-spacing:.08em;text-transform:uppercase}
+  @media (max-width:720px){mos-graphe{display:none}} /* le graphe se replie, il ne casse pas */
+
+  /* ===== mos-fiche ===== */
+  mos-fiche .corps{background:var(--paper-card);border:1px solid var(--rule);border-radius:12px;padding:1rem 1.1rem;max-width:760px}
+  mos-fiche .chips{display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.4rem}
+  mos-fiche h2{margin:.1rem 0 .3rem;font-size:1.25rem;color:var(--ink-strong)}
+  mos-fiche .desc{font-size:.9rem;color:var(--ghost);margin:.1rem 0 .6rem}
+  mos-fiche .review{font-family:var(--mono);font-size:.72rem;color:var(--or);margin:.2rem 0 .5rem}
+  mos-fiche .extrait{font-size:.92rem;line-height:1.6;border-left:2px solid var(--rule);padding-left:.85rem;margin:.7rem 0}
+  mos-fiche h3{font-family:var(--mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--ghost);margin:1rem 0 .35rem;font-weight:600}
+  mos-fiche ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.3rem}
+  mos-fiche li button{background:none;border:none;color:var(--encre);font-family:var(--mono);font-size:.76rem;cursor:pointer;padding:0;text-align:left}
+  mos-fiche li button:hover{text-decoration:underline}
+  mos-fiche .vide-l{color:var(--ghost);font-size:.76rem;font-family:var(--mono)}
+
+  /* ===== rendu markdown (le registre du site : serif, ~65ch) ===== */
+  .mos-md{font-size:.95rem;line-height:1.65;max-width:68ch;margin-top:.6rem}
+  .mos-md p{margin:.55rem 0}
+  .mos-md h3,.mos-md h4,.mos-md h5,.mos-md h6{color:var(--ink-strong);font-weight:600;line-height:1.3;margin:1.1rem 0 .35rem}
+  .mos-md h3{font-size:1.12rem} .mos-md h4{font-size:1rem}
+  .mos-md h5,.mos-md h6{font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ghost)}
+  .mos-md ul,.mos-md ol{margin:.45rem 0;padding-left:1.4rem}
+  .mos-md li{margin:.22rem 0}
+  .mos-md blockquote{border-left:2px solid var(--encre);margin:.6rem 0;padding:.1rem 0 .1rem .85rem;color:var(--ghost)}
+  .mos-md code{font-family:var(--mono);font-size:.85em;background:var(--paper-deep);border:1px solid var(--rule-soft);border-radius:4px;padding:.05em .3em}
+  .mos-md pre{background:var(--paper-deep);border:1px solid var(--rule);border-radius:8px;padding:.7rem .9rem;overflow-x:auto;font-family:var(--mono);font-size:.78rem;line-height:1.5;margin:.7rem 0}
+  .mos-md pre code{border:none;background:none;padding:0;font-size:1em}
+  .mos-md hr{border:none;border-top:1px solid var(--rule);margin:1.1rem 0}
+  .md-table{overflow-x:auto;margin:.7rem 0}
+  .mos-md table{border-collapse:collapse;font-size:.82rem}
+  .mos-md th,.mos-md td{border:1px solid var(--rule);padding:.32rem .55rem;text-align:left;vertical-align:top}
+  .mos-md th{color:var(--ink-strong);font-family:var(--mono);font-size:.7rem;letter-spacing:.05em}
+  .md-lien{background:none;border:none;color:var(--encre);cursor:pointer;font:inherit;padding:0;text-decoration:underline;text-underline-offset:2px}
+  .md-lien:hover{color:var(--ink-strong)}
+  .md-lien-mort{color:var(--ghost);border-bottom:1px dashed var(--rule);cursor:help}
+  .md-img{display:inline-block;border:1px dashed var(--rule);border-radius:6px;padding:.1rem .5rem;color:var(--ghost);font-size:.8rem;font-family:var(--mono)}
+  .md-chemin{font-family:var(--mono);font-size:.72rem;color:var(--ghost);user-select:all;word-break:break-all}
+
+  /* ===== mos-frise ===== */
+  .mos-filtre{display:flex;gap:.35rem;flex-wrap:wrap;margin:.9rem 0 1rem}
+  .mos-filtre button{font-family:var(--mono);font-size:.63rem;padding:.22rem .55rem;border-radius:999px;
+    border:1px solid var(--rule);background:none;color:var(--ghost);cursor:pointer;text-transform:uppercase;letter-spacing:.05em}
+  .mos-filtre button.actif{color:var(--ink);border-color:currentColor}
+  .mos-frise{max-width:820px;position:relative;padding-left:20px}
+  .mos-frise::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:1px;background:var(--rule)}
+  .mos-entree{position:relative;padding:.3rem 0 .3rem 6px}
+  .mos-entree::before{content:"";position:absolute;left:-19px;top:.7rem;width:9px;height:9px;border-radius:50%;
+    background:var(--paper);border:2px solid var(--tc)}
+  .mos-entree .d{font-family:var(--mono);font-size:.65rem;color:var(--ghost)}
+  .mos-entree .tt{display:inline-block;font-family:var(--mono);font-size:.6rem;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--tc);border:1px solid var(--rule);border-radius:999px;padding:.03rem .4rem;margin:0 .35rem}
+  .mos-entree .ti{font-size:.85rem}
+
+  /* ===== dialogue ===== */
+  dialog.mos-dialog{border:1px solid var(--rule);border-radius:14px 0 0 14px;background:var(--paper-raise);color:var(--ink);
+    padding:1.2rem 1.3rem;margin:0 0 0 auto;height:100vh;max-height:100vh;width:min(430px,92vw);font-family:var(--serif)}
+  dialog.mos-dialog::backdrop{background:rgba(11,16,27,.6)}
+  dialog.mos-dialog .fermer{position:absolute;top:.8rem;right:.9rem;background:none;border:1px solid var(--rule);border-radius:8px;
+    color:var(--ink);width:28px;height:28px;cursor:pointer}
+  dialog.mos-dialog .fermer:hover{border-color:var(--encre)}
+  dialog.mos-dialog .cat{font-family:var(--mono);font-size:.62rem;letter-spacing:.13em;text-transform:uppercase;margin:0 0 .3rem}
+  dialog.mos-dialog h2{font-size:1.2rem;margin:0 0 .5rem;color:var(--ink-strong)}
+  dialog.mos-dialog p{font-size:.86rem;line-height:1.55}
+  dialog.mos-dialog .item{border-top:1px solid var(--rule);padding:.5rem 0}
+  dialog.mos-dialog .item .t{display:block;margin:.1rem 0;font-size:.85rem;font-weight:600}
+  dialog.mos-dialog .item .p{display:block;font-size:.77rem;color:var(--ghost);margin:.1rem 0 0}
+  dialog.mos-dialog .port{display:inline-block;font-family:var(--mono);font-size:.66rem;border:1px solid currentColor;
+    border-radius:999px;padding:.1rem .5rem;margin:.2rem 0 .6rem}
+  dialog.mos-dialog .sortants{margin-top:.5rem;display:flex;flex-direction:column;gap:.25rem;font-family:var(--mono);font-size:.76rem}
+  dialog.mos-dialog .sk{border-top:1px solid var(--rule);padding:.55rem 0 .5rem;display:flex;flex-direction:column;gap:.14rem}
+  dialog.mos-dialog .sk-t{font-family:var(--mono);font-size:.82rem;font-weight:600;color:var(--encre)}
+  dialog.mos-dialog .sk-l{font-size:.78rem;color:var(--ghost);line-height:1.45}
+  dialog.mos-dialog .sk-l b{color:var(--ink);font-weight:600;font-family:var(--mono);font-size:.72rem}
+  dialog.mos-dialog .sk-e{color:var(--or);font-family:var(--mono);font-size:.72rem}
+
+  .mos-pied{margin-top:.9rem;font-family:var(--mono);font-size:.65rem;color:var(--ghost)}
+  .mos-pied b{color:var(--ink);font-weight:600}
+  [hidden]{display:none !important}
+  @media (max-width:980px){
+    .mos-milieu{grid-template-columns:1fr;min-height:0}
+    .mos-fils{display:none}
+    .mos-centre{order:-1}
+    .mos-explo{grid-template-columns:1fr}
+    .mos-arbre{max-height:38vh}
+    .mos-meta{text-align:left}
+  }
+  @media (prefers-reduced-motion:reduce){.mos-carte,.mos-obj{transition:none}}
+</style>
+
+<div class="mos-wrap">
+  <header class="mos-entete">
+    <h1 id="mos-titre"></h1>
+  </header>
+  <main id="mos-app"></main>
+  <footer class="mos-pied" id="mos-pied"></footer>
+</div>
+<dialog class="mos-dialog" id="mos-dialog"></dialog>
+
+<script>__D3__</script>
+<script type="application/json" id="mos-data">__DATA__</script>
+<script>
+"use strict";
+/* ---------- langue : une table par langue, le marqueur est injecté au build ----------
+   TOUTES les valeurs sont du TEXTE BRUT (jamais de markup) : le tag template `html` échappe
+   par défaut. Une phrase qui contient du markup se découpe en plusieurs clés autour de lui.
+   Ce qui NE se traduit PAS : les données du MOS, les statuts (proposal/validated/canon/rejected),
+   les noms d'organes (log, inbox, skills), les noms de skills et de fichiers. */
+const LANG = "__LANG__";
+const TABLES = {
+  fr: {
+    /* natures d'attache */
+    natSavoir:"savoir", natProduction:"production", natMos:"une installation Manence",
+    natGit:"repo git", natExterne:"système externe",
+    /* erreurs */
+    errDonnees:"Données incompatibles",
+    errSchema: s => " — schéma "+s+" reçu, 2 attendu. Régénérer avec la même version de generate-mos.py.",
+    errVue:"La vue n'a pas pu être rendue.", errRetour:"← revenir à l'architecture",
+    /* pied de page */
+    piedCadre:"cadre", piedProfil:"profil", piedGenere:"généré le",
+    piedFiches: n => n+" fiches", piedChantiers: n => n+" chantiers actifs",
+    piedEntrees: n => n+" entrées de log",
+    /* markdown, tailles */
+    mdImage:"image", uOctets:" o", uKo:" Ko", uMo:" Mo",
+    /* dialogue */
+    fermer:"Fermer", attache:"attache", sommet:"sommet", agencement:"agencement", organe:"organe",
+    carteVoisine:"Sa carte se génère chez lui, depuis ses propres fichiers — on lie, on ne recopie pas.",
+    skillsSuite:"les procédures",
+    regleTrois:"Règle des trois occurrences : ad hoc deux fois, skill la troisième.",
+    routinesTitre:"routines — ce qui doit tourner",
+    routinesAvant:"Déclarées dans ",
+    routinesApres:" avec leur état réel — un cron non déclaré n'existe pas, un cron déclaré non branché se voit.",
+    /* façade */
+    fiches:"fiches", liens:"liens", enCours:"en cours", clos:"clos", legendeMos:"⬡ = un MOS",
+    corbeille:"Déposer ici pour retirer de la carte",
+    enregistrerTitre:"Écrit le mos-map.json à jour dans .claude/ (dialogue Enregistrer — Chromium) ; sinon le télécharge",
+    enregistrerLabel:"enregistrer dans le fichier", annuler:"annuler",
+    enregistre:"enregistré ✓", telecharge:"téléchargé — à déposer dans .claude/", carteDuMos:"Carte du MOS",
+    derniereEntree:"dernière entrée", toutLeJournal:"tout le journal →",
+    journalVideFacade:"journal vide — le MOS n'a pas encore d'histoire.",
+    connecteursCoin:"connecteurs sur ce coin",
+    cocherPose:"Cocher pose le connecteur sur ce sommet ; décocher le retire de la carte.",
+    tousPoses:"Tous les connecteurs déclarés sont déjà posés sur la carte.",
+    demandeMos1:"Pour en brancher un nouveau, demande-le au MOS : le skill ",
+    demandeMos2:" validera le contrat de l'adaptateur et déclarera son attache dans ",
+    demandeMos3:" — elle apparaîtra ici.",
+    sommetAide:"déposer ici, ou cliquer pour choisir les connecteurs de ce coin",
+    /* explorateur */
+    ariaArbre:"Arborescence du MOS", ariaExplorateur:"Explorateur",
+    item:"item", chantierClos:"chantier clos", chantierEnCours:"chantier en cours",
+    repertoire:"répertoire", fiche:"fiche", fichier:"fichier", racine:"racine",
+    nbElements: n => n+" élément"+(n>1?"s":""),
+    introuvable:"Objet introuvable.",
+    introuvableCorps:"Ce chemin ne correspond à rien dans l'arbre de ce MOS.",
+    itemInbox: d => "item d'inbox · capturé le "+d+" — en attente de tri (weekly-review)",
+    documentChantier:"document de chantier", artefactJetable:"artefact jetable par doctrine",
+    artefactProd:"Artefact de production, jetable par doctrine — ce qui doit durer est distillé vers la KB et le log.",
+    contenuNonEmbarque:"Contenu non embarqué (profil public ou fichier trop volumineux).",
+    ouvrirLocal:"ouvrir le fichier en local ↗",
+    ouvrirLocalNote:"(fonctionne quand la page est ouverte depuis ta machine — depuis l'artifact hébergé, le navigateur bloque les liens locaux)",
+    chantiersEnCours: n => "chantiers en cours — "+n,
+    chantiersClos: n => "chantiers clos — "+n,
+    aucunChantier:"Aucun chantier en cours — in-progress/ vide partout.",
+    nbClos: n => n+" clos",
+    ouvertLe: d => " · ouvert le "+d,
+    profilPublicDesc:"Profil public : description non divulguée.",
+    pasDAbout:"Pas d'About.md — chantier d'avant la discipline, fiche rétroactive à faire.",
+    nbFichiers: n => n+" fichier"+(n>1?"s":""),
+    profilPublicInbox: n => "Profil public : "+n+" item"+(n>1?"s":"")+", contenus non divulgués.",
+    chercherPlaceholder:"Rechercher dans le savoir — titres, descriptions, texte intégral…",
+    chercherAria:"Rechercher dans la knowledge base",
+    repertoireVide:"Répertoire vide.",
+    rienNeCorrespond: q => "Rien ne correspond à « "+q+" ».",
+    nbResultats: n => n+" résultats — les 20 premiers affichés.",
+    /* graphe */
+    webDe: s => "le web de "+s+"/ — liens réels, hors index",
+    ariaModeGraphe:"Mode du graphe", modeFichiers:"fichiers", modeRepertoires:"répertoires",
+    ariaGraphe:"Graphe local du répertoire",
+    zoomPlus:"Zoomer", zoomMoins:"Dézoomer", zoomFit:"Tout cadrer",
+    horsRepertoire:"hors de ce répertoire · ",
+    /* fiche */
+    reviewChip: r => "review : "+r, aRevoir: r => "à revoir : "+r,
+    profilPublicFiche:"Profil public : contenu non divulgué.",
+    nomReserve:"Nom réservé : un index est un catalogue, ses liens ne comptent pas dans le web du savoir.",
+    liensSortants: n => "liens sortants ("+n+")",
+    referenceePar: n => "référencée par ("+n+")",
+    aucunLien:"aucun — une fiche isolée se demande pourquoi.",
+    aucuneEntree:"aucune entrée.",
+    /* frise */
+    tous:"tous", journalVide:"Journal vide."
+  },
+  en: {
+    natSavoir:"knowledge", natProduction:"production", natMos:"a Manence installation",
+    natGit:"git repo", natExterne:"external system",
+    errDonnees:"Incompatible data",
+    errSchema: s => " — schema "+s+" received, 2 expected. Regenerate with the same version of generate-mos.py.",
+    errVue:"The view could not be rendered.", errRetour:"← back to the architecture",
+    piedCadre:"framework", piedProfil:"profile", piedGenere:"generated on",
+    piedFiches: n => n+" pages", piedChantiers: n => n+" active workstreams",
+    piedEntrees: n => n+" log entries",
+    mdImage:"image", uOctets:" B", uKo:" KB", uMo:" MB",
+    fermer:"Close", attache:"attachment", sommet:"vertex", agencement:"layout", organe:"organ",
+    carteVoisine:"Its own map is generated over there, from its own files — you link, you don't copy.",
+    skillsSuite:"the procedures",
+    regleTrois:"Rule of three occurrences: ad hoc twice, a skill the third time.",
+    routinesTitre:"routines — what has to run",
+    routinesAvant:"Declared in ",
+    routinesApres:" along with their real state — an undeclared cron doesn't exist, a declared cron that isn't wired shows up.",
+    fiches:"pages", liens:"links", enCours:"in progress", clos:"closed", legendeMos:"⬡ = a MOS",
+    corbeille:"Drop here to remove from the map",
+    enregistrerTitre:"Writes the up-to-date mos-map.json into .claude/ (Save dialog — Chromium); otherwise downloads it",
+    enregistrerLabel:"save to the file", annuler:"revert",
+    enregistre:"saved ✓", telecharge:"downloaded — drop it into .claude/", carteDuMos:"MOS map",
+    derniereEntree:"latest entry", toutLeJournal:"the whole log →",
+    journalVideFacade:"empty log — this MOS has no history yet.",
+    connecteursCoin:"connectors on this corner",
+    cocherPose:"Ticking places the connector on this vertex; unticking removes it from the map.",
+    tousPoses:"Every declared connector is already placed on the map.",
+    demandeMos1:"To wire up a new one, ask the MOS: the ",
+    demandeMos2:" skill will check the adapter contract and declare its attachment in ",
+    demandeMos3:" — it will show up here.",
+    sommetAide:"drop here, or click to choose this corner's connectors",
+    ariaArbre:"MOS tree", ariaExplorateur:"Explorer",
+    item:"item", chantierClos:"closed workstream", chantierEnCours:"workstream in progress",
+    repertoire:"directory", fiche:"page", fichier:"file", racine:"root",
+    nbElements: n => n+" item"+(n>1?"s":""),
+    introuvable:"Object not found.",
+    introuvableCorps:"This path matches nothing in this MOS's tree.",
+    itemInbox: d => "inbox item · captured on "+d+" — waiting to be sorted (weekly-review)",
+    documentChantier:"workstream document", artefactJetable:"disposable artifact by doctrine",
+    artefactProd:"A production artifact, disposable by doctrine — what has to last is distilled into the KB and the log.",
+    contenuNonEmbarque:"Content not embedded (public profile, or file too large).",
+    ouvrirLocal:"open the file locally ↗",
+    ouvrirLocalNote:"(works when the page is opened from your own machine — from the hosted artifact, the browser blocks local links)",
+    chantiersEnCours: n => "workstreams in progress — "+n,
+    chantiersClos: n => "closed workstreams — "+n,
+    aucunChantier:"No workstream in progress — in-progress/ is empty everywhere.",
+    nbClos: n => n+" closed",
+    ouvertLe: d => " · opened on "+d,
+    profilPublicDesc:"Public profile: description not disclosed.",
+    pasDAbout:"No About.md — a workstream from before the discipline, retroactive page still to write.",
+    nbFichiers: n => n+" file"+(n>1?"s":""),
+    profilPublicInbox: n => "Public profile: "+n+" item"+(n>1?"s":"")+", contents not disclosed.",
+    chercherPlaceholder:"Search the knowledge — titles, descriptions, full text…",
+    chercherAria:"Search the knowledge base",
+    repertoireVide:"Empty directory.",
+    rienNeCorrespond: q => "Nothing matches “"+q+"”.",
+    nbResultats: n => n+" results — showing the first 20.",
+    webDe: s => "the web of "+s+"/ — real links, indexes excluded",
+    ariaModeGraphe:"Graph mode", modeFichiers:"files", modeRepertoires:"directories",
+    ariaGraphe:"Local graph of the directory",
+    zoomPlus:"Zoom in", zoomMoins:"Zoom out", zoomFit:"Fit everything",
+    horsRepertoire:"outside this directory · ",
+    reviewChip: r => "review: "+r, aRevoir: r => "to review: "+r,
+    profilPublicFiche:"Public profile: content not disclosed.",
+    nomReserve:"Reserved name: an index is a catalogue, its links don't count in the web of knowledge.",
+    liensSortants: n => "outgoing links ("+n+")",
+    referenceePar: n => "referenced by ("+n+")",
+    aucunLien:"none — an isolated page begs the question why.",
+    aucuneEntree:"no entry.",
+    tous:"all", journalVide:"Empty log."
+  }
+};
+const T = TABLES[LANG] || TABLES.en;
+
+/* ---------- rendu sûr : échappement PAR DÉFAUT (tag template) ---------- */
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const hval = v => v == null ? "" : (v.__raw !== undefined ? v.__raw
+  : Array.isArray(v) ? v.map(hval).join("") : esc(v));
+function html(strings, ...vals){
+  let out = strings[0];
+  vals.forEach((v,i)=>{ out += hval(v) + strings[i+1]; });
+  return {__raw: out};
+}
+const setH = (el, t) => { el.innerHTML = t.__raw; };
+const urlSure = u => /^https?:\/\//.test(u) ? u : "#";
+
+const $ = s => document.querySelector(s);
+const DATA = JSON.parse(document.getElementById("mos-data").textContent);
+/* les 6 sommets de l'hexagone : ordre invisible — 0 = nord, puis en tournant à droite ;
+   une couleur fixe par sommet, que l'attache hérite. */
+const SOMMETS = [
+  {ang:-90,  coul:"var(--or)"},      /* 0 · nord  */
+  {ang:-30,  coul:"var(--deploy)"},  /* 1 · NE    */
+  {ang: 30,  coul:"var(--systeme)"}, /* 2 · SE    */
+  {ang: 90,  coul:"var(--savoir)"},  /* 3 · sud   */
+  {ang:150,  coul:"#C09AF0"},        /* 4 · SO    */
+  {ang:-150, coul:"var(--encre)"}    /* 5 · NO    */
+];
+const somDe = a => SOMMETS[(a.sommet ?? 0) % 6];
+const NATL = {kb:T.natSavoir, production:T.natProduction, mos:T.natMos, git:T.natGit, externe:T.natExterne};
+const DOMC = {produit:"#8CA0F2", marque:"#C09AF0", equipe:"#7FD0DC", marche:"#F08E9B",
+  ops:"#93A0B8", veille:"#E8927C", editorial:"#C09AF0", audience:"#F08E9B", studio:"#7FD0DC"};
+const PALETTE = ["#8CA0F2","#6FDEC0","#E0B64F","#F08E9B","#C09AF0","#7FD0DC","#FF9C4A","#8FB89B"];
+const hachage = s => { let h=0; for (const c of s) h = (h*31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
+const domCoul = d => DOMC[d] ?? PALETTE[hachage(d||"")%PALETTE.length];
+const TYPC = {decision:"#8CA0F2", deploy:"#FF9C4A", framework:"#E0B64F", "work-open":"#6FDEC0",
+  "work-close":"#8FB89B", review:"#93A0B8", ingest:"#C09AF0"};
+const typC = t => TYPC[t] ?? PALETTE[hachage(t)%PALETTE.length];
+
+/* ---------- garde d'entrée ---------- */
+if (DATA.schema !== 2){
+  setH($("#mos-app"), html`<div class="mos-erreur"><b>${T.errDonnees}</b>${T.errSchema(String(DATA.schema))}</div>`);
+  throw new Error("schema mismatch");
+}
+const M = DATA.mos;
+
+/* ---------- index ---------- */
+const parPath = new Map(), parents = new Map();
+(function walk(nodes, parent){ for (const n of nodes){ parPath.set(n.path, n); parents.set(n.path, parent);
+  if (n.children) walk(n.children, n.path); } })(M.tree, null);
+const degre = new Map();
+for (const e of M.edges){ degre.set(e.a,(degre.get(e.a)||0)+1); degre.set(e.b,(degre.get(e.b)||0)+1); }
+const noeudDe = p => parPath.get(p);
+const ficheDe = p => M.fiches[p];
+
+/* ---------- routage sûr : "" | log | x/<segments> ---------- */
+function route(){
+  const brut = location.hash.slice(1);
+  if (!brut) return {vue:"facade"};
+  const segs = [];
+  for (const s of brut.split("/")){
+    try{ segs.push(decodeURIComponent(s)); }
+    catch{ return {vue:"facade", invalide:true}; }
+  }
+  if (segs[0]==="log" && segs.length===1) return {vue:"log"};
+  if (segs[0]==="x" && segs.length>1) return {vue:"explorer", path:segs.slice(1).join("/")};
+  return {vue:"facade", invalide:true};
+}
+const va = h => { location.hash = h==="" ? "" : "#"+h.split("/").map(encodeURIComponent).join("/"); };
+const vaChemin = p => va("x/"+p);
+function render(){
+  const app = $("#mos-app");
+  try{
+    const r = route();
+    if (r.invalide && location.hash) history.replaceState(null, "", location.pathname + location.search);
+    app.innerHTML = "";
+    let el;
+    if (r.vue==="facade") el = document.createElement("mos-facade");
+    else if (r.vue==="log") el = document.createElement("mos-frise");
+    else { el = document.createElement("mos-explorer"); el.setAttribute("path", r.path); }
+    app.appendChild(el);
+    const fil = r.vue==="facade" ? html`<span class="mos-ici">${M.nom}</span>`
+      : html`<button data-h="">${M.nom}</button><span class="mos-fil">/</span><span class="mos-ici">${r.vue==="log"?"log":(r.path.split("/").pop())}</span>`;
+    setH($("#mos-titre"), fil);
+    $("#mos-titre").querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>va(b.dataset.h));
+    setH($("#mos-pied"), html`${M.nom} · ${T.piedCadre} <b>v${M.meta.version||"?"}</b> · ${T.piedProfil} <b>${M.profil}</b> · ${T.piedGenere} <b>__DATE__</b>
+      · ${T.piedFiches(M.meta.kb_fiches)} · ${T.piedChantiers(M.meta.chantiers_actifs)} · ${T.piedEntrees(M.log.length)}${
+      M.meta.avertissements.length?html`<br/>⚠ ${M.meta.avertissements.join(" · ")}`:""}`);
+  }catch(err){
+    setH(app, html`<div class="mos-erreur"><b>${T.errVue}</b><br/>${String(err)}<br/>
+      <button data-h="" style="margin-top:.5rem">${T.errRetour}</button></div>`);
+    app.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>{ location.hash=""; });
+  }
+}
+window.addEventListener("hashchange", render);
+
+/* ---------- markdown → HTML sûr (sous-ensemble OKF ; tout texte passe par esc) ---------- */
+function resoudre(rel, courant){
+  if (!/\.md$/.test(rel)) return null;
+  const base = courant.split("/").slice(0, -1);
+  for (const seg of rel.split("/")){
+    if (seg === "." || seg === "") continue;
+    else if (seg === ".."){ if (!base.length) return null; base.pop(); }
+    else base.push(seg);
+  }
+  const p = base.join("/");
+  return parPath.has(p) ? p : null;
+}
+function mdRendu(src, courant){
+  const lignes = String(src || "").split("\n");
+  let out = "", enCode = false;
+  const pile = [];
+  const fermer = () => { while (pile.length) out += `</${pile.pop()}>`; };
+  const inline = t => {
+    let s = esc(t);
+    s = s.replace(/`([^`]+)`/g, (m, c) => `<code>${c}</code>`);
+    s = s.replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    s = s.replace(/(^|[\s(])\*([^*\s][^*]*)\*/g, "$1<em>$2</em>");
+    s = s.replace(/!\[([^\]]*)\]\(([^)]*)\)/g, (m, alt) => `<span class="md-img">🖼 ${alt || esc(T.mdImage)}</span>`);
+    s = s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (m, txt, url) => {
+      url = url.replace(/&amp;/g, "&").replace(/&quot;|&#39;/g, "");
+      if (/^https?:\/\//.test(url)) return `<a href="${esc(url)}" target="_blank" rel="noopener">${txt}</a>`;
+      const cible = resoudre(url.split("#")[0], courant);
+      if (cible) return `<button class="md-lien" data-h="x/${esc(cible)}">${txt}</button>`;
+      return `<span class="md-lien-mort" title="${esc(url)}">${txt}</span>`;
+    });
+    return s;
+  };
+  for (let i = 0; i < lignes.length; i++){
+    const l = lignes[i];
+    if (/^```/.test(l)){ fermer(); out += enCode ? "</code></pre>" : "<pre><code>"; enCode = !enCode; continue; }
+    if (enCode){ out += esc(l) + "\n"; continue; }
+    if (/^\s*$/.test(l)){ fermer(); continue; }
+    let m;
+    if ((m = l.match(/^(#{1,4})\s+(.*)/))){ fermer(); const n = Math.min(6, m[1].length + 2);
+      out += `<h${n}>${inline(m[2])}</h${n}>`; continue; }
+    if (/^\s*(---+|\*\*\*+)\s*$/.test(l)){ fermer(); out += "<hr/>"; continue; }
+    if ((m = l.match(/^>\s?(.*)/))){ fermer(); out += `<blockquote>${inline(m[1])}</blockquote>`; continue; }
+    if ((m = l.match(/^(\s*)[-*+]\s+(.*)/))){
+      const prof = m[1].length >= 2 ? 2 : 1;
+      while (pile.length > prof) out += `</${pile.pop()}>`;
+      while (pile.length < prof){ out += "<ul>"; pile.push("ul"); }
+      out += `<li>${inline(m[2])}</li>`; continue; }
+    if ((m = l.match(/^\s*\d+\.\s+(.*)/))){
+      if (pile[pile.length - 1] !== "ol"){ fermer(); out += "<ol>"; pile.push("ol"); }
+      out += `<li>${inline(m[1])}</li>`; continue; }
+    if (/^\|/.test(l)){
+      fermer();
+      const rows = [];
+      while (i < lignes.length && /^\|/.test(lignes[i])) rows.push(lignes[i++]);
+      i--;
+      const corps = rows.filter(r => !/^\|[\s\-:|]+\|?\s*$/.test(r));
+      const cellules = r => r.replace(/^\||\|\s*$/g, "").split("|").map(c => inline(c.trim()));
+      out += `<div class="md-table"><table>` + corps.map((r, j) =>
+        `<tr>${cellules(r).map(c => `<${j ? "td" : "th"}>${c}</${j ? "td" : "th"}>`).join("")}</tr>`).join("") + `</table></div>`;
+      continue; }
+    fermer(); out += `<p>${inline(l)}</p>`;
+  }
+  fermer(); if (enCode) out += "</code></pre>";
+  return {__raw: `<div class="mos-md">${out}</div>`};
+}
+const humain = o => o == null ? "" : o < 1024 ? o + T.uOctets : o < 1048576 ? (o/1024).toFixed(o<10240?1:0) + T.uKo : (o/1048576).toFixed(1) + T.uMo;
+const cheminAbs = p => {
+  if (!M.meta.racine_coeur) return "";
+  return p.startsWith("production/")
+    ? M.meta.racine_production + "/" + p.slice("production/".length)
+    : M.meta.racine_coeur + "/" + p;
+};
+const lienLocal = p => { const a = cheminAbs(p); return a ? "file://" + encodeURI(a) : ""; };
+/* rond de statut en coin haut-droit d'une carte : jaune proposal · vert validated · bleu canon · rouge rejected */
+const stDot = st => st ? {__raw:`<span class="st-pt st-${esc(st)}" title="${esc(st)}"></span>`} : "";
+
+/* ---------- agencement personnalisé de la façade (drag & drop + choix des connecteurs) ----------
+   Les changements vivent en localStorage (immédiats, propres à ce navigateur) ; le bouton
+   « copier la déclaration » rend le mos-map.json à jour — le FICHIER reste la source de vérité. */
+const clePerso = "mosmap:" + M.nom + ":agencement";
+const chargerPerso = () => { try{ return JSON.parse(localStorage.getItem(clePerso) || "{}"); }catch{ return {}; } };
+const sauverPerso = p => { try{ localStorage.setItem(clePerso, JSON.stringify(p)); }catch{} };
+const estPilier = a => a.nature === "kb" || a.nature === "production";
+function attachesEffectives(){
+  const p = chargerPerso();
+  return M.attaches.map(a => ({...a,
+    sommet: (!estPilier(a) && p.sommets?.[a.id] !== undefined) ? p.sommets[a.id] : a.sommet,
+    visible: estPilier(a) ? true : (p.visibles?.[a.id] ?? (a.visible !== false))}));
+}
+function sommetLibre(){
+  const comptes = new Map([[1,0],[2,0],[4,0],[5,0]]);
+  for (const a of attachesEffectives())
+    if (a.visible && !estPilier(a) && comptes.has((a.sommet??0)%6))
+      comptes.set((a.sommet??0)%6, comptes.get((a.sommet??0)%6)+1);
+  return [...comptes.entries()].sort((x,y)=>x[1]-y[1])[0][0];
+}
+/* enregistrer la déclaration dans le fichier : File System Access API (Chromium — vrai dialogue
+   « Enregistrer », écrit dans .claude/mos-map.json) ; repli : téléchargement du fichier. */
+async function enregistrerFichier(){
+  const contenu = declarationAJour();
+  if (window.showSaveFilePicker){
+    try{
+      const h = await window.showSaveFilePicker({suggestedName: "mos-map.json",
+        types: [{description: T.carteDuMos, accept: {"application/json": [".json"]}}]});
+      const w = await h.createWritable(); await w.write(contenu); await w.close();
+      return T.enregistre;
+    }catch(e){ if (e.name === "AbortError") return null; }
+  }
+  const blob = new Blob([contenu], {type: "application/json"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = "mos-map.json"; a.click();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 2000);
+  return T.telecharge;
+}
+function declarationAJour(){
+  const p = chargerPerso();
+  const attaches = M.attaches.map(a => {
+    const s = (!estPilier(a) && p.sommets?.[a.id] !== undefined) ? p.sommets[a.id] : a.sommet;
+    const v = estPilier(a) ? true : (p.visibles?.[a.id] ?? (a.visible !== false));
+    const out = {...a, sommet: s};
+    if (!v) out.visible = false; else delete out.visible;
+    return out;
+  });
+  return JSON.stringify({schema: 2, attaches, routines: M.routines}, null, 2);
+}
+
+/* ---------- dialogue (organe skills, connecteurs non-MOS) ---------- */
+const dlg = $("#mos-dialog");
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+function ouvrir(t){
+  setH(dlg, html`<button class="fermer" aria-label="${T.fermer}">✕</button>${t}`);
+  dlg.querySelector(".fermer").onclick = () => dlg.close();
+  dlg.showModal();
+}
+function surAttache(id){
+  const a = M.attaches.find(x=>x.id===id);
+  const s = somDe(a);
+  ouvrir(html`<p class="cat" style="color:${s.coul}">${T.attache} · ${T.sommet} ${a.sommet ?? 0} · ${NATL[a.nature] ?? a.nature ?? "?"}${a.nature==="mos"?" ⬡":""}</p>
+    <h2>${a.nom}</h2><p>${a.resume||""}</p>
+    ${a.nature==="mos"?html`<p style="color:var(--ghost);font-size:.8rem">${T.carteVoisine}</p>`:""}
+    ${(a.liens||[]).length?html`<div class="sortants">${(a.liens||[]).map(l=>html`<a href="${urlSure(l[1])}" target="_blank" rel="noopener">↗ ${l[0]}</a>`)}</div>`:""}`);
+}
+function surSkills(){
+  /* une ligne par skill : le titre, puis sa fonction — la première phrase de la description */
+  const fonction = t => {
+    t = String(t||"");
+    const i = t.search(/[.;]\s|[.;]$/);
+    t = i > 0 ? t.slice(0, i) : t;
+    return t.length > 150 ? t.slice(0, 150) + "…" : t;
+  };
+  ouvrir(html`<p class="cat" style="color:var(--encre)">${T.organe}</p><h2>skills — ${T.skillsSuite}</h2>
+    <p>${T.regleTrois}</p>
+    ${M.skills.map(s=>html`<div class="sk"><span class="sk-t">/${s.name}</span><span class="sk-l">${fonction(s.desc)||"—"}</span></div>`)}
+    ${M.routines.length?html`<h2 style="margin-top:1.3rem">${T.routinesTitre}</h2>
+      <p>${T.routinesAvant}<span style="font-family:var(--mono);font-size:.8em">.claude/mos-map.json</span>${T.routinesApres}</p>
+      ${M.routines.map(r=>html`<div class="sk"><span class="sk-t">⟳ ${r.nom}</span>
+        <span class="sk-l"><b>${r.cadence}</b> · <span class="sk-e">${r.etat}</span></span>
+        ${r.desc?html`<span class="sk-l">${r.desc}</span>`:""}</div>`)}`:""}`);
+}
+
+/* ================= mos-facade ================= */
+class MosFacade extends HTMLElement{
+  connectedCallback(){
+    const dern = M.log[0];
+    const ATT = this._att = attachesEffectives().filter(a=>a.visible);
+    /* zones par sommet : 0 → au-dessus · 3 → en dessous · 1,2 → droite · 4,5 → gauche */
+    const zone = a => { const s = (a.sommet ?? 0) % 6;
+      return s===0 ? "haut" : s===3 ? "bas" : (s===1||s===2) ? "droite" : "gauche"; };
+    const parZone = z => ATT.filter(a=>zone(a)===z).sort((x,y)=>(x.sommet??0)-(y.sommet??0));
+    const carte = a => {
+      const s = somDe(a);
+      const compte = a.nature==="kb" ? html`<b>${M.meta.kb_fiches}</b> ${T.fiches} · <b>${M.meta.kb_liens}</b> ${T.liens}`
+        : a.nature==="production" ? html`<b>${M.meta.chantiers_actifs}</b> ${T.enCours} · <b>${M.meta.chantiers_clos}</b> ${T.clos}`
+        : null;
+      return html`<button class="mos-carte ${a.nature==="mos"?"est-mos":""}" style="--acc:${s.coul}"
+        data-a="${a.id}" ${estPilier(a)?"":{__raw:` data-drag="${esc(a.id)}"`}}>
+        <span class="fleche">${a.nature==="mos"?"⬡":"→"}</span><span class="t">${a.nom}</span>
+        ${compte?html`<span class="n">${compte}</span>`:""}
+        ${a.resume?html`<span class="n">${a.resume}</span>`:""}</button>`;
+    };
+    /* à gauche, le sommet 5 (NO) est en haut, le 4 (SO) en bas */
+    const gauche = ATT.filter(a=>zone(a)==="gauche").sort((x,y)=>(y.sommet??0)-(x.sommet??0));
+    setH(this, html`<div class="mos-stage">
+      <svg class="mos-fils" aria-hidden="true"></svg>
+      <div class="mos-grille">
+        <div class="mos-haut">${parZone("haut").map(carte)}
+          <div class="corbeille" aria-hidden="true" title="${T.corbeille}">🗑</div></div>
+        <div class="mos-milieu">
+          <div class="mos-colg">${gauche.map(carte)}</div>
+          <div class="mos-centre"><div class="mos-hexbox">
+            <svg class="mos-hexsvg" aria-hidden="true"></svg>
+            <div class="mos-coeur-int">
+              <span class="nom">${M.nom}</span>
+              <div class="mos-organes">
+                <button class="mos-organe" data-h="log">log — <b>${M.log.length}</b></button>
+                <button class="mos-organe" data-h="x/inbox">inbox — <b>${M.meta.inbox_total}</b></button>
+                <button class="mos-organe" data-o="skills">skills — <b>${M.skills.length}</b></button>
+              </div></div></div></div>
+          <div class="mos-cold">${parZone("droite").map(carte)}</div>
+        </div>
+        <div class="mos-bas">${parZone("bas").map(carte)}</div>
+      </div>
+      <div class="mos-legende">${[...ATT].sort((a,b)=>(a.sommet??0)-(b.sommet??0)).map(a=>html`
+        <span class="mos-lg" style="--c:${somDe(a).coul}"><i></i>${a.nom}</span>`)}
+        <span class="mos-lg" style="--c:var(--encre)"><i></i>${T.legendeMos}</span>
+      </div>
+      ${Object.keys(chargerPerso()).length?html`<div class="mos-agence">
+        <button data-t="enregistrer" title="${T.enregistrerTitre}">${T.enregistrerLabel}</button>
+        <button data-t="reset" style="border-color:transparent">${T.annuler}</button>
+      </div>`:""}
+      <div class="mos-pouls">${dern?html`<span class="pt"></span><span>${T.derniereEntree}</span>
+        <b>${dern.date}</b><span style="color:${typC(dern.type)}">${dern.type}</span>
+        <span>${dern.title}</span><button class="lien" data-h="log">${T.toutLeJournal}</button>`:html`<span>${T.journalVideFacade}</span>`}</div>
+    </div>`);
+    this.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>va(b.dataset.h));
+    this.querySelectorAll("[data-o]").forEach(b=>b.onclick=()=>surSkills());
+    this.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>{
+      if (this._dragVientDeFinir) return;
+      const a = M.attaches.find(x=>x.id===b.dataset.a);
+      if (a.nature==="kb") va("x/knowledge-base");
+      else if (a.nature==="production") va("x/production");
+      else surAttache(a.id);
+    });
+    /* drag custom (Pointer Events) : le POINT du fantôme (bord droit) est la référence —
+       on l'aligne sur le point pointillé du sommet ; la corbeille retire de la carte */
+    const stage = this.querySelector(".mos-stage");
+    this.querySelectorAll("[data-drag]").forEach(el=>{
+      el.style.cursor = "grab";
+      el.addEventListener("pointerdown", e=>{
+        if (e.button !== 0) return;
+        const id = el.dataset.drag, depart = {x: e.clientX, y: e.clientY};
+        let ghost = null, actif = false, cibles = null, corb = null, decal = null, cible = null;
+        const bouge = ev=>{
+          if (!actif){
+            if (Math.hypot(ev.clientX-depart.x, ev.clientY-depart.y) < 6) return;
+            actif = true;
+            el.classList.add("en-cours-drag");
+            stage.classList.add("drag-actif");
+            const r = el.getBoundingClientRect();
+            decal = {dx: depart.x-r.left, dy: depart.y-r.top, w: r.width, h: r.height};
+            ghost = el.cloneNode(true);
+            ghost.classList.remove("en-cours-drag");
+            ghost.classList.add("carte-ghost");
+            ghost.style.width = r.width+"px";
+            document.body.appendChild(ghost);
+            cibles = [...this.querySelectorAll(".som-cible")].map(g=>{
+              const rp = g.querySelector(".pt-som").getBoundingClientRect();
+              return {som: Number(g.dataset.som), g, x: rp.left+rp.width/2, y: rp.top+rp.height/2};
+            });
+            corb = this.querySelector(".corbeille");
+          }
+          ghost.style.transform = `translate(${ev.clientX-decal.dx}px, ${ev.clientY-decal.dy}px) scale(.97)`;
+          /* le point d'attache du fantôme : bord GAUCHE, mi-hauteur — c'est lui qui vise */
+          const px = ev.clientX-decal.dx, py = ev.clientY-decal.dy+decal.h/2;
+          let sur = null;
+          for (const c of cibles) if (Math.hypot(c.x-px, c.y-py) < 30){ sur = c; break; }
+          cibles.forEach(c=>c.g.classList.toggle("survole", c===sur));
+          let surCorb = false;
+          if (!sur && corb){
+            const rc = corb.getBoundingClientRect();
+            surCorb = Math.hypot(rc.left+rc.width/2-px, rc.top+rc.height/2-py) < 46;
+          }
+          corb?.classList.toggle("survole", surCorb);
+          cible = sur ? {type:"som", som: sur.som} : surCorb ? {type:"corbeille"} : null;
+        };
+        const fin = ()=>{
+          window.removeEventListener("pointermove", bouge);
+          window.removeEventListener("pointerup", fin);
+          window.removeEventListener("pointercancel", fin);
+          if (!actif) return; /* simple clic : le onclick de la carte agit */
+          ghost?.remove();
+          el.classList.remove("en-cours-drag");
+          stage.classList.remove("drag-actif");
+          this._dragVientDeFinir = true;
+          setTimeout(()=>{ this._dragVientDeFinir = false; }, 120);
+          if (!cible) return;
+          const p = chargerPerso();
+          if (cible.type==="som") (p.sommets = p.sommets || {})[id] = cible.som;
+          else (p.visibles = p.visibles || {})[id] = false;
+          sauverPerso(p); this.rafraichir();
+        };
+        window.addEventListener("pointermove", bouge);
+        window.addEventListener("pointerup", fin);
+        window.addEventListener("pointercancel", fin);
+      });
+    });
+    /* la barre : seulement quand quelque chose a changé */
+    this.querySelectorAll(".mos-agence [data-t]").forEach(b=>b.onclick=()=>{
+      if (b.dataset.t==="reset"){ try{ localStorage.removeItem(clePerso); }catch{} this.rafraichir(); }
+      else if (b.dataset.t==="enregistrer"){
+        enregistrerFichier().then(msg=>{ if (!msg) return;
+          b.textContent = msg; setTimeout(()=>b.textContent=T.enregistrerLabel, 2400); });
+      }
+    });
+    let tick=false;
+    if (this._pose) window.removeEventListener("resize", this._pose);
+    this._pose = ()=>{ if(tick) return; tick=true; requestAnimationFrame(()=>{ tick=false; this.pose(); }); };
+    requestAnimationFrame(this._pose);
+    window.addEventListener("resize", this._pose);
+  }
+  rafraichir(){ this.connectedCallback(); }
+  /* le ＋ d'un coin : ce sommet + les connecteurs disponibles (jamais ceux posés ailleurs) */
+  ouvrirPlus(som){
+    const tous = attachesEffectives().filter(a=>!estPilier(a));
+    const surCe = tous.filter(a=>a.visible && ((a.sommet??0)%6)===som);
+    const dispo = tous.filter(a=>!a.visible);
+    const liste = [...surCe, ...dispo];
+    ouvrir(html`<p class="cat" style="color:${SOMMETS[som].coul}">${T.agencement} · ${T.sommet} ${som}</p>
+      <h2>${T.connecteursCoin}</h2>
+      ${liste.length?html`<p>${T.cocherPose}</p>
+        ${liste.map(a=>html`<label class="choix">
+          <input type="checkbox" data-vis="${a.id}" ${a.visible?{__raw:" checked"}:""}>
+          <span>${a.nom} <span class="n2">· ${NATL[a.nature]??a.nature}</span></span></label>`)}`
+      :html`<p>${T.tousPoses}</p>
+        <p class="mos-vide">${T.demandeMos1}<span style="font-family:var(--mono);font-size:.85em">connect-adapter</span>${T.demandeMos2}<span style="font-family:var(--mono);font-size:.85em">.claude/mos-map.json</span>${T.demandeMos3}</p>`}`);
+    dlg.querySelectorAll("[data-vis]").forEach(cb=>cb.onchange=()=>{
+      const p = chargerPerso();
+      if (cb.checked){
+        (p.visibles = p.visibles || {})[cb.dataset.vis] = true;
+        (p.sommets = p.sommets || {})[cb.dataset.vis] = som;
+      } else {
+        (p.visibles = p.visibles || {})[cb.dataset.vis] = false;
+      }
+      sauverPerso(p); this.rafraichir();
+    });
+  }
+  disconnectedCallback(){ window.removeEventListener("resize", this._pose); }
+  pose(){
+    const box = this.querySelector(".mos-hexbox"), hx = this.querySelector(".mos-hexsvg");
+    if (!box) return;
+    const w = box.clientWidth, h = box.clientHeight, cx=w/2, cy=h/2, R=Math.min(w,h)/2-8;
+    const angles=[-150,-90,-30,30,90,150];
+    const pts=angles.map(a=>[cx+Math.cos(a*Math.PI/180)*R, cy+Math.sin(a*Math.PI/180)*R]);
+    /* sommets : piliers en points pleins ; les 4 diagonales sont des CIBLES vivantes —
+       halo pointillé pendant un drag, ＋ au survol pour ajouter directement sur ce coin */
+    const occupes = new Set((this._att||[]).map(a=>(a.sommet??0)%6));
+    hx.setAttribute("viewBox",`0 0 ${w} ${h}`);
+    let dedans = `<polygon class="mos-hexa" points="${pts.map(p=>p.join(",")).join(" ")}"/>`;
+    for (const s of [0,3]) if (occupes.has(s)){
+      const i = angles.indexOf(SOMMETS[s].ang);
+      dedans += `<circle class="mos-sommet" cx="${pts[i][0]}" cy="${pts[i][1]}" r="5.5" fill="${SOMMETS[s].coul}"/>`;
+    }
+    for (const s of [1,2,4,5]){
+      const i = angles.indexOf(SOMMETS[s].ang), coul = SOMMETS[s].coul;
+      dedans += `<g class="som-cible" data-som="${s}" transform="translate(${pts[i][0]},${pts[i][1]})">
+        <circle class="halo" r="14" style="stroke:${coul}"/>
+        <circle class="mos-sommet pt-som${occupes.has(s)?"":" pt-fantome"}" r="5.5" fill="${coul}"/>
+        <text class="som-plus" dy="0.36em">＋</text>
+        <circle class="hit" r="22"><title>${esc(T.sommet)} ${s} — ${esc(T.sommetAide)}</title></circle>
+      </g>`;
+    }
+    hx.innerHTML = dedans;
+    hx.querySelectorAll(".som-cible").forEach(g=>{
+      g.addEventListener("click", ()=>this.ouvrirPlus(Number(g.dataset.som)));
+    });
+    const stage=this.querySelector(".mos-stage"), fils=this.querySelector(".mos-fils");
+    const rs=stage.getBoundingClientRect();
+    if (rs.width<980 || !window.matchMedia("(min-width: 981px)").matches){ fils.innerHTML=""; return; }
+    fils.setAttribute("viewBox",`0 0 ${rs.width} ${rs.height}`);
+    const rb=box.getBoundingClientRect();
+    const ccx=rb.left-rs.left+rb.width/2, ccy=rb.top-rs.top+rb.height/2, RR=Math.min(rb.width,rb.height)/2-8;
+    const A=a=>[ccx+Math.cos(a*Math.PI/180)*RR, ccy+Math.sin(a*Math.PI/180)*RR];
+    const liaisons = (this._att||[]).map(a=>{
+      const el = this.querySelector(`[data-a="${CSS.escape(a.id)}"]`);
+      const s = (a.sommet??0)%6, som = SOMMETS[s];
+      const attache = s===0 ? "bas" : s===3 ? "haut" : (s===1||s===2) ? "gauche" : "droite";
+      return [el, A(som.ang), NATL[a.nature] ?? a.nature ?? "", som.coul, attache];
+    });
+    let out="";
+    for (const [el,[x2,y2],label,coul,attache] of liaisons){
+      if(!el) continue;
+      const r=el.getBoundingClientRect();
+      let x1, y1;
+      if (attache==="bas"){ x1=r.left-rs.left+r.width/2; y1=r.bottom-rs.top; }
+      else if (attache==="haut"){ x1=r.left-rs.left+r.width/2; y1=r.top-rs.top; }
+      else if (attache==="droite"){ x1=r.right-rs.left; y1=r.top-rs.top+r.height/2; }
+      else { x1=r.left-rs.left; y1=r.top-rs.top+r.height/2; }
+      out+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" style="stroke:${coul};stroke-opacity:.38;stroke-width:1.2"><title>${esc(label)}</title></line>
+        <circle cx="${x1}" cy="${y1}" r="3.6" fill="${coul}" stroke="var(--paper-deep)" stroke-width="1.5"/>`;
+    }
+    fils.innerHTML=out;
+  }
+}
+customElements.define("mos-facade", MosFacade);
+
+/* ================= mos-explorer (treeview conforme : un seul arrêt de tabulation) ================= */
+class MosExplorer extends HTMLElement{
+  connectedCallback(){
+    const path = this.getAttribute("path");
+    const cle = "mosmap:"+M.nom+":exp";
+    let exp;
+    try{ exp = new Set(JSON.parse(localStorage.getItem(cle)||"[]").filter(p=>parPath.has(p))); }
+    catch{ exp = new Set(); }
+    for (let p = path; p; p = parents.get(p)) if (noeudDe(p)?.kind==="dir") exp.add(p);
+    const sauver = ()=>{ try{ localStorage.setItem(cle, JSON.stringify([...exp])); }catch{} };
+
+    const liTree = (n, niveau) => {
+      const isDir = n.kind==="dir", open = exp.has(n.path);
+      const ico = !isDir ? html`<span class="ico f"></span>`
+        : html`<span class="ico ${n.path.startsWith("knowledge-base")?"d-kb":n.path.startsWith("inbox")?"d-inbox":"d-prod"}"></span>`;
+      return html`<li role="treeitem" aria-level="${niveau}" aria-selected="${n.path===path}"
+          ${isDir&&n.children?.length?{__raw:` aria-expanded="${open}"`}:""} data-p="${n.path}" data-dir="${isDir?1:0}" tabindex="-1">
+        <div class="ligne">
+          ${isDir?html`<button class="tw" tabindex="-1" data-tw="${n.path}" aria-hidden="true">${open?"▾":"▸"}</button>`:html`<span class="tw"></span>`}
+          <span class="nomb">${ico}<span>${n.name}</span></span>
+        </div>
+        ${isDir && open && n.children?.length ? html`<ul role="group">${n.children.map(c=>liTree(c, niveau+1))}</ul>` : ""}</li>`;
+    };
+    const arbreT = ()=>html`<ul role="tree" aria-label="${T.ariaArbre}">${M.tree.map(n=>liTree(n,1))}</ul>`;
+
+    setH(this, html`<div class="mos-explo">
+      <nav class="mos-arbre" aria-label="${T.ariaExplorateur}">${arbreT()}</nav>
+      <div class="mos-contenu"></div></div>`);
+    const nav = this.querySelector(".mos-arbre");
+
+    const items = ()=>[...nav.querySelectorAll("li[role=treeitem]")];
+    const poserTab = (focusPath)=>{
+      const tous = items();
+      let cible = tous.find(li=>li.dataset.p===focusPath) || tous.find(li=>li.dataset.p===path) || tous[0];
+      tous.forEach(li=>li.tabIndex = li===cible ? 0 : -1);
+      return cible;
+    };
+    const reRendre = (focusPath, garderFocus)=>{
+      const scroll = nav.scrollTop;
+      setH(nav, arbreT());
+      brancher();
+      const cible = poserTab(focusPath);
+      nav.scrollTop = scroll;
+      if (garderFocus && cible) cible.focus();
+    };
+    const brancher = ()=>{
+      nav.querySelectorAll(".tw[data-tw]").forEach(b=>{
+        b.onclick = e=>{ e.stopPropagation();
+          exp.has(b.dataset.tw)?exp.delete(b.dataset.tw):exp.add(b.dataset.tw);
+          sauver(); reRendre(b.dataset.tw, false); };
+      });
+      items().forEach(li=>{
+        li.querySelector(":scope > .ligne").onclick = ()=>{
+          if (li.dataset.dir==="1"){ exp.add(li.dataset.p); sauver(); }
+          vaChemin(li.dataset.p);
+        };
+        li.onkeydown = e=>{
+          if (e.target!==li) return;
+          const vis = items(), i = vis.indexOf(li), p = li.dataset.p, isDir = li.dataset.dir==="1";
+          const focusA = el=>{ if(el){ vis.forEach(x=>x.tabIndex=-1); el.tabIndex=0; el.focus(); } };
+          switch(e.key){
+            case "ArrowDown": focusA(vis[i+1]); break;
+            case "ArrowUp": focusA(vis[i-1]); break;
+            case "Home": focusA(vis[0]); break;
+            case "End": focusA(vis[vis.length-1]); break;
+            case "ArrowRight":
+              if (isDir && !exp.has(p)){ exp.add(p); sauver(); reRendre(p, true); }
+              else if (isDir){ const enf = li.querySelector("ul > li"); focusA(enf); }
+              break;
+            case "ArrowLeft":
+              if (isDir && exp.has(p)){ exp.delete(p); sauver(); reRendre(p, true); }
+              else { const par = parents.get(p); focusA(vis.find(x=>x.dataset.p===par)); }
+              break;
+            case "Enter": case " ":
+              if (isDir){ exp.add(p); sauver(); }
+              vaChemin(p); break;
+            default: return;
+          }
+          e.preventDefault();
+        };
+      });
+    };
+    brancher(); poserTab(path);
+    this.rendreContenu(path);
+  }
+  rendreContenu(path){
+    const zone = this.querySelector(".mos-contenu"), n = noeudDe(path);
+    const segs = path.split("/");
+    const ariane = html`<div class="mos-ariane">
+      <button data-h="">${M.nom}</button>
+      ${segs.map((s,i)=>{
+        const p = segs.slice(0,i+1).join("/");
+        if (i===segs.length-1) return html`<span class="sep">/</span><span class="ici">${s}</span>`;
+        return parPath.has(p)
+          ? html`<span class="sep">/</span><button data-h="x/${p}">${s}</button>`
+          : html`<span class="sep">/</span><span>${s}</span>`;
+      })}
+    </div>`;
+    const carteEnfant = c => {
+      if (c.kind==="fiche"){
+        const f = ficheDe(c.path)||{};
+        const dom = c.path.split("/").length>2 ? c.path.split("/")[1] : T.racine;
+        return html`<button class="mos-obj" style="--acc:${domCoul(dom)}" data-h="x/${c.path}">
+          ${stDot(f.status)}
+          <span class="k">${c.name}</span>
+          <span class="t">${f.title||c.name}</span><span class="p">${(f.desc||"").slice(0,140)}</span></button>`;
+      }
+      if (c.kind==="inboxitem")
+        return html`<button class="mos-obj" style="--acc:var(--encre)" data-h="x/${c.path}">
+          <span class="k">${c.meta.date||T.item}</span><span class="t">${c.meta.title}</span>
+          <span class="p">${(c.meta.excerpt||"").slice(0,140)}</span></button>`;
+      if (c.kind==="dir"){
+        const nb = c.children?.length||0, meta = c.meta;
+        const acc = c.path.startsWith("knowledge-base")?domCoul(c.name)
+          : c.path.startsWith("inbox")?"var(--encre)":"var(--or)";
+        return html`<button class="mos-obj" style="--acc:${acc}" data-h="x/${c.path}">
+          ${meta?stDot(meta.status):""}
+          <span class="k">${meta?(meta.clos?T.chantierClos:T.chantierEnCours):T.repertoire}</span>
+          <span class="t">${meta?.title||c.name}/</span>
+          <span class="p">${meta?(meta.desc||"").slice(0,120):T.nbElements(nb)}</span></button>`;
+      }
+      return html`<button class="mos-obj" data-h="x/${c.path}"><span class="k">${T.fichier}</span><span class="t">${c.name}</span></button>`;
+    };
+    let corps;
+    if (!n){
+      corps = html`<div class="mos-erreur"><b>${T.introuvable}</b> ${T.introuvableCorps}</div>`;
+    } else if (n.kind==="fiche"){
+      corps = html`<mos-fiche path="${path}"></mos-fiche>`;
+    } else if (n.kind==="inboxitem"){
+      corps = html`<div class="mos-detail" style="border-left:3px solid var(--encre);max-width:820px">
+        <p class="k" style="color:var(--encre)">${T.itemInbox(n.meta.date||"?")}</p>
+        <h2>${n.meta.title}</h2>
+        ${n.meta.body?mdRendu(n.meta.body, path):n.meta.excerpt?html`<p>${n.meta.excerpt}…</p>`:""}</div>`;
+    } else if (n.kind==="file"){
+      const taille = humain(n.size), local = lienLocal(path), abs = cheminAbs(path);
+      if (n.body){
+        corps = html`<div class="mos-detail" style="max-width:840px">
+          <p class="k" style="color:var(--ghost)">${T.documentChantier}${taille?` · ${taille}`:""} — ${T.artefactJetable}</p>
+          <h2>${n.name}</h2>${mdRendu(n.body, path)}</div>`;
+      } else {
+        corps = html`<div class="mos-detail">
+          <p class="k" style="color:var(--ghost)">${T.fichier}${taille?` · ${taille}`:""}</p><h2>${n.name}</h2>
+          <p class="g">${T.artefactProd}
+            ${/\.md$/.test(n.name)?T.contenuNonEmbarque:""}</p>
+          ${abs?html`<p class="md-chemin">${abs}</p>`:""}
+          ${local?html`<p><a href="${local}">${T.ouvrirLocal}</a>
+            <span class="g" style="font-size:.75rem">${T.ouvrirLocalNote}</span></p>`:""}</div>`;
+      }
+    } else if (path==="production"){
+      /* la racine de production répond à LA question : quels chantiers sont en cours ? */
+      const enCours=[], parDom=[];
+      for (const dom of n.children||[]){
+        let closDom=0;
+        for (const etat of dom.children||[])
+          for (const ch of etat.children||[])
+            if (ch.meta){ ch.meta.clos ? closDom++ : enCours.push({ch, dom:dom.name}); }
+        parDom.push({nom:dom.name, path:dom.path, clos:closDom});
+      }
+      enCours.sort((a,b)=>(b.ch.meta.date||"").localeCompare(a.ch.meta.date||""));
+      const carteCh = ({ch,dom}) => html`
+        <button class="mos-obj" style="--acc:var(--or)" data-h="x/${ch.path}">
+          ${stDot(ch.meta.status)}
+          <span class="k">${ch.meta.date||""}</span>
+          <span class="t">${ch.meta.title}</span>
+          <span class="p">${(ch.meta.desc||"").slice(0,140)}</span></button>`;
+      const domsActifs = [...new Set(enCours.map(e=>e.dom))];
+      corps = html`
+        <h2 class="mos-h2">${T.chantiersEnCours(enCours.length)}</h2>
+        ${enCours.length?domsActifs.map(dom=>html`
+          <h3 class="mos-h3">${dom}/</h3>
+          <div class="mos-enfants">${enCours.filter(e=>e.dom===dom).map(carteCh)}</div>`)
+          :html`<p class="mos-vide">${T.aucunChantier}</p>`}
+        <h2 class="mos-h2">${T.chantiersClos(M.meta.chantiers_clos)}</h2>
+        <div class="mos-enfants">${parDom.map(d=>{
+          const cible = parPath.has(d.path+"/done") ? d.path+"/done" : d.path;
+          return html`<button class="mos-obj" style="--acc:var(--or)" data-h="x/${cible}">
+            <span class="k">${T.repertoire}</span><span class="t">${d.nom}/${cible.endsWith("/done")?"done/":""}</span>
+            <span class="p">${T.nbClos(d.clos)}</span></button>`;})}</div>`;
+    } else {
+      const dansKb = path==="knowledge-base" || path.startsWith("knowledge-base/");
+      const entete = n.meta ? html`<div class="mos-detail">
+          <p class="k">${n.meta.clos?T.chantierClos:T.chantierEnCours}${n.meta.date?T.ouvertLe(n.meta.date):""}
+            ${n.meta.status?html` <span class="mos-puce st-${n.meta.status}">${n.meta.status}</span>`:""}</p>
+          <h2>${n.meta.title}</h2>
+          ${n.meta.desc?html`<p>${n.meta.desc}</p>`
+            :html`<p class="g">${M.profil==="public"?T.profilPublicDesc:T.pasDAbout}</p>`}
+          ${n.meta.n_files?html`<p class="k" style="color:var(--ghost)">${T.nbFichiers(n.meta.n_files)}</p>`:""}
+        </div>` : "";
+      const noteInbox = (path==="inbox" && M.profil==="public")
+        ? html`<p class="mos-vide">${T.profilPublicInbox(M.meta.inbox_total)}</p>` : "";
+      const enfants = n.children||[];
+      corps = html`${entete}${noteInbox}
+        ${dansKb?html`<div class="mos-cherche"><input type="search"
+          placeholder="${T.chercherPlaceholder}"
+          aria-label="${T.chercherAria}"></div><div class="mos-resultats" hidden></div>`:""}
+        ${dansKb?html`<mos-graphe scope="${path}"></mos-graphe>`:""}
+        ${enfants.length?html`<div class="mos-enfants${dansKb?" avec-graphe":""}">${enfants.map(carteEnfant)}</div>`
+          : (n.meta||noteInbox)?"":html`<p class="mos-vide">${T.repertoireVide}</p>`}`;
+    }
+    setH(zone, html`${ariane}${corps}`);
+    zone.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>va(b.dataset.h));
+
+    /* moteur de recherche KB : plein texte (titres > descriptions > corps), le graphe s'estompe en direct */
+    const inp = zone.querySelector(".mos-cherche input");
+    if (inp){
+      const resZone = zone.querySelector(".mos-resultats");
+      const graphe = zone.querySelector("mos-graphe");
+      const norm = s => String(s||"").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"");
+      let minuterie;
+      inp.oninput = () => { clearTimeout(minuterie); minuterie = setTimeout(()=>{
+        const q = norm(inp.value.trim());
+        if (q.length < 2){ resZone.hidden = true; graphe?.filtrer(null); return; }
+        const hits = [];
+        for (const [p,f] of Object.entries(M.fiches)){
+          let rang = -1, champ = "";
+          if (norm(f.title).includes(q) || norm(p.split("/").pop()).includes(q)) rang = 0;
+          else if (norm(f.desc).includes(q)){ rang = 1; champ = "desc"; }
+          else if (norm(f.body).includes(q)){ rang = 2; champ = "body"; }
+          if (rang >= 0) hits.push({p, f, rang, champ});
+        }
+        hits.sort((a,b)=>a.rang-b.rang || a.p.localeCompare(b.p));
+        const extraitDe = h => {
+          const src = h.champ==="body" ? h.f.body : h.champ==="desc" ? h.f.desc : "";
+          if (!src) return "";
+          const brut = src.replace(/\s+/g," ");
+          const idx = norm(brut).indexOf(q);
+          if (idx < 0) return "";
+          const de = Math.max(0, idx-45), a = Math.min(brut.length, idx+q.length+70);
+          return {__raw: (de>0?"… ":"") + esc(brut.slice(de, idx)) + "<mark>" +
+            esc(brut.slice(idx, idx+q.length)) + "</mark>" + esc(brut.slice(idx+q.length, a)) + (a<brut.length?" …":"")};
+        };
+        setH(resZone, html`${hits.length?hits.slice(0,20).map(h=>{
+          const dom = h.p.split("/").length>2 ? h.p.split("/")[1] : T.racine;
+          const ex = extraitDe(h);
+          return html`<button class="mos-res" data-h="x/${h.p}">${stDot(h.f.status)}
+            <span class="t">${h.f.title}</span><span class="d" style="color:${domCoul(dom)}">${dom}</span>
+            ${ex?html`<span class="x">${ex}</span>`:""}</button>`;})
+          :html`<p class="mos-vide">${T.rienNeCorrespond(inp.value.trim())}</p>`}
+          ${hits.length>20?html`<p class="mos-vide">${T.nbResultats(hits.length)}</p>`:""}`);
+        resZone.hidden = false;
+        resZone.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>va(b.dataset.h));
+        graphe?.filtrer(new Set(hits.map(h=>h.p)));
+      }, 140); };
+    }
+  }
+}
+customElements.define("mos-explorer", MosExplorer);
+
+/* ================= mos-graphe : corpus lié, scopé au répertoire =================
+   Deux modes : « répertoires » (agrégé) · « fichiers » (à plat, à la Obsidian).
+   Les index.md sont des catalogues : hors graphe. Positions initiales déterministes. */
+class MosGraphe extends HTMLElement{
+  connectedCallback(){ this.mode = this.mode || "fichiers"; this.rendre(); }
+  disconnectedCallback(){ this._sim?.stop(); }
+  rendre(){
+    this._sim?.stop();
+    const scope = this.getAttribute("scope"), scNoeud = noeudDe(scope);
+    if (!scNoeud){ this.hidden = true; return; }
+    const estFicheGraphe = p => { const f = ficheDe(p); return f && !f.index; };
+    const aDesDirs = (scNoeud.children||[]).some(c=>c.kind==="dir");
+    setH(this, html`<div class="scene"><span class="titre-g">${T.webDe(scope.split("/").pop())}</span>
+      ${aDesDirs?html`<div class="mode-g" role="group" aria-label="${T.ariaModeGraphe}">
+        <button data-m="fichiers" class="${this.mode==="fichiers"?"actif":""}">${T.modeFichiers}</button>
+        <button data-m="agrege" class="${this.mode==="agrege"?"actif":""}">${T.modeRepertoires}</button></div>`:""}
+      <svg role="img" aria-label="${T.ariaGraphe}"></svg><div class="mos-bulle" hidden></div>
+      <div class="outils">
+        <button data-z="plus" title="${T.zoomPlus}">＋</button>
+        <button data-z="moins" title="${T.zoomMoins}">－</button>
+        <button data-z="fit" title="${T.zoomFit}">⛶</button>
+      </div></div>`);
+    this.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>{ this.mode=b.dataset.m; this.rendre(); });
+    const scene = this.querySelector(".scene"), bulle = this.querySelector(".mos-bulle");
+    const svg = d3.select(this.querySelector("svg"));
+    const W = scene.clientWidth || 800, H = scene.clientHeight || 390;
+    svg.attr("viewBox",`0 0 ${W} ${H}`);
+    const dedans = p => p.startsWith(scope+"/");
+    const nmap = new Map(), emap = new Map();
+    let coteGhost = 0;
+    const ghost = p => { if (!nmap.has(p)) nmap.set(p, {id:p, nom:p.split("/").slice(-2).join("/").replace(/\.md$/,""),
+      dir:false, ghost:true, cote:(coteGhost++%2)}); };
+    if (this.mode==="fichiers" && aDesDirs){
+      for (const p of Object.keys(M.fiches))
+        if (dedans(p) && estFicheGraphe(p)) nmap.set(p, {id:p, nom:p.split("/").pop().replace(/\.md$/,""), dir:false, ghost:false});
+      for (const e of M.edges){
+        const ia = dedans(e.a), ib = dedans(e.b);
+        if (!ia && !ib) continue;
+        if (!ia) ghost(e.a); if (!ib) ghost(e.b);
+        const k = [e.a,e.b].sort().join("|");
+        emap.set(k, (emap.get(k)||{a:e.a, b:e.b, w:0, ghost:!ia||!ib}));
+        emap.get(k).w++;
+      }
+    } else {
+      const rep = p => {
+        if (p===scope) return null;
+        if (!dedans(p)) return {id:p, ghost:true};
+        const rest = p.slice(scope.length+1);
+        return rest.includes("/") ? {id: scope+"/"+rest.split("/")[0], ghost:false} : {id:p, ghost:false};
+      };
+      for (const c of (scNoeud.children||[]))
+        if (c.kind==="dir" || estFicheGraphe(c.path))
+          nmap.set(c.path, {id:c.path, nom:c.name.replace(/\.md$/,""), dir:c.kind==="dir", ghost:false});
+      for (const e of M.edges){
+        const ra = rep(e.a), rb = rep(e.b);
+        if (!ra || !rb || ra.id===rb.id) continue;
+        if (!ra.ghost && !nmap.has(ra.id)) continue;
+        if (ra.ghost && rb.ghost) continue;
+        if (ra.ghost) ghost(ra.id); if (rb.ghost) ghost(rb.id);
+        const k = [ra.id,rb.id].sort().join("|");
+        emap.set(k, (emap.get(k)||{a:ra.id,b:rb.id,w:0,ghost:ra.ghost||rb.ghost}));
+        emap.get(k).w++;
+      }
+    }
+    if (![...emap.values()].length && nmap.size<2){ this.hidden = true; return; }
+    this.hidden = false;
+    const nodes=[...nmap.values()], edges=[...emap.values()].map(e=>({...e,source:e.a,target:e.b}));
+    /* positions initiales déterministes : même carte à chaque ouverture */
+    nodes.forEach(n=>{ const h1=hachage(n.id);
+      n.x = W/2 + ((h1%200)-100)*1.4; n.y = H/2 + (((h1/200|0)%160)-80)*1.4; });
+    const parId=new Map(nodes.map(n=>[n.id,n]));
+    const R=d=>d.ghost?7:(d.dir?15:Math.min(14, 7+(degre.get(d.id)||0)*.9));
+    const domDe=p=>{const s=p.split("/");return s[0]==="knowledge-base"?(s.length>2?s[1]:T.racine):s[1];};
+    const sim=d3.forceSimulation(nodes)
+      .force("liens",d3.forceLink(edges).id(d=>d.id).distance(d=>d.ghost?120:70).strength(.4))
+      .force("charge",d3.forceManyBody().strength(-170))
+      .force("collision",d3.forceCollide(d=>R(d)+14))
+      .force("cx",d3.forceX(d=>d.ghost?(d.cote?W*.9:W*.1):W/2).strength(d=>d.ghost?.25:.06))
+      .force("cy",d3.forceY(H/2).strength(.08));
+    const g=svg.append("g");
+    const arete=g.append("g").selectAll("line").data(edges).join("line")
+      .attr("class",e=>`mos-arete${e.ghost?" vers-ghost":""}`).attr("stroke-width",e=>Math.min(3.5,.9+e.w*.7));
+    const noeud=g.append("g").selectAll("g").data(nodes).join("g")
+      .attr("class",d=>`mos-noeud${d.ghost?" ghost":""}`)
+      .call(d3.drag()
+        .on("start",(ev,d)=>{if(!ev.active)sim.alphaTarget(.2).restart();d.fx=d.x;d.fy=d.y;})
+        .on("drag",(ev,d)=>{d.fx=ev.x;d.fy=ev.y;})
+        .on("end",(ev,d)=>{if(!ev.active)sim.alphaTarget(0);d.fx=null;d.fy=null;}))
+      .on("click",(ev,d)=>{ev.stopPropagation();vaChemin(d.id);})
+      .on("mousemove",(ev,d)=>{
+        const f=ficheDe(d.id);
+        bulle.hidden=false;
+        setH(bulle, html`<span class="t" style="color:${domCoul(domDe(d.id))}">${d.ghost?T.horsRepertoire:""}${d.dir?T.repertoire:T.fiche}${f?.status?` · ${f.status}`:""}</span><br/>
+          <strong>${f?.title||d.nom}</strong>${f?.desc?html`<br/>${f.desc}`:""}`);
+        const r=scene.getBoundingClientRect();
+        bulle.style.left=`${Math.max(6, Math.min(ev.clientX-r.left+14, r.width-310))}px`;
+        bulle.style.top=`${Math.max(6, Math.min(ev.clientY-r.top+14, r.height-90))}px`;})
+      .on("mouseleave",()=>bulle.hidden=true);
+    noeud.append("circle").attr("class","disque").attr("r",R).attr("stroke",d=>domCoul(domDe(d.id)));
+    noeud.filter(d=>d.dir).append("circle").attr("r",3).attr("fill",d=>domCoul(domDe(d.id)));
+    noeud.append("text").attr("class","etiquette").attr("y",d=>R(d)+11).text(d=>d.nom);
+    sim.on("tick",()=>{
+      arete.attr("x1",e=>e.source.x).attr("y1",e=>e.source.y).attr("x2",e=>e.target.x).attr("y2",e=>e.target.y);
+      noeud.attr("transform",d=>`translate(${d.x},${d.y})`);});
+    /* zoom / pan / cadrage — la mécanique de relations.astro (Final Bosu) */
+    const zoom = d3.zoom().scaleExtent([0.35, 4]).on("zoom", ev=>g.attr("transform", ev.transform));
+    svg.call(zoom).on("dblclick.zoom", null);
+    const cadrer = ()=>{
+      const xs=nodes.map(n=>n.x), ys=nodes.map(n=>n.y);
+      if (!xs.length) return;
+      const x0=Math.min(...xs)-60, x1=Math.max(...xs)+60, y0=Math.min(...ys)-60, y1=Math.max(...ys)+60;
+      const k=Math.min(2, .95*Math.min(W/(x1-x0), H/(y1-y0)));
+      const t=d3.zoomIdentity.translate(W/2-k*(x0+x1)/2, H/2-k*(y0+y1)/2).scale(k);
+      svg.transition().duration(420).call(zoom.transform, t);
+    };
+    this.querySelector("[data-z=plus]").onclick = ()=>svg.transition().call(zoom.scaleBy, 1.4);
+    this.querySelector("[data-z=moins]").onclick = ()=>svg.transition().call(zoom.scaleBy, 1/1.4);
+    this.querySelector("[data-z=fit]").onclick = cadrer;
+    sim.on("end", cadrer);
+    setTimeout(cadrer, 900);
+    this._sim = sim;
+    this._noeud = noeud; this._arete = arete;
+  }
+  /* estompe les nœuds hors d'un ensemble de chemins (null = tout rallumer) */
+  filtrer(garde){
+    if (!this._noeud) return;
+    if (!garde){ this._noeud.classed("efface", false); this._arete.classed("efface", false); return; }
+    this._noeud.classed("efface", d => !garde.has(d.id));
+    this._arete.classed("efface", e => !garde.has(e.a) && !garde.has(e.b));
+  }
+}
+customElements.define("mos-graphe", MosGraphe);
+
+/* ================= mos-fiche ================= */
+class MosFiche extends HTMLElement{
+  connectedCallback(){
+    const path=this.getAttribute("path"), f=ficheDe(path)||{};
+    const dom=path.split("/").length>2?path.split("/")[1]:T.racine;
+    const sortants=M.edges.filter(e=>e.a===path), entrants=M.edges.filter(e=>e.b===path);
+    const li=p=>{const g=ficheDe(p);return html`<li><button data-h="x/${p}">${g?.title||p.split("/").pop()}</button></li>`;};
+    const revueCourte = f.review && f.review.length<=24;
+    setH(this, html`<div class="corps">
+      <div class="chips">
+        <span class="mos-puce" style="color:${domCoul(dom)}">${dom}</span>
+        ${f.type?html`<span class="mos-puce">${f.type}</span>`:""}
+        ${f.status?html`<span class="mos-puce st-${f.status}">${f.status}</span>`:""}
+        ${revueCourte?html`<span class="mos-puce" style="color:var(--or)">${T.reviewChip(f.review)}</span>`:""}
+      </div>
+      <h2>${f.title||path.split("/").pop()}</h2>
+      ${f.review&&!revueCourte?html`<p class="review" title="${f.review}">${T.aRevoir(f.review)}</p>`:""}
+      ${f.desc?html`<p class="desc">${f.desc}</p>`:""}
+      ${f.body?mdRendu(f.body, path):f.excerpt?html`<p class="extrait">${f.excerpt}…</p>`:""}
+      ${M.profil==="public"?html`<p class="vide-l">${T.profilPublicFiche}</p>`:""}
+      ${f.index?html`<p class="vide-l">${T.nomReserve}</p>`:html`
+      <h3>${T.liensSortants(sortants.length)}</h3>
+      ${sortants.length?html`<ul>${sortants.map(e=>li(e.b))}</ul>`:html`<p class="vide-l">${T.aucunLien}</p>`}
+      <h3>${T.referenceePar(entrants.length)}</h3>
+      ${entrants.length?html`<ul>${entrants.map(e=>li(e.a))}</ul>`:html`<p class="vide-l">${T.aucuneEntree}</p>`}`}
+    </div>`);
+    this.querySelectorAll("[data-h]").forEach(b=>b.onclick=()=>va(b.dataset.h));
+  }
+}
+customElements.define("mos-fiche", MosFiche);
+
+/* ================= mos-frise ================= */
+class MosFrise extends HTMLElement{
+  connectedCallback(){
+    /* "tous" reste la valeur SENTINELLE interne (data-t, comparaisons) ; seul l'affichage se traduit */
+    let filtre="tous";
+    const types=["tous",...new Set(M.log.map(e=>e.type))];
+    setH(this, html`<div class="mos-filtre">${types.map(t=>
+      html`<button data-t="${t}" style="${t!=="tous"?`color:${typC(t)}`:""}" class="${t==="tous"?"actif":""}">
+        ${t==="tous"?T.tous:t} (${t==="tous"?M.log.length:M.log.filter(e=>e.type===t).length})</button>`)}</div>
+      <div class="mos-frise"></div>`);
+    const rendre=()=>{ setH(this.querySelector(".mos-frise"),
+      html`${M.log.filter(e=>filtre==="tous"||e.type===filtre).map(e=>html`
+        <div class="mos-entree" style="--tc:${typC(e.type)}">
+          <span class="d">${e.date}</span><span class="tt">${e.type}</span><span class="ti">${e.title}</span></div>`)}`); };
+    this.querySelectorAll("[data-t]").forEach(b=>b.onclick=()=>{
+      filtre=b.dataset.t;
+      this.querySelectorAll("[data-t]").forEach(x=>x.classList.toggle("actif",x===b));
+      rendre();});
+    rendre();
+    if (!M.log.length) setH(this.querySelector(".mos-frise"), html`<p class="mos-vide">${T.journalVide}</p>`);
+  }
+}
+customElements.define("mos-frise", MosFrise);
+
+render();
+</script>

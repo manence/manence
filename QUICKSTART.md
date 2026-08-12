@@ -38,7 +38,7 @@ timestamp: 2026-07-02
 
    ⚠️ **Copy the folder, never its contents.** The core carries dotfiles — `.claude/` (the skills and the safety hooks), `.gitignore`, `.env.example` — and a file manager hides them by default: dragging the *contents* of `mos/` silently leaves them behind, and you get a core with no hooks. Either use the command above, or drag the `mos` **folder** itself. (The first startup checks this and tells you if anything is missing.)
 
-   Everything else is in the copy: identity files, the routing table, 6 base skills, safety hooks, knowledge base — plus `BOOTSTRAP.md`, the one-time startup ritual.
+   Everything else is in the copy: identity files, the routing table, 7 base skills (including mos-map, the visual map of your system), safety hooks, knowledge base — plus `BOOTSTRAP.md`, the one-time startup ritual.
 
 3. **Run your first startup.** Open Claude Code inside the core (`cd ~/my-project/core`, then `claude`) and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) and takes it from there: it asks your language (**English or French**), interviews you — name, what the activity does, who works here, the voice, the direction — fills in your identity files from your answers, checks the guardrails, verifies everything, then deletes the ritual file. That's also your first lesson: **skills are invoked by talking to the agent**, not on a command line. When it's done, hand it real work: *"open a workstream for ‹something you're working on this week›"*.
 

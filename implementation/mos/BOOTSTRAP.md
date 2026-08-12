@@ -21,8 +21,8 @@ Every one of these must exist, here, at the root:
 
 ```
 .claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
-.claude/manence-version   .env.example   .gitattributes   .gitignore   .mcp.json.example
-CLAUDE.local.md.example   CLAUDE.md   SOUL.md   STRATEGY.md   log.md
+.claude/manence-version   .claude/mos-map.json   .env.example   .gitattributes   .gitignore
+.mcp.json.example   CLAUDE.local.md.example   CLAUDE.md   SOUL.md   STRATEGY.md   log.md
 knowledge-base/   templates/   inbox/
 ```
 
@@ -44,7 +44,7 @@ Then, version control. This folder must become **its own** repository: run `git 
 
 Ask which language this system should work in: **English or French?**
 
-- **French**: replace the English files with their `fr/` counterparts — `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 6), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
+- **French**: replace the English files with their `fr/` counterparts — `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 7), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
 - **English**: remove `fr/` (`git rm -r fr`).
 
 ## 3. Interview
@@ -68,6 +68,7 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 - **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
 - **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
+- **The map's declaration.** Open `.claude/mos-map.json` (shipped with the two pillars — production at the north vertex, the knowledge base at the south) and make it this system's: rewrite the two one-line summaries in the system's language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand.
 
 ## 5. Verify — run the checks, don't assume
 
@@ -82,4 +83,9 @@ If a check fails, fix and re-run. Do not proceed on red.
 
 - Delete this file (`git rm BOOTSTRAP.md`).
 - Commit: `First startup complete`.
-- Tell the human, in their language: what their system is called, its language, where production lives — then hand them the first real gesture: *"say: **open a workstream for** ‹something you're actually working on this week›"*. The setup ends where the work begins.
+- **Show the system its own face.** Generate and open the first map:
+  ```bash
+  python3 .claude/skills/mos-map/build.py --coeur . --lang <en|fr, from step 2> --ouvrir
+  ```
+  The human sees their newborn MOS: the hexagon, the two pillars with their real counts, a journal of one entry, a knowledge base about to fill. This is what the system *is* — and the map regenerates on demand from the real files, so it never lies.
+- Tell the human, in their language: what their system is called, its language, where production lives, and that the map they are looking at is theirs to regenerate anytime — then hand them the first real gesture: *"say: **open a workstream for** ‹something you're actually working on this week›"*. The setup ends where the work begins.
