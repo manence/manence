@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: A weekly health review of Manence OS — mechanical lint (core + production), triaging the inbox, the state of workstreams in progress, spotting orphans and badly born workstreams (production folders with no About.md), effect measures that have come due, and proposed actions. Run it once a week (by hand or via cron/heartbeat), or whenever the user asks "where do we stand?".
+description: A weekly health review of Manence OS — mechanical lint (core + production), triaging the inbox, the state of workstreams in progress, spotting orphans and badly born workstreams (production folders with no About.md), effect measures that have come due, the outward watch consumed (the outward-watch report), a divergent force of proposal, and proposed actions. Run it once a week (by hand or via cron/heartbeat), or whenever the user asks "where do we stand?".
 ---
 
 # weekly-review, the weekly review
@@ -17,15 +17,17 @@ To prevent the two drifts that kill a Manence OS: the disorder that sets in (orp
 6. **Effect measures**: pick up the closed external actions whose **measurement date** has been reached (recorded by `close-work`) and flag any missing measurement report. The measure belongs to the ritual: this is where you see the effect.
 7. **KB**: a light `kb-lint` if the KB moved this week (contradictions, an index that has drifted); otherwise note it as not done. While you're at it, check the freshness of the periodic report (in the KB), and pick up any page whose `review_when:` has come due (a due page stops being authoritative on its own: propose reconfirming or updating it).
 8. **Framework freshness**: the installed core carries its version in `.claude/manence-version`. Compare it to the latest tag of the public framework repo — `git ls-remote --tags https://github.com/manence/manence.git` (a public read over the network; nothing about your MOS is sent; without network, note "not checked this week" and move on). If the repo is ahead: list the missed versions **with their CHANGELOG notes** (fetch the raw `CHANGELOG.md` from the repo) and put the update in the proposed actions — the review signals, it never applies. If `.claude/manence-version` is missing, the install predates 0.5.0: say so and propose stamping it with the version the core actually matches.
-9. **Drift checks** *(five questions borrowed from LIVING REFERENCE's drift tests, JP Noto)* — each answered against the KB and the log, never against an impression:
+9. **Outward watch**: read the most recent report in `knowledge-base/watch/`, written by the `outward-watch` skill. Missing, or older than a week? Run `outward-watch` first — or note it as not done, without network. Then pick up the P0s and P1s whose inbox item wasn't routed at step 4: the watch proposes, this is where the proposals meet the rest of the week.
+10. **Drift checks** *(five questions borrowed from LIVING REFERENCE's drift tests, JP Noto)* — each answered against the KB and the log, never against an impression:
    - Does any recent production (workstream, deliverable, public surface) **contradict a `canon` page** of the KB?
    - Has an option **set aside in the log come back** — re-proposed or quietly re-applied — even though its rejection reason still holds?
    - Is a decision **made for one workstream being applied beyond it**, as if it bound the whole project?
    - Is a **draft or proposal cited somewhere as if it were settled** (`status: proposal` treated as fact)?
    - Is a **validated constraint being ignored** anywhere (a publication rule, a guard, a naming convention)?
    Observe only: the repair (reject, archive, replace, revalidate) goes into the synthesis as a proposal, and the user decides.
-10. **Synthesis**: a 5-10 line status (health, workstreams, inbox, measures, framework freshness, drifts) + **2-3 proposed actions** ranked by value (`open-work` candidates, workstreams to close, fixes). It's the user who chooses.
-11. **Trace it**: an entry `## [YYYY-MM-DD] review | week <no.>` in `log.md` with the condensed synthesis and what was decided.
+11. **Force of proposal** *(the review's one divergent gesture)*: starting from `STRATEGY.md` and the watch report, put forward **one to three ideas the user would not have had on their own** — a blind spot in the stated direction, something never tried, a connection between an outside finding and a problem here. This is not the same as the proposed actions below, which come from introspection (inbox, workstreams, lint). Before proposing, check the log: an idea already set aside comes back only if the context that got it rejected has changed, and you say which part changed (drift check D2).
+12. **Synthesis**: a 5-10 line status (health, workstreams, inbox, measures, framework freshness, watch, drifts) + **2-3 proposed actions** ranked by value (`open-work` candidates, workstreams to close, fixes), and the divergent ideas from step 11 listed apart. It's the user who chooses.
+13. **Trace it**: an entry `## [YYYY-MM-DD] review | week <no.>` in `log.md` with the condensed synthesis and what was decided.
 
 ## Guardrails
 - The review **observes and proposes**, it fixes nothing and opens no workstream without approval.

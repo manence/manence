@@ -44,7 +44,7 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 - Full rules: the Manence framework Spec (a separate repo, external reference).
 
 ## Skills
-Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter).
+Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `mos-map` (see this system: the visual map), `outward-watch` (look outward: the substrate and the trade).
 <Project-specific skills: list them here as you add them.>
 
 ## Security, hard vs soft

@@ -8,7 +8,7 @@ timestamp: 2026-06-30
 
 # Implementation
 
-The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([Spec](Spec.md)). Here is the *how*, for setting up a project without reopening the sources. The default MOS in [`mos/`](mos/BOOTSTRAP.md) (identity files, the 6 base skills, hooks, the startup ritual); a running example of a knowledge base in [`example/`](example/index.md).
+The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([Spec](Spec.md)). Here is the *how*, for setting up a project without reopening the sources. The default MOS in [`mos/`](mos/BOOTSTRAP.md) (identity files, the 8 base skills, hooks, the startup ritual); a running example of a knowledge base in [`example/`](example/index.md).
 
 ## 1. Set up a new project (copy `mos/`, run the first startup)
 
@@ -32,7 +32,8 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     CLAUDE.md            identity + direction + routing table (filled by the first startup)
     SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first startup, openclaw convention)
     .claude/
-      skills/            the 6 base skills (open-work, close-work, weekly-review, kb-ingest, kb-lint, connect-adapter)
+      skills/            the 8 base skills (open-work, close-work, weekly-review, kb-ingest,
+                         kb-lint, connect-adapter, mos-map, outward-watch)
       agents/            empty at start; a subagent template sits in templates/agent.template.md
       settings.json      hook wiring
       hooks/             guard.sh, lint.sh (executable)

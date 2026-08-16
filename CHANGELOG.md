@@ -9,6 +9,16 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.6.1] - 2026-08-16
+
+A MOS now looks *outward*.
+
+- **`outward-watch`, the 8th base skill: the organ that faces out.** Until now every organ of a MOS looked inward — the log, the knowledge base, distillation, the review all capitalize on work already done, while the substrate the system runs on moves faster than the system does. The new skill watches two things: the **substrate** (Anthropic and Claude Code, and the wider agentic practice around them), shipped complete and identical for every installation, and the **trade**, a slot each MOS fills for itself and that ships empty. Every finding goes through a single filter — *what does this change for this MOS, or for the framework?* — and comes out ranked P0 (breaks something, or a short window), P1 (fold into the next relevant workstream) or P2 (watch, no action). The report lands dated in `knowledge-base/watch/` (`veille/` in the French set), a time series, and the actionable part goes to `inbox/` as candidates the user sorts. Read-only outward: the watch queries, proposes, and publishes nothing. The Spec gains §20, the doctrine of the outward organ.
+- **The weekly review consumes the watch, and gains its one divergent gesture.** New step 9: read the latest watch report, run the skill if it is missing or stale, and pick up the P0s and P1s the inbox triage didn't route. New step 11, **force of proposal**: starting from `STRATEGY.md` and that report, one to three ideas the user would not have had on their own — a blind spot in the direction, something never tried, a connection between an outside finding and a problem at home. It is the only part of the review that diverges; everything else derives from introspection. The guard against re-proposing an already rejected option (drift check D2) applies here first.
+- Origin: prototyped in the Manence MOS — the framework's own installation — and inherited from the `night-lab` routine of a sister MOS. That routine died of its trigger, not its content: local crons that did not survive a session restart. Hence a plain skill any scheduled routine can call, rather than a nightly session that piles up unreviewed deliverables.
+- The shipped MOS's `.gitignore` now covers `carte-*.html`: the map generated at the core root (BOOTSTRAP's closing gesture, or a bare `build.py --coeur .`) is a regenerable snapshot — it must never enter the repository. Surfaced by the first post-release run.
+- Fixed in passing: the shipped `CLAUDE.md` (EN and FR) listed six base skills — `mos-map` never made it into the list at 0.6.0. It now lists all eight, as do `implementation/index.md` and the playbook's tree.
+
 ## [0.6.0] - 2026-08-12
 
 A MOS can now be *seen*.

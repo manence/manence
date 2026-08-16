@@ -23,6 +23,12 @@
       "cadence": "weekly",
       "etat": "manual",
       "desc": "Lint, inbox triage, workstreams, effect measures."
+    },
+    {
+      "nom": "outward-watch",
+      "cadence": "weekly",
+      "etat": "manual",
+      "desc": "The outward watch: substrate and trade, filtered, before the review."
     }
   ]
 }

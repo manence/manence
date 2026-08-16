@@ -44,7 +44,7 @@ Avant de créer ou déplacer un fichier, deux questions : **statique ou dynamiqu
 - Règles complètes : la Spec du cadre Manence (repo séparé, référence externe).
 
 ## Skills
-Base (fournis par le cadre) : `open-work` (ouvrir un chantier), `close-work` (publier un chantier), `weekly-review` (revue hebdo : lint, inbox, chantiers), `kb-ingest` (intégrer une source au savoir), `kb-lint` (audit de la KB), `connect-adapter` (brancher un adaptateur).
+Base (fournis par le cadre) : `open-work` (ouvrir un chantier), `close-work` (publier un chantier), `weekly-review` (revue hebdo : lint, inbox, chantiers), `kb-ingest` (intégrer une source au savoir), `kb-lint` (audit de la KB), `connect-adapter` (brancher un adaptateur), `mos-map` (voir ce système : la carte visuelle), `outward-watch` (regarder dehors : le substrat et le métier).
 <Skills propres au projet : à lister ici au fur et à mesure.>
 
 ## Sécurité, dur vs mou

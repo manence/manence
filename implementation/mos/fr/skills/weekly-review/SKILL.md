@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: Revue hebdomadaire de santé de Manence OS, lint mécanique (cœur + production), tri de l'inbox, état des chantiers en cours, détection des orphelins et des chantiers mal nés (dossiers de production sans About.md), mesures d'effet arrivées à échéance, propositions d'actions. À lancer une fois par semaine (à la main ou par cron/heartbeat), ou quand l'utilisateur demande « où on en est ».
+description: Revue hebdomadaire de santé de Manence OS, lint mécanique (cœur + production), tri de l'inbox, état des chantiers en cours, détection des orphelins et des chantiers mal nés (dossiers de production sans About.md), mesures d'effet arrivées à échéance, veille extérieure consommée (rapport outward-watch), force de proposition divergente, propositions d'actions. À lancer une fois par semaine (à la main ou par cron/heartbeat), ou quand l'utilisateur demande « où on en est ».
 ---
 
 # weekly-review, la revue hebdomadaire
@@ -17,15 +17,17 @@ Empêcher les deux dérives qui tuent un Manence OS : le désordre qui s'install
 6. **Mesures d'effet** : relever les actions externes closes dont la **date de mesure** est atteinte (inscrites par `close-work`) et signaler tout rapport de mesure manquant. La mesure appartient au rituel : c'est ici qu'on voit l'effet.
 7. **KB** : un `kb-lint` léger si la KB a bougé cette semaine (contradictions, index qui dérive) ; sinon le noter comme non fait. Vérifier au passage la fraîcheur du rapport périodique (dans la KB), et relever toute page dont le `review_when:` est échu (une page échue cesse de faire foi seule : proposer sa reconfirmation ou sa mise à jour).
 8. **Fraîcheur du cadre** : le cœur installé porte sa version dans `.claude/manence-version`. La comparer au dernier tag du repo public du framework — `git ls-remote --tags https://github.com/manence/manence.git` (une lecture publique via le réseau ; rien de ton MOS n'est envoyé ; sans réseau, noter « non vérifié cette semaine » et passer). Si le repo est en avance : lister les versions manquées **avec leurs notes de CHANGELOG** (récupérer le `CHANGELOG.md` brut du repo) et mettre la mise à jour dans les actions proposées — la revue signale, elle n'applique jamais. Si `.claude/manence-version` manque, l'installation précède la 0.5.0 : le dire et proposer de l'estampiller avec la version à laquelle le cœur correspond réellement.
-9. **Contrôles de dérive** *(cinq questions empruntées aux tests de dérive de LIVING REFERENCE, JP Noto)*, chacune tranchée contre la KB et le log, jamais contre une impression :
+9. **Veille extérieure** : lire le rapport le plus récent de `knowledge-base/veille/`, écrit par le skill `outward-watch`. Absent, ou vieux de plus d'une semaine ? Lancer `outward-watch` d'abord — ou le noter comme non fait, sans réseau. Puis relever les P0 et P1 dont l'item d'inbox n'a pas été routé à l'étape 4 : la veille propose, c'est ici que ses propositions rencontrent le reste de la semaine.
+10. **Contrôles de dérive** *(cinq questions empruntées aux tests de dérive de LIVING REFERENCE, JP Noto)*, chacune tranchée contre la KB et le log, jamais contre une impression :
    - Une production récente (chantier, livrable, surface publique) **contredit-elle une page `canon`** de la KB ?
    - Une option **écartée dans le log est-elle revenue**, re-proposée ou ré-appliquée en douce, alors que la raison de son rejet tient toujours ?
    - Une décision **prise pour un chantier est-elle appliquée au-delà**, comme si elle engageait tout le projet ?
    - Un **brouillon est-il cité quelque part comme s'il faisait foi** (`status: proposal` traité comme un fait) ?
    - Une **contrainte validée est-elle ignorée** quelque part (règle de publication, garde-fou, convention de nommage) ?
    Constat seulement : la réparation (rejeter, archiver, remplacer, revalider) part en synthèse comme proposition, et l'utilisateur décide.
-10. **Synthèse** : un état en 5-10 lignes (santé, chantiers, inbox, mesures, fraîcheur du cadre, dérives) + **2-3 actions proposées** classées par valeur (candidats `open-work`, chantiers à clore, corrections). C'est l'utilisateur qui choisit.
-11. **Tracer** : entrée `## [YYYY-MM-DD] review | semaine <n°>` dans `log.md` avec la synthèse condensée et ce qui a été décidé.
+11. **Force de proposition** *(le seul geste divergent de la revue)* : partir de `STRATEGY.md` et du rapport de veille, et proposer **1 à 3 idées que l'utilisateur n'aurait pas eues seul** — un angle mort du cap annoncé, une chose jamais essayée, un rapprochement entre une trouvaille exogène et un problème d'ici. À ne pas confondre avec les actions proposées ci-dessous, qui dérivent de l'introspection (inbox, chantiers, lint). Avant de proposer, vérifier au log : une idée déjà écartée ne revient que si le contexte qui l'avait fait rejeter a changé, et on dit ce qui a changé (contrôle de dérive D2).
+12. **Synthèse** : un état en 5-10 lignes (santé, chantiers, inbox, mesures, fraîcheur du cadre, veille, dérives) + **2-3 actions proposées** classées par valeur (candidats `open-work`, chantiers à clore, corrections), et les idées divergentes de l'étape 11 listées à part. C'est l'utilisateur qui choisit.
+13. **Tracer** : entrée `## [YYYY-MM-DD] review | semaine <n°>` dans `log.md` avec la synthèse condensée et ce qui a été décidé.
 
 ## Garde-fous
 - La revue **constate et propose**, elle ne corrige rien et n'ouvre aucun chantier sans validation.

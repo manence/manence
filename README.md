@@ -88,7 +88,7 @@ The examples in this repository use **Claude Code**, the most direct path today.
 - **[QUICKSTART.md](QUICKSTART.md)**: the way in if you're new (who it's for, what it is, 3 moves).
 - **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts. **Start here.**
 - **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE).
-- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 7 base skills (including the visual map, mos-map), hooks, the startup ritual that ends on your system's first map), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
+- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 8 base skills (including mos-map, the visual map, and outward-watch, the eye on the outside), hooks, the startup ritual that ends on your system's first map), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
 - **[CHANGELOG.md](CHANGELOG.md)**: the versions.
 
 ## The name
