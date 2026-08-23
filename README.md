@@ -1,16 +1,10 @@
----
-type: project
-title: Manence
-description: "The work system that makes your AI reliable on long-running projects. The knowledge that holds true, the real world wired in, the gesture carried through: markdown + git — code and templates open source (MIT), doctrine free to read and share (CC BY-NC-SA) — installs in one conversation."
-tags: [ai-os, knowledge-management, claude-code, method]
-timestamp: 2026-07-09
----
-
 # Manence
 
 > 🌐 **Français** : [lire en français](README.fr.md) — Manence was **born in French**. The doctrine now lives in English; a French presentation set ships with the repo (README, [Manifesto](Manifesto.fr.md), [QUICKSTART](QUICKSTART.fr.md)), and your own system installs in French if you ask.
 
 **Manence makes your AI reliable on long-running projects.** An AI, whether in chat or agentic mode, knows only its context: what it has in front of it right now, nothing else. So whatever needs to last needs a place that outlives the session — and a way of working that keeps that place true. Manence is both: a work system where **every exchange does the work *and* tidies the system**. Order as a by-product, not a chore.
+
+[![The visual map of a running Manence OS](assets/en/mos-map.png)](https://www.manence.ai/map)
 
 ## The problem
 
@@ -41,17 +35,22 @@ The framework builds on Karpathy's model (*Software 3.0*): the AI model is the *
 
 ## Installation
 
-Get the framework, copy the default MOS into a container of its own, and let the agent finish the job:
+One command, then one sentence to your agent:
 
 ```bash
-git clone https://github.com/manence/manence.git
-mkdir ~/my-project                                    # the container — this is your MOS
-cp -R manence/implementation/mos ~/my-project/core    # the core — a git repo of its own
+curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 ```
 
-`~/my-project/` is the **container**: it will hold the core (versioned) and, alongside it, `production/` (your working artifacts, outside git — the first startup creates it). Copy the **folder**, never its contents: the core carries dotfiles (`.claude/`, `.gitignore`) that a file manager hides by default.
+That puts a MOS in `~/manence`. Another folder: add `| bash -s -- ~/my-activity`. Prefer not to pipe? `git clone https://github.com/manence/manence.git && bash manence/install.sh`.
 
-Then open Claude Code in the core (`cd ~/my-project/core`) and say: **"run my first startup"**. The agent reads `BOOTSTRAP.md` — the one-time ritual: it asks your language (English or French), interviews you, fills in your identity files from your answers, checks the guardrails, then deletes itself. Installing the system is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
+Then:
+
+```bash
+cd ~/manence/core
+claude
+```
+
+Say: **"run my first setup"** (in French: « fais mon premier démarrage »). The agent interviews you, fills in the system, shows you the map, deletes the ritual. Installing is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
 
 ## The proof: it already runs on real work
 
@@ -75,18 +74,20 @@ A real example. Six months after a workstream closes, someone asks: "why did we 
 
 ## What Manence is not
 
-- **One more "memory."** Memory layers store everything that passes through: accumulation sold as progress. Manence does the opposite: it keeps a place where what's written is true, and protects it from the rest.
-- **A bundle of connectors.** An MCP grants access; Manence gives you a way of working with that access. Isolated connectors can't see that an absurd figure in the CRM is glaring once you set it against the same client's accounting.
-- **A well-configured assistant.** A raw agent is powerful, but nothing in it structures duration: no opening or closing of a project, no log of decisions, no boundary between the true and the draft. Manence is that structure, on top.
+You already have an AI memory, a notes app, and an agent that works in your folders with your tools. Those are the ingredients. The problem starts after: what holds true, what is only a draft, why option B was ruled out, and whether the figure in the CRM matches the analytics.
+
+- **One more "memory."** Memory stores everything that passes through: accumulation sold as progress. After a few weeks it serves the mix back. Manence keeps a place where what's written is true, and protects it from the rest.
+- **A second brain.** A personal wiki, you hold. Company wikis have existed for twenty years; they're never up to date. Tidying as a chore always loses. In Manence the AI holds the discipline as a by-product of the work: you don't take a second job as the archivist.
+- **Cowork, Claude Code, or a bundle of MCPs.** An agent with hands is powerful. Access is not seeing together: isolated tools cannot see that an absurd figure in the CRM is glaring next to the same client's analytics. And nothing in the raw agent structures duration: no opening or closing of a project, no log of decisions, no boundary between the true and the draft. Manence is that structure, on top. Cowork gives it hands. Manence tells it what is true, what is in progress, and what is already settled.
 
 ## Portable, by construction
 
-The examples in this repository use **Claude Code**, the most direct path today. But your system doesn't depend on it: switching to another agent (Codex, Gemini CLI, and the equivalents that keep appearing) comes down, in the main, to one or two identity files (`CLAUDE.md` → `AGENTS.md`, `GEMINI.md`…). **Tested** adaptation guides, platform by platform, are the framework's next workstream.
+The examples in this repository use **Claude Code**, the most direct path today. But your system doesn't depend on it: everything that matters — knowledge, journal, workstreams — is plain markdown any agent can read, and the skill files already match the cross-tool Agent Skills format. Moving the identity file to the shared `AGENTS.md` standard is on the framework's roadmap; nothing is claimed as supported before it has been tested for real.
 
 ## The map
 
-- **[QUICKSTART.md](QUICKSTART.md)**: the way in if you're new (who it's for, what it is, 3 moves).
-- **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts. **Start here.**
+- **[QUICKSTART.md](QUICKSTART.md)**: the way in (who it's for, what it is, 3 moves). **Start here.**
+- **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts.
 - **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE).
 - **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 8 base skills (including mos-map, the visual map, and outward-watch, the eye on the outside), hooks, the startup ritual that ends on your system's first map), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
 - **[CHANGELOG.md](CHANGELOG.md)**: the versions.
@@ -103,7 +104,7 @@ Created by **Alexandre Noto** ([Alex Déclic](https://www.youtube.com/@alexdecli
 
 ## Licenses
 
-Dual license, see [LICENSE](LICENSE) and [LICENSE-docs.md](LICENSE-docs.md):
+Dual license, see [LICENSE.md](LICENSE.md) (the short version), [LICENSE](LICENSE) and [LICENSE-docs.md](LICENSE-docs.md):
 
 - **Code and templates** (`implementation/mos/`, `implementation/example/`): **MIT**. What you copy into your project **is yours, no strings attached**.
 - **Doctrine** (README, QUICKSTART, Manifesto, `concept/`, Spec, Implementation): **CC BY-NC-SA 4.0**. Free to read, share, and adapt with attribution; **commercial use of the text is prohibited** (reselling this doctrine in a paid course, for instance). For a commercial license: contact via [manence.ai](https://manence.ai).

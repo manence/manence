@@ -63,6 +63,19 @@ jobs:
         run: |
           mkdir container
           cp -R implementation/mos container/core
+      - name: install.sh smoke — the human door copies a whole core, dotfiles included
+        run: |
+          bash install.sh "$RUNNER_TEMP/from-install"
+          test -f "$RUNNER_TEMP/from-install/core/.claude/hooks/guard.sh"
+          test -f "$RUNNER_TEMP/from-install/core/BOOTSTRAP.md"
+          test -f "$RUNNER_TEMP/from-install/core/.claude/manence-version"
+      - name: install.sh default path — no argument lands in ~/manence
+        run: |
+          export HOME="$RUNNER_TEMP/home"
+          mkdir -p "$HOME"
+          bash install.sh
+          test -f "$HOME/manence/core/BOOTSTRAP.md"
+          test -f "$HOME/manence/core/.claude/hooks/guard.sh"
       - name: Integrity manifest — is the copied core whole? (BOOTSTRAP step 0)
         run: |
           cd container/core

@@ -7,4 +7,4 @@ timestamp: <YYYY-MM-DD>
 
 # Log
 
-## [<YYYY-MM-DD>] init | Manence OS assembled (first startup)
+## [<YYYY-MM-DD>] init | Manence OS assembled (first setup)

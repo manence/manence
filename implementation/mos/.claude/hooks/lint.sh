@@ -195,7 +195,13 @@ from urllib.parse import unquote
 
 TODAY = date.today()
 
-EXEMPT_BASENAMES = {"index.md", "README.md", "QUICKSTART.md", "CLAUDE.md"}
+EXEMPT_BASENAMES = {
+    "index.md",
+    "README.md", "README.fr.md",
+    "QUICKSTART.md", "QUICKSTART.fr.md",
+    "LICENSE.md",
+    "CLAUDE.md",
+}
 
 # Lien markdown inline : le texte reste sur une ligne (comportement historique),
 # l'URL peut se replier une fois (liens multilignes raisonnables).

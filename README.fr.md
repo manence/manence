@@ -1,16 +1,10 @@
----
-type: project
-title: Manence
-description: "Le système de travail qui rend ton IA fiable sur les projets qui durent. Le savoir qui fait foi, le réel branché, le geste qui va au bout : markdown + git — code et gabarits open source (MIT), doctrine libre à lire et partager (CC BY-NC-SA) — s'installe en une conversation."
-tags: [ai-os, knowledge-management, claude-code, méthode]
-timestamp: 2026-07-09
----
-
 # Manence
 
 > 🌐 **English** : [read in English](README.md) — la version de référence. La doctrine complète du dépôt est en anglais ; en français : ce README, le [Manifeste](Manifesto.fr.md) et le [QUICKSTART](QUICKSTART.fr.md) — et ton propre système s'installe en français si tu le demandes.
 
 **Manence rend ton IA fiable sur les projets qui durent.** Une IA, que ce soit en chat ou en agentique, ne connaît que son contexte : ce qu'elle a sous les yeux à l'instant présent, rien d'autre. Ce qui doit durer a donc besoin d'un lieu qui survit à la session — et d'une façon de travailler qui garde ce lieu juste. Manence est les deux : un système de travail où **chaque échange fait le travail *et* range le système**. L'ordre en sous-produit, pas en corvée.
+
+[![La carte visuelle d'un Manence OS en activité](assets/fr/mos-map.png)](https://www.manence.ai/fr/map)
 
 ## Le problème
 
@@ -41,17 +35,22 @@ Le cadre repose sur le modèle de Karpathy (*Software 3.0*) : le modèle d'IA es
 
 ## Installation
 
-Récupère le cadre, copie le MOS par défaut dans un conteneur à lui, et laisse l'agent finir le travail :
+Une commande, puis une phrase à ton agent :
 
 ```bash
-git clone https://github.com/manence/manence.git
-mkdir ~/mon-projet                                    # le conteneur — c'est ton MOS
-cp -R manence/implementation/mos ~/mon-projet/core    # le cœur — un dépôt git à lui seul
+curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 ```
 
-`~/mon-projet/` est le **conteneur** : il abritera le cœur (versionné) et, à côté, `production/` (tes artefacts de travail, hors git — le premier démarrage le crée). Copie le **dossier**, jamais son contenu : le cœur porte des fichiers cachés (`.claude/`, `.gitignore`) que ton explorateur masque par défaut.
+Ça pose un MOS dans `~/manence`. Un autre dossier : ajoute `| bash -s -- ~/mon-activite`. Tu ne veux pas piper ? `git clone https://github.com/manence/manence.git && bash manence/install.sh`.
 
-Puis ouvre Claude Code dans le cœur (`cd ~/mon-projet/core`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit `BOOTSTRAP.md` — le rituel unique : il demande ta langue (réponds français, tout ton système s'installe en français), t'interviewe, remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, puis se supprime. Installer le système, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
+Ensuite :
+
+```bash
+cd ~/manence/core
+claude
+```
+
+Dis-lui : **« fais mon premier démarrage »**. L'agent t'interviewe, remplit le système, te montre la carte, supprime le rituel. Installer, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
 
 ## La preuve : il tourne déjà sur du vrai travail
 
@@ -75,18 +74,20 @@ Un exemple vécu. Six mois après un chantier, quelqu'un demande : « pourquoi o
 
 ## Ce que Manence n'est pas
 
-- **Une « mémoire » de plus.** Les couches mémoire stockent tout ce qui passe : de l'accumulation vendue comme un progrès. Manence fait l'inverse : il tient un lieu où ce qui est écrit est vrai, et le protège du reste.
-- **Un paquet de connecteurs.** Un MCP donne un accès ; Manence donne une façon de travailler avec cet accès. Des connecteurs isolés ne voient pas qu'un chiffre absurde dans le CRM crève les yeux au regard de la compta du même client.
-- **Un assistant bien configuré.** Un agent brut est puissant, mais rien n'y structure la durée : pas d'ouverture ni de clôture de projet, pas de journal des décisions, pas de frontière entre le vrai et le brouillon. Manence est cette structure, par-dessus.
+Tu as déjà une mémoire d'IA, un carnet de notes, et un agent qui travaille dans tes dossiers avec tes outils. Ce sont les ingrédients. Le problème commence après : qu'est-ce qui fait foi, qu'est-ce qui n'est qu'un brouillon, pourquoi on a écarté B, et est-ce que le chiffre du CRM est le même que l'analytics.
+
+- **Une « mémoire » de plus.** La mémoire stocke tout ce qui passe : de l'accumulation vendue comme un progrès. Au bout de quelques semaines, elle te ressert le mélange. Manence tient un lieu où ce qui est écrit est vrai, et le protège du reste.
+- **Un second cerveau.** Un wiki perso, c'est toi qui le tiens. Les wikis d'entreprise existent depuis vingt ans ; ils ne sont jamais à jour. Le rangement-corvée perd toujours. Dans Manence, c'est l'IA qui tient la discipline, en sous-produit du travail : tu n'as pas un deuxième métier d'archiviste.
+- **Cowork, Claude Code, ou un paquet de MCP.** Un agent qui a les mains est puissant. Un accès n'est pas une vue d'ensemble : des outils isolés ne voient pas qu'un chiffre absurde dans le CRM crève les yeux au regard de l'analytics du même client. Et rien, dans l'agent brut, ne structure la durée : pas d'ouverture ni de clôture de projet, pas de journal des décisions, pas de frontière entre le vrai et le brouillon. Manence est cette structure, par-dessus. Cowork lui donne les mains. Manence lui dit ce qui est vrai, ce qui est en cours, et ce qui est déjà tranché.
 
 ## Portable, par construction
 
-Les exemples de ce dépôt utilisent **Claude Code**, le chemin le plus direct aujourd'hui. Mais ton système n'en dépend pas : passer à un autre agent (Codex, Gemini CLI, et les équivalents qui apparaissent) tient pour l'essentiel dans un ou deux fichiers d'identité (`CLAUDE.md` → `AGENTS.md`, `GEMINI.md`…). Des guides d'adaptation **testés**, plateforme par plateforme, sont le prochain chantier du cadre.
+Les exemples de ce dépôt utilisent **Claude Code**, le chemin le plus direct aujourd'hui. Mais ton système n'en dépend pas : tout ce qui compte — savoir, journal, chantiers — est du markdown simple que n'importe quel agent sait lire, et les fichiers de skills suivent déjà le format inter-outils Agent Skills. Le passage du fichier d'identité au standard partagé `AGENTS.md` est sur la feuille de route du cadre ; rien n'est annoncé comme supporté avant d'avoir été testé pour de vrai.
 
 ## La carte
 
-- **[QUICKSTART.fr.md](QUICKSTART.fr.md)** : la porte d'entrée si tu découvres (pour qui, quoi, 3 gestes).
-- **[Manifesto.fr.md](Manifesto.fr.md)** : *le pourquoi*. La synthèse du cadre (modèle mental, 7 couches, architecture hexagonale, 9 lois, maturité) + l'index des concepts. **Commence ici.**
+- **[QUICKSTART.fr.md](QUICKSTART.fr.md)** : la porte d'entrée (pour qui, quoi, 3 gestes). **Commence ici.**
+- **[Manifesto.fr.md](Manifesto.fr.md)** : *le pourquoi*. La synthèse du cadre (modèle mental, 7 couches, architecture hexagonale, 9 lois, maturité) + l'index des concepts.
 - **[concept/](concept/index.md)** *(en anglais)* : chaque idée dépliée en un fichier, + [`research/`](concept/research/index.md) (les sources vérifiées : Karpathy, OKF, Anthropic, PKM, loops, OpenClaw, LIVING REFERENCE de JP Noto).
 - **[implementation/](implementation/index.md)** *(en anglais)* : *le comment*, avec [Spec](implementation/Spec.md) (les règles), [Implementation](implementation/Implementation.md) (le playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (le MOS par défaut, prêt à copier : identité, 8 skills (dont `mos-map`, la carte visuelle, et `outward-watch`, l'œil tourné vers l'extérieur), hooks, rituel de démarrage qui se clôt sur la première carte du système) et [`example/`](implementation/example/index.md) (une KB minimale qui tourne).
 - **[CHANGELOG.md](CHANGELOG.md)** *(en anglais)* : les versions.
@@ -103,7 +104,7 @@ Créé par **Alexandre Noto** ([Alex Déclic](https://www.youtube.com/@alexdecli
 
 ## Licences
 
-Double licence, voir [LICENSE](LICENSE) et [LICENSE-docs.md](LICENSE-docs.md) :
+Double licence, voir [LICENSE.md](LICENSE.md) (la version courte), [LICENSE](LICENSE) et [LICENSE-docs.md](LICENSE-docs.md) :
 
 - **Code et gabarits** (`implementation/mos/`, `implementation/example/`) : **MIT**. Ce que tu copies dans ton projet **t'appartient sans condition**.
 - **Doctrine** (README, QUICKSTART, Manifesto, `concept/`, Spec, Implementation) : **CC BY-NC-SA 4.0**. Libre de lire, partager, adapter avec attribution ; **usage commercial du texte interdit** (revendre cette doctrine dans une formation payante, par exemple). Pour une licence commerciale : contact via [manence.ai](https://manence.ai).

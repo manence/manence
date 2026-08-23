@@ -1,16 +1,8 @@
----
-type: guide
-title: "Démarrer : Manence en 3 gestes"
-description: "Le point d'entrée express du cadre : pour qui il est, ce qu'il donne, et les trois premiers gestes pour s'y mettre."
-tags: [ai-os, quickstart, onboarding]
-timestamp: 2026-07-02
----
-
 # Démarrer avec Manence
 
 > 🌐 **English** : [read in English](QUICKSTART.md) — la version de référence. La doctrine complète du dépôt est en anglais ; cette présentation française t'amène jusqu'au premier geste, et ton système, lui, s'installe en français si tu le demandes.
 
-**Pour qui ?** Celui qui a vécu la courbe : l'IA impressionne au début, puis le projet dure, tout s'accumule, et la confiance baisse. Manence est fait pour travailler avec un agent IA (Claude Code) sur des projets qui durent.
+**Pour qui ?** Celui qui a vécu la courbe : l'IA impressionne au début, puis le projet dure, tout s'accumule, et la confiance baisse. Si ton travail avec une IA n'a pas duré quelques semaines, tu n'en as peut-être pas besoin encore. S'il a duré, et que tu lui fais un peu moins confiance qu'au début : c'est pour toi. Manence est fait pour travailler avec un agent IA (Claude Code) sur des projets qui durent.
 
 **Ce que ça donne, en une phrase :** un système de travail où la discipline est tenue par l'IA elle-même : chaque échange fait le travail **et** met le système à jour ; le tout piloté comme un **système d'exploitation** (fichiers versionnés = disque, contexte = RAM, skills = programmes).
 
@@ -24,23 +16,21 @@ timestamp: 2026-07-02
 
 ## Les 3 premiers gestes
 
-1. **Lire le [Manifeste](Manifesto.fr.md) (5 min).** Le fil unique : le modèle mental, les 7 couches, les 9 lois. C'est le seul document à comprendre pour saisir le cadre ; chaque idée se déplie ensuite dans [`concept/`](concept/index.md) (en anglais).
-
-2. **Copier le MOS par défaut.** Récupérer le cadre, puis copier le système prêt à l'emploi dans un conteneur à lui :
+1. **Installer le MOS par défaut.** Une commande crée le conteneur et copie le cœur *avec ses fichiers cachés* :
 
    ```bash
-   git clone https://github.com/manence/manence.git
-   mkdir ~/mon-projet                                    # le conteneur — c'est ton MOS
-   cp -R manence/implementation/mos ~/mon-projet/core    # le cœur — un dépôt git à lui seul
+   curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
    ```
 
-   Deux dossiers, deux rôles. `~/mon-projet/` est le **conteneur** : il abrite le **cœur** (`core/` — le système et la connaissance, versionnés) et, dès que le premier démarrage l'aura créée, `production/` à côté (tes artefacts de travail, hors git). Plusieurs MOS ? Nomme chaque cœur d'après son activité (`mon-projet-core`), tes onglets de terminal resteront lisibles.
+   Emplacement par défaut : `~/manence`. Un autre dossier : `| bash -s -- ~/mon-activite`. Depuis un clone : `bash manence/install.sh`. Le script vérifie que la copie est entière avant de s'arrêter — le mode d'échec qu'il existe à empêcher, c'est le glisser-déposer qui laisse `.claude/` derrière.
 
-   ⚠️ **Copie le dossier, jamais son contenu.** Le cœur porte des fichiers cachés — `.claude/` (les skills et les hooks de sécurité), `.gitignore`, `.env.example` — que ton explorateur masque par défaut : glisser le *contenu* de `mos/` les laisse silencieusement derrière, et tu obtiens un cœur sans garde-fous. Passe par la commande ci-dessus, ou glisse le **dossier** `mos` lui-même. (Le premier démarrage le vérifie et te le dit s'il manque quelque chose.)
+   Deux dossiers, deux rôles. Le **conteneur** (`~/manence/`) abrite le **cœur** (`core/` — le système et la connaissance, versionnés) et, dès que le premier démarrage l'aura créée, `production/` à côté (tes artefacts de travail, hors git). Plusieurs MOS ? Passe un dossier différent par activité.
 
-   Tout le reste est dans la copie : fichiers d'identité, table de routage, 8 skills de base (dont `mos-map`, la carte visuelle de ton système, et `outward-watch`, son œil tourné vers l'extérieur), hooks de sécurité, knowledge-base — plus `BOOTSTRAP.md`, le rituel de premier démarrage.
+   Chemin à la main, si tu veux voir chaque geste : `git clone` puis `mkdir ~/mon-activite` puis `cp -R manence/implementation/mos/. ~/mon-activite/core/` — copie le *contenu y compris les fichiers cachés* (`mos/.`, le `/.` final est ce qui les emporte). Préfère le script.
 
-3. **Faire son premier démarrage.** Ouvre Claude Code dans le cœur (`cd ~/mon-projet/core` puis `claude`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) et prend la main : il demande ta langue (**français ou anglais** — réponds français, et tout ton système s'installe en français : identité, skills, gabarits), t'interviewe — le nom, ce que fait l'activité, qui travaille ici, la voix, le cap — remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, contrôle tout, puis supprime le fichier du rituel. C'est aussi ta première leçon : **les skills s'invoquent en parlant à l'agent**, pas en ligne de commande. Quand c'est fini, donne-lui du vrai travail : *« ouvre un chantier pour ‹ce sur quoi tu bosses cette semaine› »*.
+2. **Faire son premier démarrage.** Ouvre Claude Code dans le cœur (`cd ~/manence/core` puis `claude`) et dis-lui : **« fais mon premier démarrage »**. L'agent lit [`BOOTSTRAP.md`](implementation/mos/BOOTSTRAP.md) et prend la main : il demande ta langue (**français ou anglais** — réponds français, et tout ton système s'installe en français : identité, skills, gabarits), t'interviewe — le nom, ce que fait l'activité, qui travaille ici, la voix, le cap — remplit tes fichiers d'identité avec tes réponses, vérifie les garde-fous, te montre la carte, puis supprime le fichier du rituel. C'est aussi ta première leçon : **les skills s'invoquent en parlant à l'agent**, pas en ligne de commande. Quand c'est fini, donne-lui du vrai travail : *« ouvre un chantier pour ‹ce sur quoi tu bosses cette semaine› »*.
+
+3. **(Optionnel) Lire le [Manifeste](Manifesto.fr.md).** Le fil unique : le modèle mental, les 7 couches, les 9 lois. Pas requis pour démarrer ; c'est le document qui fait tenir le système. Chaque idée se déplie ensuite dans [`concept/`](concept/index.md) (en anglais).
 
 > **Bonus** : ouvre le dossier du projet dans [Obsidian](https://obsidian.md) (gratuit) — les liens relatifs dessinent le **graphe** de ta connaissance : clusters, orphelines et trous visibles d'un coup d'œil. Une vue humaine optionnelle, jamais une dépendance (voir [le modèle de mémoire](concept/modele-memoire.md), en anglais).
 

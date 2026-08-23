@@ -9,6 +9,18 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.6.2] - 2026-08-23
+
+The door. No new skill. The public repo becomes something a stranger can open.
+
+- **The README is a door, not an OKF page.** Frontmatter stripped from `README.md` and `README.fr.md` (GitHub was rendering it as a table). The visual map of a running MOS sits above the fold, linking to [manence.ai/map](https://www.manence.ai/map).
+- **The install gesture is a script, not a `cp`.** New `install.sh`, OpenClaw-shaped: `curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash` — no path required (default `~/manence`). Copies the MOS *with its dotfiles*, checks the BOOTSTRAP step-0 organs, prints the next sentence. The `cp -R` path remains documented; it is no longer the human door. CI smokes the script (explicit path and default). The short URL is a site rewrite to the repo file (single source, L2).
+- **The sentence you say is "run my first setup".** The calque *startup* (a company, in English) is gone from the CTA. French unchanged: « fais mon premier démarrage ». BOOTSTRAP, QUICKSTART, Implementation follow.
+- **The QUICKSTART starts by installing**, not by reading the Manifesto. The Manifesto stays the why, as move 3, optional.
+- **Eight base skills, not six** — the playbook's leftover count from before mos-map and outward-watch.
+- **Licenses in ten lines** (`LICENSE.md`). Dual license unchanged on the merits (MIT code, CC BY-NC-SA doctrine); GitHub's `NOASSERTION` badge is named so it isn't a mystery.
+- **The three objections named.** README and QUICKSTART now meet the 2026 stranger where they are: “I already have a memory, a second brain, Cowork and MCPs.” Those are the ingredients; the problem starts after. Not a new organ: the same “what Manence is not,” rewritten so it no longer looks like a better CLAUDE.md.
+
 ## [0.6.1] - 2026-08-16
 
 A MOS now looks *outward*.

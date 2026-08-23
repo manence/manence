@@ -1,13 +1,13 @@
 ---
 type: guide
-title: "BOOTSTRAP: first startup (one-time ritual)"
+title: "BOOTSTRAP: first setup (one-time ritual)"
 description: "The one-time setup of a new Manence OS, executed by the agent: language, interview, identity files filled, checks, then this file deletes itself."
 timestamp: 2026-07-11
 ---
 
-# BOOTSTRAP.md — first startup (one-time ritual)
+# BOOTSTRAP.md — first setup (one-time ritual)
 
-**To the human.** You just copied the default MOS. Open Claude Code in this folder and say: **"run my first startup"** (or, in French: « fais mon premier démarrage »). The agent takes it from there — it interviews you, fills in your system, checks everything, then deletes this file. Five minutes.
+**To the human.** You just copied the default MOS. Open Claude Code in this folder and say: **"run my first setup"** (or, in French: « fais mon premier démarrage »). The agent takes it from there — it interviews you, fills in your system, checks everything, then deletes this file. Five minutes.
 
 ---
 

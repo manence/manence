@@ -10,27 +10,27 @@ timestamp: 2026-06-30
 
 The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([Spec](Spec.md)). Here is the *how*, for setting up a project without reopening the sources. The default MOS in [`mos/`](mos/BOOTSTRAP.md) (identity files, the 8 base skills, hooks, the startup ritual); a running example of a knowledge base in [`example/`](example/index.md).
 
-## 1. Set up a new project (copy `mos/`, run the first startup)
+## 1. Set up a new project (run `install.sh`, then the first setup)
 
 ```bash
-git clone https://github.com/manence/manence.git
-mkdir my-project                                    # the container (the MOS, Spec §0)
-cp -R manence/implementation/mos my-project/core    # the core (its own git repo)
+curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 ```
 
-Two folders, two jobs: the **container** is the MOS (Spec §0) — it holds the core and, alongside it, production (Spec §16); the **core** is what you copy, and it becomes a git repository of its own. Copy the folder, never its contents: the core's dotfiles (`.claude/`, `.gitignore`, `.env.example`) are hidden by default in a file manager, and a core without `.claude/` is a core without guardrails. The ritual's step 0 checks this.
+(Default container: `~/manence`. Override: `| bash -s -- ~/my-activity`. From a clone: `bash manence/install.sh`.)
 
-Then open Claude Code in the core (`cd my-project/core`) and say: **"run my first startup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
+Two folders, two jobs: the **container** is the MOS (Spec §0) — it holds the core and, alongside it, production (Spec §16); the **core** is what you copy, and it becomes a git repository of its own. `install.sh` copies the folder *with its dotfiles* (`.claude/`, `.gitignore`, `.env.example`) and checks the copy is whole: a core without `.claude/` is a core without guardrails. The ritual's step 0 checks this again.
 
-There is no frozen `starter/` directory *and* no assembly script: `mos/` **is** the single source (law **L2**) — what you copy is what you run, and the personalization is a conversation, not a `sed`.
+Then open Claude Code in the core (`cd ~/manence/core`) and say: **"run my first setup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
 
-The result: a self-contained core **plus its production alongside, outside git** (Spec §16; location chosen at first startup):
+`mos/` **is** the single source (law **L2**) — what `install.sh` copies is what you run, and the personalization is a conversation, not a `sed`. There is no frozen `starter/` directory.
+
+The result: a self-contained core **plus its production alongside, outside git** (Spec §16; location chosen at first setup):
 
 ```
 my-project/             ← THE CONTAINER = THE MOS (not a repository: it just holds)
   core/                 ← THE CORE (git repository: the system + the knowledge)
-    CLAUDE.md            identity + direction + routing table (filled by the first startup)
-    SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first startup, openclaw convention)
+    CLAUDE.md            identity + direction + routing table (filled by the first setup)
+    SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first setup, openclaw convention)
     .claude/
       skills/            the 8 base skills (open-work, close-work, weekly-review, kb-ingest,
                          kb-lint, connect-adapter, mos-map, outward-watch)
@@ -44,11 +44,11 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     templates/           workstream template (About.template.md) + OKF templates, within the project's reach
     scripts/   sources/  direct API calls; immutable raw sources (wiki method)
     knowledge-base/      the wiki (layer 2), see §3
-      index.md  log.md   skeletons, stamped by the first startup; ready for kb-ingest
+      index.md  log.md   skeletons, stamped by the first setup; ready for kb-ingest
     inbox/               raw capture to be sorted
     log.md               the project journal (append-only)
 
-  production/           ← OUTSIDE git (default ../production/ from the core, created by the first startup)
+  production/           ← OUTSIDE git (default ../production/ from the core, created by the first setup)
     <domain>/           a business domain, created on first need by open-work
       in-progress/       ongoing workstreams
       done/              closed workstreams (moved as-is by close-work; the YYYYMMDD- prefix is set at opening)
@@ -87,7 +87,7 @@ Status cycle of an item (field `status:`): `proposal → validated → canon →
 
 **Division of labor** (the core, verbatim Karpathy): *you* select the sources, ask the right questions, steer the analysis, and review; *the LLM* does **everything else** (summarize, create/link the pages, note contradictions, keep the index and the log, lint).
 
-> The two loops below (**ingestion**, **lint**) are **provided as skills, present from the first startup**: `kb-ingest` and `kb-lint` (`mos/.claude/skills/`).
+> The two loops below (**ingestion**, **lint**) are **provided as skills, present from the first setup**: `kb-ingest` and `kb-lint` (`mos/.claude/skills/`).
 
 ### Ingestion (for each new source)
 1. **Drop** the source into `sources/`.
@@ -107,7 +107,7 @@ The LLM reviews the wiki and looks, following Karpathy, for: **contradictions** 
 
 ## 4. The workshop: the life of a workstream
 
-> The *why*: [concept/atelier](../concept/atelier.md). The rules: [Spec §16-§18](Spec.md). The moves below are **provided as skills** (`mos/.claude/skills/`), present from the first startup. Structural reminder: production lives **in the container, outside git** (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`), and its artifacts are **disposable by doctrine**.
+> The *why*: [concept/atelier](../concept/atelier.md). The rules: [Spec §16-§18](Spec.md). The moves below are **provided as skills** (`mos/.claude/skills/`), present from the first setup. Structural reminder: production lives **in the container, outside git** (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`), and its artifacts are **disposable by doctrine**.
 
 - **Open (`open-work`)**: production root resolved (never guessed, Spec §18), routing checked (is this really ongoing work? a fact goes to the KB via `kb-ingest`, a capture into `inbox/`, a decision to the log, a periodic report to the KB), duplicate checked, then a `<domain>/in-progress/YYYYMMDD-<slug>/` directory created (the date prefix is the opening date) from `templates/workstream/` — `templates/chantier/` on a French system — (the domain is created on first need), brief filled in with the **linked** context (KB pages, measurements, previous workstream; never copied, links computed from the final location), a `work-open` entry in the log, next step announced. **Creating a work directory in production is already opening a workstream**: the discipline applies as a matter of course, skill invoked or not.
 - **Run**: everything lives in the workstream's directory, heavy assets included (production is not versioned); iterations overwrite in place (no `old/` subdirectory); the "Next step" section of the `About.md` stays current (that's what you read to pick the work back up); structuring decisions go to the log (L8); every sub-agent receives the **resolved absolute path** of the workstream in its prompt (Spec §18).
@@ -122,7 +122,7 @@ You do **not** pull the live data into the repo. You query it (MCP or script + A
 ## 6. Start small
 Level 1 first (`CLAUDE.md` + 1-2 skills), then split out the `knowledge-base/`, then isolate execution into sub-agents. Don't build it all at once; see the maturity ladder of the [framework](../Manifesto.md).
 
-The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first startup was run in French). Six today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), and `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `CLAUDE.md`).
+The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first setup was run in French). Eight today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams, outward watch, force of proposal), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `CLAUDE.md`), `mos-map` (the visual map of the MOS), and `outward-watch` (the organ that looks outward).
 
 Lesson from the field: when the knowledge lives in a **plugged-in adapter** (not a local `knowledge-base/`), **adjust the base skills' paths at copy time** (`kb-ingest`, `open-work`, `weekly-review`... then point to `../<knowledge-bundle>/`), and align the `CLAUDE.md` routing table with the core's real directories: every top-level directory gets its own line (Spec §17).
 
@@ -191,5 +191,5 @@ It is this boundary that makes the **AIOS Solo vs Enterprise** product.
 The framework improves through its deployments, and the channel is doctrined (it has proven itself: nothing is lost, the context of birth stays linked):
 
 - **At each AIOS project**: any lesson **at the framework level** (a trap or a pattern that should change Manence itself, not just this project) = an entry in the **project's** log, tagged `## [YYYY-MM-DD] framework | title`, noted that same day. The lesson is born where it was lived.
-- **On the framework side**: the lessons are **harvested per version workstream**: a harvest document (one lesson = its generalized experience + its proposed doctrine + its destinations in the framework), worked through in a **dedicated session** in the framework repo: accept / amend / reject, propagate to the destinations, verify (`lint.sh` at 0 findings, a first startup from `mos/` produces a conforming MOS), one decision per lesson in the log (L8).
+- **On the framework side**: the lessons are **harvested per version workstream**: a harvest document (one lesson = its generalized experience + its proposed doctrine + its destinations in the framework), worked through in a **dedicated session** in the framework repo: accept / amend / reject, propagate to the destinations, verify (`lint.sh` at 0 findings, a first setup from `mos/` produces a conforming MOS), one decision per lesson in the log (L8).
 - **Never a client example in the framework**: the harvest generalizes (a neutral lesson); the detailed experience stays with the project, in its log.
