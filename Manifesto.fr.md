@@ -74,7 +74,7 @@ Chaque chose du système appartient à une couche, chaque couche a un domicile. 
 
 | Couche | Ce que c'est | Où ça vit |
 |---|---|---|
-| 1. **Identité** | *qui tu es* : posture, voix, cap | `CLAUDE.md` + `SOUL.md`/`STRATEGY.md`, dans le repo (seul le noyau invariant peut remonter dans `~/.claude/`) |
+| 1. **Identité** | *qui tu es* : posture, voix, cap | `AGENTS.md` (neutre vis-à-vis de l'agent ; `CLAUDE.md` l'importe et ajoute le câblage de Claude Code) + `SOUL.md`/`STRATEGY.md`, dans le repo (seul le noyau invariant peut remonter dans `~/.claude/`) |
 | 2. **Connaissance** | *ce qui est vrai* : les faits de tes domaines | `knowledge-base/`, un concept = un fichier ([OKF](concept/okf.md)), tenue par la [méthode wiki](concept/methode-wiki.md) |
 | 3. **Capacité** | *comment faire* : les procédures réutilisables | `.claude/skills/`, chargées à l'usage (trois familles : base, projet, partagée) |
 | 4. **Exécution** | *comment le travail tourne* | sous-agents au contexte isolé, **maker ≠ checker**, [loops bornées](concept/loops.md) |
@@ -125,7 +125,8 @@ Une installation complète du cadre, dédiée à une activité, s'appelle un **M
 ```
 <conteneur>/                     ← LE MOS : un dossier simple (non-repo), le cœur + ce qu'il branche
   <un-projet>/                   ← LE CŒUR (on lance l'IA ici), un dépôt git : on ne versionne que le système et le savoir
-    CLAUDE.md                     COUCHE 1 : qui je suis ici + comment bosser (lean, <200 l.)
+    AGENTS.md                     COUCHE 1 : qui je suis ici + comment bosser (lean, <200 l., tout agent)
+    CLAUDE.md                     COUCHE 1 : @AGENTS.md + le câblage propre à Claude Code
     SOUL.md · STRATEGY.md         COUCHE 1 : la voix, le cap (convention openclaw)
     .claude/
       skills/                     COUCHE 3 : capacités du projet
@@ -156,7 +157,7 @@ Ci-dessus = le cas **monolithe** (solo-simple : un seul repo, plus sa production
 | Niveau | Ce qui le caractérise | Indice qu'on y est |
 |---|---|---|
 | **0** | Prompt à la main, tout recommence à froid | aucun fichier de contexte |
-| **1** | `CLAUDE.md` + quelques skills par projet | l'agent connaît le projet |
+| **1** | `AGENTS.md` + quelques skills par projet | l'agent connaît le projet |
 | **2** | Connaissance statique séparée du travail dynamique (OKF) | une `knowledge-base/` versionnée, distincte de la production (hors git) |
 | **3** | Identité rangée proprement + exécution isolée par sous-agents | identité au bon endroit, plus de copier-coller accidentel |
 | **4** | Automatisation (heartbeat, hooks) + loops vérifiées (maker≠checker) | du travail démarre seul et se fait vérifier |

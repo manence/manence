@@ -23,7 +23,7 @@ Exemple — ce MOS : `python3 .claude/skills/mos-map/build.py --coeur . --lang f
 
 ## Ce que la carte lit
 - Les organes : `log.md` (entrées `## [date] type | titre`, triées, types normalisés), `inbox/`, `.claude/skills/`, `knowledge-base/` (fiches OKF, liens markdown réels — les `index.md` sont des catalogues, hors graphe), la production (`in-progress`/`done`, alias legacy `published`).
-- **`.claude/mos-map.json`** (schema 2, livré avec les deux piliers) : les **attaches** de l'hexagone (sommet 0-5, nature `kb | production | mos | git | externe`, nom d'affichage, résumé en une ligne, liens sortants, `visible`) et les **routines déclarées** (cadence + état réel). À tenir aligné sur la carte des connecteurs du CLAUDE.md : c'est le skill `connect-adapter` qui écrit les deux.
+- **`.claude/mos-map.json`** (schema 2, livré avec les deux piliers) : les **attaches** de l'hexagone (sommet 0-5, nature `kb | production | mos | git | externe`, nom d'affichage, résumé en une ligne, liens sortants, `visible`) et les **routines déclarées** (cadence + état réel). À tenir aligné sur la carte des connecteurs d'`AGENTS.md` : c'est le skill `connect-adapter` qui écrit les deux.
 
 ## Garde-fous
 - **Lecture seule** : le scan n'écrit rien dans le MOS ; la carte est une **photo datée** — la rafraîchir = relancer la commande (candidat : la régénérer à chaque weekly-review).

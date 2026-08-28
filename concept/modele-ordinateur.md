@@ -43,7 +43,7 @@ Because it **puts everything in its place**: every question of organization ("wh
 [research/01: Karpathy & practitioners](research/01-karpathy-practitioners.md) (Software 3.0, gist `llm-wiki.md`) and [research/02: Anthropic architecture](research/02-anthropic-architecture.md) (*context rot*, just-in-time context, "simplest first").
 
 ## → Alongside (the how)
-- [Spec §9: Context budget](../implementation/Spec.md): the concrete rules for "RAM" (`CLAUDE.md` < 200 lines, `@import`, `/clear`).
+- [Spec §9: Context budget](../implementation/Spec.md): the concrete rules for "RAM" (`AGENTS.md` < 200 lines, `@import`, `/clear`).
 - The **physical layout** in the [Manifesto](../Manifesto.md): how disk/programs translate into a directory tree.
 
 Related concepts: [The memory model](modele-memoire.md) (what you store on disk) · [The loops](loops.md) (the workflows) · [The wiki method](methode-wiki.md) (knowledge = code) · [Manifesto](../Manifesto.md).

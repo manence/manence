@@ -200,6 +200,7 @@ EXEMPT_BASENAMES = {
     "README.md", "README.fr.md",
     "QUICKSTART.md", "QUICKSTART.fr.md",
     "LICENSE.md",
+    "AGENTS.md",
     "CLAUDE.md",
 }
 
@@ -515,7 +516,7 @@ def check_frontmatter(path, lines, basename):
     exempt = is_exempt_from_frontmatter(path, basename)
     # Les gabarits, skills, agents et sources gardent leurs formats propres
     # (placeholders, frontmatter Claude Code) : entièrement hors périmètre.
-    # Les points d'entrée (index/README/QUICKSTART/CLAUDE) ne sont pas TENUS
+    # Les points d'entrée (index/README/QUICKSTART/AGENTS/CLAUDE) ne sont pas TENUS
     # d'avoir un frontmatter, mais s'ils en ont un, il doit être VALIDE
     # (piège vécu : un ":" non quoté dans QUICKSTART cassait le rendu Obsidian).
     fully_out = (basename.endswith(".template.md") or basename == "SKILL.md"

@@ -23,7 +23,7 @@ Example — this MOS: `python3 .claude/skills/mos-map/build.py --coeur . --ouvri
 
 ## What the map reads
 - The organs: `log.md` (entries `## [date] type | title`, sorted, types normalized), `inbox/`, `.claude/skills/`, `knowledge-base/` (OKF records, real markdown links — `index.md` files are catalogs, kept out of the graph), production (`in-progress`/`done`, legacy alias `published`).
-- **`.claude/mos-map.json`** (schema 2, shipped with the two pillars): the hexagon's **attachments** (vertex 0-5, nature `kb | production | mos | git | externe`, display name, one-line summary, outbound links, `visible`) and the **declared routines** (cadence + actual state). Keep it aligned with the CLAUDE.md connector map: the `connect-adapter` skill writes both.
+- **`.claude/mos-map.json`** (schema 2, shipped with the two pillars): the hexagon's **attachments** (vertex 0-5, nature `kb | production | mos | git | externe`, display name, one-line summary, outbound links, `visible`) and the **declared routines** (cadence + actual state). Keep it aligned with the `AGENTS.md` connector map: the `connect-adapter` skill writes both.
 
 ## Guardrails
 - **Read-only**: the scan writes nothing into the MOS; the map is a **dated snapshot** — refreshing it means re-running the command (candidate: regenerate it at each weekly-review).

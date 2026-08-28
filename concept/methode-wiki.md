@@ -24,7 +24,7 @@ The insight that justifies investing here: the cost of a knowledge base **is not
 ### Three layers (the structure)
 1. **Raw sources** (`sources/`): the **immutable** inputs (articles, PDFs, transcripts, data). The LLM reads them and never changes them. This is the *source code*.
 2. **The wiki** (`knowledge-base/`): the pages **the LLM generates and links to one another** (summaries, entity pages, concept pages, comparisons, syntheses). **One concept = one file.** The LLM owns it; you read it. This is the *binary*.
-3. **The schema** (`CLAUDE.md`): the structure, conventions, and workflows the LLM follows. It co-evolves with the domain. This is the *build config*.
+3. **The schema** (`AGENTS.md`): the structure, conventions, and workflows the LLM follows. It co-evolves with the domain. This is the *build config*.
 
 Markdown throughout — in Karpathy's words, "the most compact structured format, readable by the LLM and auditable by the human." The index (`index.md`) catalogs the pages (one link plus one line); the log (`log.md`) is append-only, with dated, parseable prefixes.
 

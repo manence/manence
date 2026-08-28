@@ -80,9 +80,15 @@ Tu as déjà une mémoire d'IA, un carnet de notes, et un agent qui travaille da
 - **Un second cerveau.** Un wiki perso, c'est toi qui le tiens. Les wikis d'entreprise existent depuis vingt ans ; ils ne sont jamais à jour. Le rangement-corvée perd toujours. Dans Manence, c'est l'IA qui tient la discipline, en sous-produit du travail : tu n'as pas un deuxième métier d'archiviste.
 - **Cowork, Claude Code, ou un paquet de MCP.** Un agent qui a les mains est puissant. Un accès n'est pas une vue d'ensemble : des outils isolés ne voient pas qu'un chiffre absurde dans le CRM crève les yeux au regard de l'analytics du même client. Et rien, dans l'agent brut, ne structure la durée : pas d'ouverture ni de clôture de projet, pas de journal des décisions, pas de frontière entre le vrai et le brouillon. Manence est cette structure, par-dessus. Cowork lui donne les mains. Manence lui dit ce qui est vrai, ce qui est en cours, et ce qui est déjà tranché.
 
-## Portable, par construction
+## Multi-IA, par construction
 
-Les exemples de ce dépôt utilisent **Claude Code**, le chemin le plus direct aujourd'hui. Mais ton système n'en dépend pas : tout ce qui compte — savoir, journal, chantiers — est du markdown simple que n'importe quel agent sait lire, et les fichiers de skills suivent déjà le format inter-outils Agent Skills. Le passage du fichier d'identité au standard partagé `AGENTS.md` est sur la feuille de route du cadre ; rien n'est annoncé comme supporté avant d'avoir été testé pour de vrai.
+Ton système ne dépend pas d'un fournisseur d'IA. Tout ce qui compte — savoir, journal, chantiers — est du markdown simple que n'importe quel agent sait lire ; le fichier d'identité est le standard partagé **`AGENTS.md`** ; les fichiers de skills suivent le format inter-outils Agent Skills. Le rituel d'installation demande quel agent va piloter, et le câble en conséquence :
+
+- **Claude Code** — le chemin natif. Rien à ajouter.
+- **Grok Build (xAI)** — lit nativement `AGENTS.md` et le câblage `.claude/` livré. Rien à ajouter.
+- **OpenAI Codex** — lit nativement `AGENTS.md` ; le rituel pose un lien `skills` à la racine et un `.codex/config.toml` pour que les skills et le garde-fou suivent.
+
+Une règle : un seul agent à la fois sur un conteneur. Rien n'est annoncé comme supporté avant d'avoir été testé pour de vrai — l'état exact des tests, couche par couche, est dans **[PORTABILITY.md](PORTABILITY.md)** *(en anglais)*.
 
 ## La carte
 

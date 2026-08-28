@@ -12,6 +12,10 @@ node_modules/
 # Config Claude Code locale (jamais commitée)
 CLAUDE.local.md
 
+# Pont vers .claude/skills/ posé par le premier démarrage pour certains agents :
+# un lien ne se commite jamais (git le casse au checkout Windows)
+/skills
+
 # Obsidian
 .obsidian/workspace*
 carte-*.html

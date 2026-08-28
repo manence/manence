@@ -80,9 +80,15 @@ You already have an AI memory, a notes app, and an agent that works in your fold
 - **A second brain.** A personal wiki, you hold. Company wikis have existed for twenty years; they're never up to date. Tidying as a chore always loses. In Manence the AI holds the discipline as a by-product of the work: you don't take a second job as the archivist.
 - **Cowork, Claude Code, or a bundle of MCPs.** An agent with hands is powerful. Access is not seeing together: isolated tools cannot see that an absurd figure in the CRM is glaring next to the same client's analytics. And nothing in the raw agent structures duration: no opening or closing of a project, no log of decisions, no boundary between the true and the draft. Manence is that structure, on top. Cowork gives it hands. Manence tells it what is true, what is in progress, and what is already settled.
 
-## Portable, by construction
+## Multi-AI setup
 
-The examples in this repository use **Claude Code**, the most direct path today. But your system doesn't depend on it: everything that matters — knowledge, journal, workstreams — is plain markdown any agent can read, and the skill files already match the cross-tool Agent Skills format. Moving the identity file to the shared `AGENTS.md` standard is on the framework's roadmap; nothing is claimed as supported before it has been tested for real.
+Your system doesn't depend on one AI vendor. Everything that matters — knowledge, journal, workstreams — is plain markdown any agent can read; the identity file is the shared **`AGENTS.md`** standard; the skill files match the cross-tool Agent Skills format. The install ritual asks which agent will drive and wires it accordingly:
+
+- **Claude Code** — the native path. Nothing to add.
+- **Grok Build (xAI)** — reads `AGENTS.md` and the shipped `.claude/` wiring natively. Nothing to add.
+- **OpenAI Codex** — reads `AGENTS.md` natively; the ritual poses a root `skills` link and a `.codex/config.toml` so the skills and the guardrail carry over.
+
+One rule: one agent at a time on a container. Nothing is claimed as supported before it has been tested for real — the exact test status, layer by layer, is in **[PORTABILITY.md](PORTABILITY.md)**.
 
 ## The map
 

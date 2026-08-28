@@ -1,6 +1,6 @@
 ---
 name: connect-adapter
-description: Connecte proprement un nouvel adaptateur (bundle de savoir, de capacité, ou confidentiel) à un cœur Manence OS. Valide le contrat d'adaptateur, route selon la confidentialité (carte des connecteurs du CLAUDE.md partagé, OU CLAUDE.local.md gitignored pour le confidentiel), écrit la ligne de carte, déclare l'attache dans .claude/mos-map.json (visualisation — jamais pour le confidentiel), journalise. À utiliser quand on branche un repo voisin au cœur.
+description: Connecte proprement un nouvel adaptateur (bundle de savoir, de capacité, ou confidentiel) à un cœur Manence OS. Valide le contrat d'adaptateur, route selon la confidentialité (carte des connecteurs de l'AGENTS.md partagé, OU CLAUDE.local.md gitignored pour le confidentiel), écrit la ligne de carte, déclare l'attache dans .claude/mos-map.json (visualisation — jamais pour le confidentiel), journalise. À utiliser quand on branche un repo voisin au cœur.
 ---
 
 # connect-adapter, brancher un adaptateur
@@ -16,7 +16,7 @@ Ajouter un adaptateur au cœur **sans casser le zéro-connaissance** (L9) ni l'h
 
 ### 1. Valider le contrat d'adaptateur (checklist légère, reporter ✓/✗ par point)
 - **Repo autonome** : `../mon-adaptateur/.git` existe. ✗ bloquant → pas un adaptateur, refuser.
-- **Auto-descriptif** : a un `CLAUDE.md` qui se décrit lui-même. ✗ bloquant.
+- **Auto-descriptif** : a un fichier d'identité qui se décrit lui-même (`AGENTS.md`, ou le `CLAUDE.md` d'un repo qui lui est antérieur). ✗ bloquant.
 - **Secrets** : a un `.env.example`, `.env` est gitignoré, aucun secret commité. Grep rapide (`git ls-files | grep -i '\.env$'`, et scan de clés dans le suivi). ✗ bloquant si un secret est commité.
 - **Chemins portables** : pas de chemin machine en dur (grep `/Users/`, `~/Dev/`, `/home/`). ✗ → avertir (non bloquant), proposer de passer par variable d'env.
 - **Skills déclarés** : si l'adaptateur a des `SKILL.md`, chacun a `name:` + `description:` en frontmatter (pour pouvoir les lister dans la carte). ✗ → avertir.
@@ -26,8 +26,8 @@ Ajouter un adaptateur au cœur **sans casser le zéro-connaissance** (L9) ni l'h
 > Si un point **bloquant** échoue → **refuser de brancher**, dire précisément quoi corriger, s'arrêter.
 
 ### 2. Router (zéro-connaissance, L9)
-- **`confidentiel`** → cible = **`CLAUDE.local.md`** du cœur (gitignored, local). **JAMAIS** dans le `CLAUDE.md` partagé : la simple mention trahit l'existence.
-- **`savoir` / `capacité`** → cible = la **carte des connecteurs** du **`CLAUDE.md`** du cœur (partagé, auto-chargé au démarrage).
+- **`confidentiel`** → cible = **`CLAUDE.local.md`** du cœur (gitignored, local). **JAMAIS** dans l'`AGENTS.md` partagé : la simple mention trahit l'existence.
+- **`savoir` / `capacité`** → cible = la **carte des connecteurs** de l'**`AGENTS.md`** du cœur (partagé, lu au démarrage de chaque session).
 
 ### 3. Écrire la ligne de carte
 Format :
@@ -46,22 +46,22 @@ Si le cœur a un `.claude/mos-map.json` (schema 2 — la carte visuelle du MOS),
   "id": "<id>", "nature": "mos | git | externe", "nom": "<nom d'affichage>",
   "resume": "<une phrase affichée>", "liens": [["<libellé>", "https://…"]] }
 ```
-⚠️ **JAMAIS pour un `confidentiel`** : `mos-map.json` est versionné et partagé — y inscrire un adaptateur confidentiel trahirait le zéro-connaissance (L9), exactement comme une ligne dans le `CLAUDE.md`. Un adaptateur confidentiel n'apparaît sur aucune carte visuelle générée depuis le partagé.
+⚠️ **JAMAIS pour un `confidentiel`** : `mos-map.json` est versionné et partagé — y inscrire un adaptateur confidentiel trahirait le zéro-connaissance (L9), exactement comme une ligne dans l'`AGENTS.md`. Un adaptateur confidentiel n'apparaît sur aucune carte visuelle générée depuis le partagé.
 Pas de `mos-map.json` ? Ne pas le créer pour ça — la carte visuelle est un organe optionnel ; noter seulement son absence dans le rapport.
 
 ### 4. GO explicite
-Montrer à l'utilisateur **la ligne exacte** + **le fichier cible** (`CLAUDE.md` ou `CLAUDE.local.md`), et le cas échéant **l'attache `mos-map.json`**, puis **attendre le GO** avant d'écrire.
+Montrer à l'utilisateur **la ligne exacte** + **le fichier cible** (`AGENTS.md` ou `CLAUDE.local.md`), et le cas échéant **l'attache `mos-map.json`**, puis **attendre le GO** avant d'écrire.
 
 ### 5. Journaliser
 - **Si `savoir` / `capacité`** : après écriture, ajouter au `log.md` du cœur :
   ```
-  ## [YYYY-MM-DD] connect | <adaptateur> → CLAUDE.md
+  ## [YYYY-MM-DD] connect | <adaptateur> → AGENTS.md
   ```
 - **Si `confidentiel`** : **aucune** entrée de log, dans le `log.md` du cœur ni ailleurs de partagé. La seule trace du branchement vit dans `CLAUDE.local.md` (gitignored) ; la simple mention de l'existence de l'adaptateur dans un fichier partagé trahirait le zéro-connaissance.
 
 ## Garde-fous
-- **Ne jamais** router un `confidentiel` vers le `CLAUDE.md` partagé, ni vers son `log.md`, **ni vers `.claude/mos-map.json`** : ni ligne de carte, ni entrée de log, ni attache visuelle, ni trace d'historique partagé.
-- Un fait de connecteur a **deux domiciles synchrones** : la carte du `CLAUDE.md` (la prose qui fait foi) et l'attache `mos-map.json` (la déclaration machine pour la carte visuelle). Toute modification de l'un vérifie l'autre — c'est ce skill qui garantit l'alignement.
+- **Ne jamais** router un `confidentiel` vers l'`AGENTS.md` partagé, ni vers son `log.md`, **ni vers `.claude/mos-map.json`** : ni ligne de carte, ni entrée de log, ni attache visuelle, ni trace d'historique partagé.
+- Un fait de connecteur a **deux domiciles synchrones** : la carte de l'`AGENTS.md` (la prose qui fait foi) et l'attache `mos-map.json` (la déclaration machine pour la carte visuelle). Toute modification de l'un vérifie l'autre — c'est ce skill qui garantit l'alignement.
 - Le cœur ne stocke **pas** les clés des adaptateurs : chacun garde son `.env`.
 - Accès ≠ connaissance : cette procédure gère la **connaissance** (la carte) ; l'**accès** (`--add-dir`) reste un shim de lancement, hors bundle.
 - Condition de succès : contrat validé, ligne écrite dans la **bonne** cible après GO ; `log.md` du cœur à jour **seulement** pour `savoir`/`capacité` ; pour `confidentiel`, aucune trace partagée, le branchement vit uniquement dans `CLAUDE.local.md`.

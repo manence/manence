@@ -1,6 +1,6 @@
 ---
 name: open-work
-description: Opens a workstream (a unit of work with an identifiable deliverable) in the container's production, following the routing table in CLAUDE.md. Use it whenever the user wants to work on something new (a campaign, a webinar, a document, an exploration). IMPLICIT TRIGGER: creating a work folder in production IS opening a workstream; this discipline applies on its own, even if no one invoked the skill.
+description: Opens a workstream (a unit of work with an identifiable deliverable) in the container's production, following the routing table in AGENTS.md. Use it whenever the user wants to work on something new (a campaign, a webinar, a document, an exploration). IMPLICIT TRIGGER: creating a work folder in production IS opening a workstream; this discipline applies on its own, even if no one invoked the skill.
 ---
 
 # open-work, opening a workstream
@@ -10,7 +10,7 @@ So that every piece of work is born **in the right place, with its context**, in
 
 ## Procedure
 1. **Resolve the production root.** `$<PROJECT>_PRODUCTION_ROOT` (see `.env` / `.env.example`), default: `../production/` from the core. Resolve it to an **absolute path**: that is the one you use everywhere (and pass as-is to any subagent, never left "to guess", Spec §18).
-2. **Route first.** Use the routing table in `CLAUDE.md` to confirm this really is *work in progress*:
+2. **Route first.** Use the routing table in `AGENTS.md` to confirm this really is *work in progress*:
    - a stable fact → not a workstream, this is `kb-ingest`;
    - a raw note with no deliverable → `inbox/`;
    - a procedure → a skill;

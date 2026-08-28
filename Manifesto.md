@@ -74,7 +74,7 @@ Everything in the system belongs to a layer, and every layer has a home. The det
 
 | Layer | What it is | Where it lives |
 |---|---|---|
-| 1. **Identity** | *who you are*: posture, voice, direction | `CLAUDE.md` + `SOUL.md`/`STRATEGY.md`, in the repo (only the invariant kernel may be lifted into `~/.claude/`) |
+| 1. **Identity** | *who you are*: posture, voice, direction | `AGENTS.md` (agent-neutral; `CLAUDE.md` imports it and adds Claude Code's wiring) + `SOUL.md`/`STRATEGY.md`, in the repo (only the invariant kernel may be lifted into `~/.claude/`) |
 | 2. **Knowledge** | *what is true*: the facts of your domains | `knowledge-base/`, one concept per file ([OKF](concept/okf.md)), kept by the [wiki method](concept/methode-wiki.md) |
 | 3. **Capability** | *how to do it*: reusable procedures | `.claude/skills/`, loaded when used (three families: base, project, shared) |
 | 4. **Execution** | *how the work runs* | subagents with isolated context, **maker ≠ checker**, [bounded loops](concept/loops.md) |
@@ -125,7 +125,8 @@ A complete install of the framework, dedicated to one activity, is called a **MO
 ```
 <container>/                     ← THE MOS: a plain folder (non-repo), the core + what it plugs in
   <a-project>/                   ← THE CORE (you launch the AI here), a git repo: you version only the system and the knowledge
-    CLAUDE.md                     LAYER 1: who I am here + how to work (lean, <200 lines)
+    AGENTS.md                     LAYER 1: who I am here + how to work (lean, <200 lines, any agent)
+    CLAUDE.md                     LAYER 1: @AGENTS.md + Claude Code's own wiring
     SOUL.md · STRATEGY.md         LAYER 1: the voice, the heading (openclaw convention)
     .claude/
       skills/                     LAYER 3: project capabilities
@@ -156,7 +157,7 @@ The above = the **monolith** case (solo-simple: a single repo, plus its producti
 | Level | What defines it | Sign you're there |
 |---|---|---|
 | **0** | Prompting by hand, everything restarts from cold | no context file at all |
-| **1** | `CLAUDE.md` + a few skills per project | the agent knows the project |
+| **1** | `AGENTS.md` + a few skills per project | the agent knows the project |
 | **2** | Static knowledge separated from dynamic work (OKF) | a versioned `knowledge-base/`, distinct from production (outside git) |
 | **3** | Identity filed cleanly + execution isolated by subagents | identity in the right place, no more accidental copy-paste |
 | **4** | Automation (heartbeat, hooks) + verified loops (maker≠checker) | work starts on its own and gets checked |

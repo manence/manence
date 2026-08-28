@@ -1,6 +1,6 @@
 ---
 name: open-work
-description: Ouvre un chantier (une unité de travail avec un livrable identifiable) dans la production du conteneur, en appliquant la table de routage du CLAUDE.md. À utiliser dès que l'utilisateur veut travailler sur quelque chose de nouveau (une campagne, un webinaire, un document, une exploration). DÉCLENCHEUR IMPLICITE : créer un dossier de travail dans la production EST ouvrir un chantier ; cette discipline s'applique d'office, même si personne n'a invoqué le skill.
+description: Ouvre un chantier (une unité de travail avec un livrable identifiable) dans la production du conteneur, en appliquant la table de routage d'AGENTS.md. À utiliser dès que l'utilisateur veut travailler sur quelque chose de nouveau (une campagne, un webinaire, un document, une exploration). DÉCLENCHEUR IMPLICITE : créer un dossier de travail dans la production EST ouvrir un chantier ; cette discipline s'applique d'office, même si personne n'a invoqué le skill.
 ---
 
 # open-work, ouvrir un chantier
@@ -10,7 +10,7 @@ Que tout travail naisse **au bon endroit, avec son contexte**, au lieu de finir 
 
 ## Procédure
 1. **Résoudre la racine de production.** `$<PROJET>_PRODUCTION_ROOT` (voir `.env` / `.env.example`), défaut : `../production/` depuis le cœur. Résoudre en **chemin absolu** : c'est lui qu'on utilisera partout (et qu'on passera tel quel à tout sous-agent, jamais « à deviner », Spec §18).
-2. **Router d'abord.** Vérifier avec la table de routage du `CLAUDE.md` que c'est bien un *travail en cours* :
+2. **Router d'abord.** Vérifier avec la table de routage d'`AGENTS.md` que c'est bien un *travail en cours* :
    - un fait stable → ce n'est pas un chantier, c'est `kb-ingest` ;
    - une note brute sans livrable → `inbox/` ;
    - une procédure → un skill ;

@@ -7,7 +7,7 @@ timestamp: 2026-07-11
 
 # BOOTSTRAP.md — first setup (one-time ritual)
 
-**To the human.** You just copied the default MOS. Open Claude Code in this folder and say: **"run my first setup"** (or, in French: « fais mon premier démarrage »). The agent takes it from there — it interviews you, fills in your system, checks everything, then deletes this file. Five minutes.
+**To the human.** You just copied the default MOS. Open your coding agent in this folder and say: **"run my first setup"** (or, in French: « fais mon premier démarrage »). The agent takes it from there — it interviews you, fills in your system, checks everything, then deletes this file. Five minutes.
 
 ---
 
@@ -22,8 +22,8 @@ Every one of these must exist, here, at the root:
 ```
 .claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
 .claude/manence-version   .claude/mos-map.json   .env.example   .gitattributes   .gitignore
-.mcp.json.example   CLAUDE.local.md.example   CLAUDE.md   SOUL.md   STRATEGY.md   log.md
-knowledge-base/   templates/   inbox/
+.mcp.json.example   CLAUDE.local.md.example   AGENTS.md   CLAUDE.md   SOUL.md   STRATEGY.md
+log.md   knowledge-base/   templates/   inbox/
 ```
 
 If anything is missing, **stop the ritual** and say so plainly. The near-certain cause: the *contents* of `mos/` were copied instead of the folder itself (a drag-and-drop, hidden files off). The fix is not to hand-craft the missing pieces — it is to recopy properly, from the manence clone:
@@ -44,20 +44,58 @@ Then, version control. This folder must become **its own** repository: run `git 
 
 Ask which language this system should work in: **English or French?**
 
-- **French**: replace the English files with their `fr/` counterparts — `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 8), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
+- **French**: replace the English files with their `fr/` counterparts — `fr/AGENTS.md` → `AGENTS.md`, `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 8), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
 - **English**: remove `fr/` (`git rm -r fr`).
+
+## 2 bis. The agent — which one drives this MOS?
+
+Ask: **which agent will drive this MOS — Claude Code, OpenAI Codex, or Grok Build?** The identity itself is already neutral (`AGENTS.md`, which `CLAUDE.md` imports); what changes from one agent to the next is only the wiring of the skills and of the guardrails.
+
+- **Claude Code**: nothing to install. It reads `CLAUDE.md`, loads `.claude/skills/`, and the hooks declared in `.claude/settings.json` are already armed.
+- **Grok Build**: nothing to install either. It reads `AGENTS.md` natively, and its Claude compatibility loads `.claude/skills/`, the permissions and the hooks of `.claude/settings.json` as they stand. Say so plainly rather than adding files "just in case".
+- **OpenAI Codex**: two gestures, because it reads `AGENTS.md` natively but looks for skills at the root and wires its hooks in its own file.
+
+  1. The skills bridge — a link at the root pointing at their single home (`.claude/skills/`), which stays the only place you ever write:
+
+     ```bash
+     ln -s .claude/skills skills          # macOS, Linux
+     ```
+
+     On Windows, from a `cmd` prompt, an NTFS junction instead — it needs no developer mode, where a symlink does:
+
+     ```
+     mklink /J skills .claude\skills
+     ```
+
+     This link is installed by the ritual and never committed — git turns a committed symlink into a dead text file on a Windows checkout — which is why `/skills` is already in `.gitignore`. Leave it there.
+
+  2. The hard boundary — write `.codex/config.toml` so the shipped guardrail runs before every writing tool (Codex only loads it once the project is *trusted*):
+
+     ```toml
+     # The MOS hard boundary, wired for Codex: the same guard.sh Claude Code runs.
+     [[hooks.PreToolUse]]
+     matcher = "^(Bash|Edit|Write|apply_patch)$"
+
+     [[hooks.PreToolUse.hooks]]
+     type = "command"
+     command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/guard.sh"'
+     timeout = 30
+     statusMessage = "guard.sh — the MOS hard boundary"
+     ```
+
+Whichever answer comes, tell the human the one standing rule: **one agent at a time on this container**. Two agents working the same core at once race on the journal and on the guardrails — you alternate, you never run them in parallel. Nothing stops them from installing a second agent's wiring later: it is additive, and this step can be re-run for it.
 
 ## 3. Interview
 
 One question at a time, and use every answer — they become the system's identity:
 
 1. **The name** of the project or activity. It replaces every `<project name>` / `<nom du projet>` gap, and derives the env prefix (uppercase, non-alphanumeric → `_`) that replaces `<PROJECT>` / `<PROJET>`.
-2. **What this activity does**, in 2-3 sentences (→ CLAUDE.md, "What this project does").
-3. **Who works here** — names, roles, constraints worth knowing (→ CLAUDE.md, Identity).
+2. **What this activity does**, in 2-3 sentences (→ AGENTS.md, "What this project does").
+3. **Who works here** — names, roles, constraints worth knowing (→ AGENTS.md, Identity).
 4. **The voice** — how should the assistant sound (a few words), and is there anything it should never say or promise (→ SOUL.md).
 5. **The direction** — one to three goals at 12 months (measurable when possible), and 2-3 operational guardrails the human wants respected (→ STRATEGY.md, Goals and Guardrails).
 
-Fill **every** `<...>` gap in `CLAUDE.md`, `SOUL.md`, and `STRATEGY.md`. Two kinds of gaps, two rules:
+Fill **every** `<...>` gap in `AGENTS.md`, `SOUL.md`, and `STRATEGY.md` — plus the project name in the title line of `CLAUDE.md`, the short Claude Code file that imports `AGENTS.md`. Two kinds of gaps, two rules:
 
 - **Identity facts** (names, numbers, goals, guardrails, never-says) come from the human only — a gap the answers don't cover gets a follow-up question, never an invention.
 - **Structural sections the interview doesn't reach** (the pillars, the cadence, the metrics table, the registers of the voice): draft a proposal from what you've heard, read it back, and let the human confirm or amend it — a confirmed proposal counts as their answer. A table with nothing real to hold yet says so plainly ("none yet — the first connector will bring them").
@@ -74,8 +112,8 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 - `bash .claude/hooks/lint.sh .` → must report **0 findings**.
 - `grep -rn '<project name>\|<PROJECT>\|<nom du projet>\|<PROJET>\|<YYYY-MM-DD>' --exclude=BOOTSTRAP.md *.md knowledge-base/ .env.example` → must return **nothing** (this file quotes those tokens, hence the exclude).
-- In `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `CLAUDE.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
-- `CLAUDE.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup).
+- In `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `AGENTS.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
+- `AGENTS.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup), and `CLAUDE.md` still opens with its `@AGENTS.md` import.
 
 If a check fails, fix and re-run. Do not proceed on red.
 

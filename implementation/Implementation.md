@@ -20,7 +20,7 @@ curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 
 Two folders, two jobs: the **container** is the MOS (Spec §0) — it holds the core and, alongside it, production (Spec §16); the **core** is what you copy, and it becomes a git repository of its own. `install.sh` copies the folder *with its dotfiles* (`.claude/`, `.gitignore`, `.env.example`) and checks the copy is whole: a core without `.claude/` is a core without guardrails. The ritual's step 0 checks this again.
 
-Then open Claude Code in the core (`cd ~/manence/core`) and say: **"run my first setup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
+Then open your coding agent in the core (`cd ~/manence/core`) and say: **"run my first setup"**. The agent reads [`BOOTSTRAP.md`](mos/BOOTSTRAP.md) — the one-time ritual: language (English or French — the French set ships in `mos/fr/` and replaces the English files on request), which agent drives the MOS (Claude Code and Grok Build need no wiring; Codex gets its skills link and its `.codex/config.toml`), an interview (name, activity, team, voice, direction), the identity files filled from your answers, prerequisites checked, production created outside git, `git init` and first commit, `lint.sh` at 0 findings — then the ritual file deletes itself.
 
 `mos/` **is** the single source (law **L2**) — what `install.sh` copies is what you run, and the personalization is a conversation, not a `sed`. There is no frozen `starter/` directory.
 
@@ -29,7 +29,8 @@ The result: a self-contained core **plus its production alongside, outside git**
 ```
 my-project/             ← THE CONTAINER = THE MOS (not a repository: it just holds)
   core/                 ← THE CORE (git repository: the system + the knowledge)
-    CLAUDE.md            identity + direction + routing table (filled by the first setup)
+    AGENTS.md            identity + direction + routing table (filled by the first setup; any agent)
+    CLAUDE.md            @AGENTS.md + Claude Code's own wiring
     SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first setup, openclaw convention)
     .claude/
       skills/            the 8 base skills (open-work, close-work, weekly-review, kb-ingest,
@@ -60,7 +61,7 @@ The container is the perimeter of one activity (Spec §0): everything that belon
 
 `.gitignore` provided: `.env`, `.env.*` (except `.env.example`), `node_modules/`, `.DS_Store`, `CLAUDE.local.md`, `.obsidian/workspace*`.
 
-**Hard security** (blocking `rm -rf`, direct push, sending without approval): via `.claude/settings.json` + `hooks/guard.sh` (shipped in `mos/`), **not** via CLAUDE.md, see [Spec §12](Spec.md). Check the install: `bash .claude/hooks/lint.sh .` (0 findings expected).
+**Hard security** (blocking `rm -rf`, direct push, sending without approval): via `.claude/settings.json` + `hooks/guard.sh` (shipped in `mos/`), **not** via `AGENTS.md`, see [Spec §12](Spec.md). Another agent wires the same `guard.sh` in its own file (Codex: `.codex/config.toml`; Grok Build reads the Claude one as it stands) — the guardrail is written once. Check the install: `bash .claude/hooks/lint.sh .` (0 findings expected).
 
 ## 2. Frontmatter, by type
 
@@ -83,7 +84,7 @@ Status cycle of an item (field `status:`): `proposal → validated → canon →
 **Three layers**:
 - **`sources/`**: the raw inputs, **immutable** (articles, PDFs, images, data). The LLM reads them, never modifies them.
 - **the wiki** (`knowledge-base/`), the pages the LLM generates: summaries, **entity** pages, **concept** pages, comparisons, syntheses. One concept = one file. The LLM owns it; you read it.
-- **the schema** (`CLAUDE.md`): the structure, conventions, and workflows the LLM follows. Co-evolves with the domain.
+- **the schema** (`AGENTS.md`): the structure, conventions, and workflows the LLM follows. Co-evolves with the domain.
 
 **Division of labor** (the core, verbatim Karpathy): *you* select the sources, ask the right questions, steer the analysis, and review; *the LLM* does **everything else** (summarize, create/link the pages, note contradictions, keep the index and the log, lint).
 
@@ -120,11 +121,11 @@ The LLM reviews the wiki and looks, following Karpathy, for: **contradictions** 
 You do **not** pull the live data into the repo. You query it (MCP or script + API), and you **persist only the conclusion** in `knowledge-base/` (if it becomes a fact) or `production/` (if it is a deliverable). Keys in `.env`.
 
 ## 6. Start small
-Level 1 first (`CLAUDE.md` + 1-2 skills), then split out the `knowledge-base/`, then isolate execution into sub-agents. Don't build it all at once; see the maturity ladder of the [framework](../Manifesto.md).
+Level 1 first (`AGENTS.md` + 1-2 skills), then split out the `knowledge-base/`, then isolate execution into sub-agents. Don't build it all at once; see the maturity ladder of the [framework](../Manifesto.md).
 
-The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first setup was run in French). Eight today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams, outward watch, force of proposal), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `CLAUDE.md`), `mos-map` (the visual map of the MOS), and `outward-watch` (the organ that looks outward).
+The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first setup was run in French). Eight today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams, outward watch, force of proposal), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `AGENTS.md`), `mos-map` (the visual map of the MOS), and `outward-watch` (the organ that looks outward).
 
-Lesson from the field: when the knowledge lives in a **plugged-in adapter** (not a local `knowledge-base/`), **adjust the base skills' paths at copy time** (`kb-ingest`, `open-work`, `weekly-review`... then point to `../<knowledge-bundle>/`), and align the `CLAUDE.md` routing table with the core's real directories: every top-level directory gets its own line (Spec §17).
+Lesson from the field: when the knowledge lives in a **plugged-in adapter** (not a local `knowledge-base/`), **adjust the base skills' paths at copy time** (`kb-ingest`, `open-work`, `weekly-review`... then point to `../<knowledge-bundle>/`), and align the `AGENTS.md` routing table with the core's real directories: every top-level directory gets its own line (Spec §17).
 
 ## 7. Wiring in an adapter (when things split off)
 
@@ -134,12 +135,12 @@ An adapter can be a **knowledge bundle** or a **capability bundle** (a skill + i
 
 Wiring it in, concretely:
 - **`claude --add-dir ../my-bundle`**, gives the core access to a neighboring repo. The simplest way.
-- **A reference in the core's `CLAUDE.md`**, documenting the adapter's path and role (and `@import`ing a specific file if needed).
+- **A reference in the core's `AGENTS.md`**, documenting the adapter's path and role (and `@import`ing a specific file if needed).
 - **git submodule**, if you want to pin the adapter to a version.
 
 **How the core *knows* its adapters: access ≠ knowledge.** Two distinct things, both necessary:
 1. **Access** (can it *read*?): `--add-dir ../adapter`. Without it, the agent sees nothing outside its root repo. This is the physical wiring.
-2. **Knowledge** (does it know it *exists* and what it's for?): the **connector map in the core's `CLAUDE.md`** (a *path → role* table), auto-loaded at startup. The `CLAUDE.md` adds *"at startup, read `../adapter/index.md`"* → the agent loads the detail; and each adapter carries **its own `CLAUDE.md`** (it self-describes), loaded when the directory is wired in.
+2. **Knowledge** (does it know it *exists* and what it's for?): the **connector map in the core's `AGENTS.md`** (a *path → role* table), auto-loaded at startup. `AGENTS.md` adds *"at startup, read `../adapter/index.md`"* → the agent loads the detail; and each adapter carries **its own identity file** (it self-describes), loaded when the directory is wired in.
 
 It is this **pairing of access + knowledge** that makes **zero-knowledge** real (L9): a confidential adapter is **absent from the core's map** (knowledge) **and not `--add-dir`ed** for un-cleared instances (access); the agent can neither name it nor read it.
 
@@ -170,7 +171,7 @@ When you start from an **already-full** repo (not an empty directory), don't mig
 **Single-user first.** One operator = one core, no deployment machinery. But keep the **dividing line** clean from now on, so that multi-user becomes a *wiring-in*, not a rewrite.
 
 **The dividing line = static / dynamic (L3):**
-- **Static = the shipped product**: `CLAUDE.md`, `SOUL.md`/`STRATEGY.md`, `.claude/skills/`, conventions, canonical knowledge (KB). Versioned, shared, deployed to everyone.
+- **Static = the shipped product**: `AGENTS.md` (and its `CLAUDE.md` import), `SOUL.md`/`STRATEGY.md`, `.claude/skills/`, conventions, canonical knowledge (KB). Versioned, shared, deployed to everyone.
 - **Dynamic = blank per instance**: `log.md`, `inbox/`, session memory, and production (outside git in the container; it never travels with the core: each instance mounts its own). Each accumulates **its own** journal; the founder's does not travel.
 - **Confidential = separate repos, zero-knowledge** (see [Spec §12](Spec.md)).
 

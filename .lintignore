@@ -5,3 +5,5 @@ archive/
 # pages — issue templates carry their own frontmatter schema, no type:).
 .github/
 SECURITY.md
+# Portability page (0.7): a door-level page like README, no OKF frontmatter.
+PORTABILITY.md

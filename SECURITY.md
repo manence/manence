@@ -33,7 +33,7 @@ Confidentiality follows the same doctrine. What must never leak lives in a **sep
 
 ## Out of scope
 
-- The general fact that a soft rule in `CLAUDE.md` can be ignored: that is by design (soft versus hard, law L9), not a vulnerability.
+- The general fact that a soft rule in `AGENTS.md` can be ignored: that is by design (soft versus hard, law L9), not a vulnerability.
 - That the regex guard can be bypassed by an unusual command form: a documented limitation, not a defect. Concrete improvements to the patterns are welcome as pull requests.
 - Third-party components you run alongside Manence (your AI runtime, `git`, `jq`, `python3`): report those to their own maintainers.
 

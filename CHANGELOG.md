@@ -9,6 +9,17 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.7.0] - 2026-08-28
+
+Multi-AI. The agent becomes what the Manifesto always said it was: a replaceable part — now tested, not just claimed.
+
+- **`AGENTS.md` carries the identity.** The shipped MOS's rules move to the shared `AGENTS.md` standard, read natively by OpenAI Codex and Grok Build; `CLAUDE.md` becomes an `@AGENTS.md` import plus the Claude Code wiring addendum. Same inversion in the French install set. The Spec's identity-file rule (§9) follows.
+- **The BOOTSTRAP ritual asks which agent will drive**, next to the language question, and wires the choice: nothing for Claude Code or Grok Build, a root `skills` link plus `.codex/config.toml` for Codex (symlink on macOS/Linux, an NTFS junction — no admin rights — on Windows). No symlink is ever committed: the ritual poses the wiring, the repo does not carry it.
+- **The guardrail speaks every harness's dialect.** `guard.sh` reads both hook payload shapes (snake_case for Claude Code and Codex, camelCase for Grok Build) and answers in the caller's dialect. Its header now also states the whole-command rule: the guard reads the full command, quoted text included — write texts that mention forbidden commands through file-editing tools, not the shell.
+- **[PORTABILITY.md](PORTABILITY.md)**: what carries over, layer by layer, with the exact test status — real sessions on macOS for Codex (including an observed end-to-end guard refusal) and Grok Build; Windows multi-agent wiring documented, untested. The README's roadmap promise is replaced by this page (["Multi-AI setup"](README.md#multi-ai-setup)).
+- **The hard boundary doctrine gains the 2026 clause** (`concept/frontiere-dure.md`): a human gate is no longer inherited from the harness — a gate you want is a gate you declare as a hook; and across several harnesses, the boundary must exist identically on each one, or it does not exist.
+- The shipped identity file now carries the doctrine's explicit URL (a foreign agent has none of your context).
+
 ## [0.6.2] - 2026-08-23
 
 The door. No new skill. The public repo becomes something a stranger can open.

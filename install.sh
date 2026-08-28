@@ -21,7 +21,7 @@ usage() {
   echo "  default:  ~/manence" >&2
   echo "  example:  bash install.sh ~/my-activity" >&2
   echo "  then:     cd <container>/core" >&2
-  echo "            open Claude Code and say:  run my first setup" >&2
+  echo "            open your coding agent and say:  run my first setup" >&2
   exit 2
 }
 
@@ -119,7 +119,7 @@ for organ in \
   .claude/settings.json .claude/hooks/guard.sh .claude/hooks/lint.sh .claude/skills \
   .claude/manence-version .claude/mos-map.json .env.example .gitattributes .gitignore \
   .mcp.json.example CLAUDE.local.md.example \
-  CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox BOOTSTRAP.md
+  AGENTS.md CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox BOOTSTRAP.md
 do
   if [ ! -e "$TARGET/core/$organ" ]; then
     echo "install.sh: MISSING $organ" >&2
@@ -148,7 +148,7 @@ Manence OS is on disk.
 Next:
 
   cd $TARGET/core
-  claude
+  claude        # or: codex, grok — the ritual wires the agent you choose
 
 Then say:  run my first setup
 (or, in French:  fais mon premier démarrage)
