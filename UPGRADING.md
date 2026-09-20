@@ -18,6 +18,8 @@ bash upgrade.sh ~/my-activity/core --from v0.6.1 --to v0.8.0 --apply
 bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a local clone
 ```
 
+**The guardrail reads whole commands.** A core's `guard.sh` scans the full text of every shell command, quoted text and heredocs included. When you write the manual touches — an `AGENTS.md` that names the forbidden commands, for instance — write the text through a file-editing tool, or save a script and run it by its path; a heredoc that merely *quotes* `rm -rf` is refused like the command itself. (Lived at the first three upgrades, 2026-09-20.)
+
 ## Three classes of organ
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
@@ -69,6 +71,14 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.8.3 — Hotfix
+
+*Automatic.* `lint.sh` merges mechanically; nothing else changes.
+
+<!-- manual v0.8.3 -->
+- Nothing to do by hand. If your weekly review reported `awaiting-structure` findings on `awaiting: []   # …` lines, they disappear with this lint.
+<!-- /manual -->
 
 ## 0.8.2 — The handover before a clear
 

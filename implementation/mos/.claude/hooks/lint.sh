@@ -529,13 +529,19 @@ def _scalar(value):
     return value.strip().strip('"').strip("'").strip()
 
 
+def _sans_commentaire(v):
+    """Retire un commentaire YAML de fin de ligne (un '#' précédé d'un blanc) : le gabarit
+    et la migration 0.8 posent `awaiting: []   # ...`, ce qui doit rester valide."""
+    return re.split(r"\s+#", v or "", maxsplit=1)[0].strip()
+
+
 def check_awaiting(path, block, kv, line_of):
     """Structure du champ awaiting (Spec §16), sur les chantiers seulement :
     soit [], soit une liste d'entrées who/what/kind/since (+ blocks optionnel).
     Constat DOUX : le lint dit ce qui ne tient pas, il ne corrige rien et
     n'invente jamais une attente à partir de la prose."""
     offset = line_of["awaiting"]
-    inline = _scalar(kv["awaiting"])
+    inline = _sans_commentaire(_scalar(kv["awaiting"]))
     if inline:
         if inline.replace(" ", "") != "[]":
             report(path, offset + 2, "awaiting-structure",
@@ -554,13 +560,13 @@ def check_awaiting(path, block, kv, line_of):
             break  # retour au premier niveau : la liste est finie
         m = AWAITING_ITEM_RE.match(raw)
         if m:
-            current = {m.group(1): (i, m.group(2))}
+            current = {m.group(1): (i, _sans_commentaire(m.group(2)))}
             entries.append((i, current))
             i += 1
             continue
         m = AWAITING_KEY_RE.match(raw)
         if m and current is not None:
-            current[m.group(1)] = (i, m.group(2))
+            current[m.group(1)] = (i, _sans_commentaire(m.group(2)))
             i += 1
             continue
         report(path, i + 2, "awaiting-structure",

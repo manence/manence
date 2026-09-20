@@ -9,6 +9,13 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.8.3] - 2026-09-20
+
+A hotfix, found by the first three upgrades.
+
+- **The lint accepts the comment it ships.** `lint.sh` rejected the trailing YAML comment that the workstream template and the 0.8 migration both write on `awaiting: []` — so every migrated or newborn workstream came out as a finding. The `awaiting` checker now ignores an end-of-line comment, on the field and on its entries.
+- **UPGRADING says the guardrail reads whole commands**: write the manual touches through a file-editing tool or run a saved script by its path; a heredoc that quotes a forbidden command is refused like the command.
+
 ## [0.8.2] - 2026-09-20
 
 The handover before a clear.
