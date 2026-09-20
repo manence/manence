@@ -1,10 +1,12 @@
 ---
 type: work
+work_id: <YYYYMMDD-slug>   # same as the folder name at birth, never renamed
 title: "<Workstream title>"
 description: "<The expected deliverable, in one sentence.>"
 tags: [workstream]
 timestamp: <YYYY-MM-DD>
 status: proposal   # proposal | validated | canon | rejected (decided by close-work)
+awaiting: []   # who / what / kind (decision | action) / since — what waits for a human; empty = nothing to settle
 ---
 
 # <Workstream title>
@@ -19,6 +21,7 @@ status: proposal   # proposal | validated | canon | rejected (decided by close-w
 
 ## Decisions
 <The workstream's structural choices: who chose, what, what was ruled out, why. Major decisions also go in the project's `log.md` (L8).>
+<When a wait is settled, you remove its entry from `awaiting:` and write the decision here.>
 
 ## Workstream contents
 <A map of this folder's files, a link + one line each, kept up to date.>

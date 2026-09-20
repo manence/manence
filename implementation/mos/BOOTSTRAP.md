@@ -21,7 +21,7 @@ Every one of these must exist, here, at the root:
 
 ```
 .claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
-.claude/manence-version   .claude/mos-map.json   .env.example   .gitattributes   .gitignore
+.claude/manence-version   .claude/mos.json   .env.example   .gitattributes   .gitignore
 .mcp.json.example   CLAUDE.local.md.example   AGENTS.md   CLAUDE.md   SOUL.md   STRATEGY.md
 log.md   knowledge-base/   templates/   inbox/
 ```
@@ -44,7 +44,7 @@ Then, version control. This folder must become **its own** repository: run `git 
 
 Ask which language this system should work in: **English or French?**
 
-- **French**: replace the English files with their `fr/` counterparts — `fr/AGENTS.md` → `AGENTS.md`, `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 8), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
+- **French**: replace the English files with their `fr/` counterparts — `fr/AGENTS.md` → `AGENTS.md`, `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 7), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
 - **English**: remove `fr/` (`git rm -r fr`).
 
 ## 2 bis. The agent — which one drives this MOS?
@@ -106,7 +106,7 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 - **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
 - **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
-- **The map's declaration.** Open `.claude/mos-map.json` (shipped with the two pillars — production at the north vertex, the knowledge base at the south) and make it this system's: rewrite the two one-line summaries in the system's language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand.
+- **The system's declaration.** Open `.claude/mos.json` — the machine-readable declaration of this MOS: what is plugged into it (shipped with the two pillars: production at position 0, the knowledge base at position 3) and what runs on its own (the routines, each with the proof that says it ran). Make it this system's: rewrite the two one-line summaries in the system's language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand. If this system works in French, point each routine's `proof_glob` at the French folders (`knowledge-base/veille/*.md` for the watch): a proof is looked for where this system really writes it.
 
 ## 5. Verify — run the checks, don't assume
 
@@ -121,9 +121,6 @@ If a check fails, fix and re-run. Do not proceed on red.
 
 - Delete this file (`git rm BOOTSTRAP.md`).
 - Commit: `First startup complete`.
-- **Show the system its own face.** Generate and open the first map:
-  ```bash
-  python3 .claude/skills/mos-map/build.py --coeur . --lang <en|fr, from step 2> --ouvrir
-  ```
-  The human sees their newborn MOS: the hexagon, the two pillars with their real counts, a journal of one entry, a knowledge base about to fill. This is what the system *is* — and the map regenerates on demand from the real files, so it never lies.
-- Tell the human, in their language: what their system is called, its language, where production lives, and that the map they are looking at is theirs to regenerate anytime — then hand them the first real gesture: *"say: **open a workstream for** ‹something you're actually working on this week›"*. The setup ends where the work begins.
+- **Show the system as it stands.** Open `AGENTS.md` and `log.md` with the human and read them back: their newborn MOS is a filled-in identity, two pillars (a knowledge base about to fill, a production waiting for its first workstream) and a journal of one entry. That is what the system *is* — plain files they own, legible without any tool.
+- Say once, without insisting, that a separate reader exists: **Manence UI**, its own program in its own repository, which opens a MOS and shows what is in progress, what is done and what is waiting on someone, without ever writing to it. It is optional — a MOS is complete without one.
+- Tell the human, in their language: what their system is called, its language, where production lives — then hand them the first real gesture: *"say: **open a workstream for** ‹something you're actually working on this week›"*. The setup ends where the work begins.

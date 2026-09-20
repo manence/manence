@@ -69,6 +69,22 @@ jobs:
           test -f "$RUNNER_TEMP/from-install/core/.claude/hooks/guard.sh"
           test -f "$RUNNER_TEMP/from-install/core/BOOTSTRAP.md"
           test -f "$RUNNER_TEMP/from-install/core/.claude/manence-version"
+      - name: upgrade.sh smoke — the dry run says everything and writes nothing
+        run: |
+          core="$RUNNER_TEMP/from-install/core"
+          before=$(find "$core" -type f | sort | xargs shasum 2>/dev/null | shasum)
+          # --from HEAD: a shallow checkout carries no tags, and the freshly
+          # installed core is HEAD's own MOS — so both sides are HEAD and the
+          # walk must come out clean, with nothing to write.
+          bash upgrade.sh "$core" --source . --from HEAD --to HEAD
+          after=$(find "$core" -type f | sort | xargs shasum 2>/dev/null | shasum)
+          if [ "$before" != "$after" ]; then
+            echo "::error::upgrade.sh wrote to the core during a dry run"; exit 1
+          fi
+          if [ -e "$core/.upgrade-removed" ] || find "$core" -name '*.upgrade-conflict' | grep -q .; then
+            echo "::error::upgrade.sh left artifacts during a dry run"; exit 1
+          fi
+
       - name: install.sh default path — no argument lands in ~/manence
         run: |
           export HOME="$RUNNER_TEMP/home"
@@ -82,7 +98,7 @@ jobs:
           missing=0
           for organ in \
             .claude/settings.json .claude/hooks/guard.sh .claude/hooks/lint.sh .claude/skills \
-            .claude/manence-version .claude/mos-map.json .env.example .gitattributes .gitignore .mcp.json.example CLAUDE.local.md.example \
+            .claude/manence-version .claude/mos.json .env.example .gitattributes .gitignore .mcp.json.example CLAUDE.local.md.example \
             AGENTS.md CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox; do
             if [ -e "$organ" ]; then
               echo "ok      $organ"

@@ -31,6 +31,30 @@ superseded_by: ../chemin/v2.md  # quand remplacé (au lieu d'écraser)
 status: canon                 # proposal | validated | canon | archived | rejected
 ```
 
+Pour un chantier (`type: work`) seulement, son identité stable :
+
+```yaml
+work_id: 20260712-campagne-meta-rentree   # le nom du dossier, tel qu'il était à la naissance
+```
+
+- `work_id` est ce par quoi un lecteur, une carte ou un autre MOS désigne ce chantier : écrit à la naissance, identique au nom du dossier, et **jamais renommé** — la clôture déplace le dossier, et un jour le dossier peut encore bouger ; l'identifiant ne suit pas.
+- **Pas de rétrofit** : un chantier ouvert avant ce champ n'en a tout simplement pas, et personne ne lui en invente un après coup.
+
+Pour un chantier (`type: work`) seulement, ce qui attend un humain :
+
+```yaml
+awaiting:
+  - who: alexandre          # identifiant court et stable dans le MOS, pas d'e-mail, pas de nom complet
+    what: autoriser les citations clients dans les pubs
+    kind: decision          # decision = un choix que seule cette personne peut faire | action = un geste que seule cette personne peut poser (clic, paiement, appel)
+    since: 2026-09-08       # le jour où l'attente est née, pas la dernière relance
+    blocks: mise en ligne   # optionnel : ce que l'attente empêche
+```
+
+- `who`, `what`, `kind` et `since` sont obligatoires sur chaque entrée ; `blocks` est optionnel.
+- `kind` prend exactement deux valeurs : `decision` ou `action`.
+- Champ absent ou liste vide (`awaiting: []`) = rien n'attend ; une attente tranchée se **retire** de la liste (c'est un état présent, pas un historique) et sa résolution s'écrit dans la section Décisions de l'About, et au log si elle change un statut.
+
 ## Fichiers réservés OKF
 
 - **`index.md`**, listing de dossier, **sans frontmatter** (voir `index.template.md`).

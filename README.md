@@ -4,8 +4,6 @@
 
 **Manence makes your AI reliable on long-running projects.** An AI, whether in chat or agentic mode, knows only its context: what it has in front of it right now, nothing else. So whatever needs to last needs a place that outlives the session — and a way of working that keeps that place true. Manence is both: a work system where **every exchange does the work *and* tidies the system**. Order as a by-product, not a chore.
 
-[![The visual map of a running Manence OS](assets/en/mos-map.png)](https://www.manence.ai/map)
-
 ## The problem
 
 With an AI, it's great at the start. It understands fast, produces fast, gets things right. Then the project runs on: conversations grow longer, drafts end up looking like decisions, mistakes you'd fixed come back.
@@ -43,6 +41,8 @@ curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 
 That puts a MOS in `~/manence`. Another folder: add `| bash -s -- ~/my-activity`. Prefer not to pipe? `git clone https://github.com/manence/manence.git && bash manence/install.sh`.
 
+Already running one? `bash upgrade.sh <core>` carries a new version in without carrying your work out — see [UPGRADING.md](UPGRADING.md).
+
 Then:
 
 ```bash
@@ -50,7 +50,9 @@ cd ~/manence/core
 claude
 ```
 
-Say: **"run my first setup"** (in French: « fais mon premier démarrage »). The agent interviews you, fills in the system, shows you the map, deletes the ritual. Installing is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
+Say: **"run my first setup"** (in French: « fais mon premier démarrage »). The agent interviews you, fills in the system, checks the guardrails, deletes the ritual. Installing is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
+
+**Seeing your MOS: Manence UI, a separate reader.** A MOS is plain files you can open by hand; Manence UI is a separate program, on its own release schedule, that reads one — what is in progress, what is done, what is waiting on someone — and never writes to it. A MOS is complete without it.
 
 ## The proof: it already runs on real work
 
@@ -95,7 +97,7 @@ One rule: one agent at a time on a container. Nothing is claimed as supported be
 - **[QUICKSTART.md](QUICKSTART.md)**: the way in (who it's for, what it is, 3 moves). **Start here.**
 - **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts.
 - **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE).
-- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 8 base skills (including mos-map, the visual map, and outward-watch, the eye on the outside), hooks, the startup ritual that ends on your system's first map), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
+- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 7 base skills (including outward-watch, the eye on the outside), hooks, the startup ritual that ends on your first workstream), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
 - **[CHANGELOG.md](CHANGELOG.md)**: the versions.
 
 ## The name

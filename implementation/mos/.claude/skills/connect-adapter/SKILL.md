@@ -1,6 +1,6 @@
 ---
 name: connect-adapter
-description: Cleanly connects a new adapter (a knowledge bundle, a capability bundle, or a confidential one) to a Manence OS core. Validates the adapter contract, routes by confidentiality (the connector map in the shared AGENTS.md, OR the gitignored CLAUDE.local.md for confidential ones), writes the map line, declares the attachment in .claude/mos-map.json (the visual map — never for confidential adapters), logs it. Use it when wiring a neighboring repo to the core.
+description: Cleanly connects a new adapter (a knowledge bundle, a capability bundle, or a confidential one) to a Manence OS core. Validates the adapter contract, routes by confidentiality (the connector map in the shared AGENTS.md, OR the gitignored CLAUDE.local.md for confidential ones), writes the map line, declares the attachment in .claude/mos.json (never for confidential adapters), logs it. Use it when wiring a neighboring repo to the core.
 ---
 
 # connect-adapter, wiring in an adapter
@@ -39,18 +39,18 @@ E.g.: `- Growth Ops · ../growth-ops · fetch analytics + publish · skills: gad
 A reminder to leave once at the top of the map:
 > To use a connector skill: read its `SKILL.md` by path and follow it. No `--add-dir` required (a convenience option only).
 
-### 3 bis. Declare the attachment for the visual map (`knowledge`/`capability` ONLY)
-If the core has a `.claude/mos-map.json` (schema 2 — the MOS's visual map, see the `mos-map` skill), add the new adapter's attachment:
+### 3 bis. Declare the attachment in the MOS's declaration (`knowledge`/`capability` ONLY)
+If the core has a `.claude/mos.json` (schema 3 — the machine-readable declaration of the MOS, read by the weekly review and by any reader of this system; a schema 2 file still reads), add the new adapter's attachment:
 ```json
-{ "sommet": <0-5, a free vertex; 0 = north and 3 = south are reserved for production/KB>,
+{ "sommet": <0-5, a free position; 0 and 3 are reserved for production/KB>,
   "id": "<id>", "nature": "mos | git | externe", "nom": "<display name>",
   "resume": "<one displayed sentence>", "liens": [["<label>", "https://…"]] }
 ```
-⚠️ **NEVER for a `confidential` adapter**: `mos-map.json` is versioned and shared — an attachment there would break zero-knowledge (L9), exactly like an `AGENTS.md` map line. A confidential adapter appears on no visual map generated from shared files.
-No `mos-map.json`? Don't create one for this — the visual map is an optional organ; just note its absence in the report.
+⚠️ **NEVER for a `confidential` adapter**: `mos.json` is versioned and shared — an attachment there would break zero-knowledge (L9), exactly like an `AGENTS.md` map line. A confidential adapter is declared nowhere that is shared, so no reader of this system ever shows it.
+No `mos.json`? Don't create one for this — just note its absence in the report.
 
 ### 4. Explicit GO
-Show the user **the exact line** + **the target file** (`AGENTS.md` or `CLAUDE.local.md`), plus **the `mos-map.json` attachment** when applicable, and **wait for the GO** before writing.
+Show the user **the exact line** + **the target file** (`AGENTS.md` or `CLAUDE.local.md`), plus **the `mos.json` attachment** when applicable, and **wait for the GO** before writing.
 
 ### 5. Log it
 - **If `knowledge` / `capability`**: after writing, add to the core's `log.md`:
@@ -60,8 +60,8 @@ Show the user **the exact line** + **the target file** (`AGENTS.md` or `CLAUDE.l
 - **If `confidential`**: **no** log entry, in the core's `log.md` or anywhere else that is shared. The only trace of the wiring lives in `CLAUDE.local.md` (gitignored); merely mentioning the adapter's existence in a shared file would break zero-knowledge.
 
 ## Guardrails
-- **Never** route a `confidential` adapter to the shared `AGENTS.md`, nor to its `log.md`, **nor to `.claude/mos-map.json`**: no map line, no log entry, no visual attachment, no shared history trace.
-- A connector fact has **two synchronized homes**: the `AGENTS.md` map (the prose that is authoritative) and the `mos-map.json` attachment (the machine declaration for the visual map). Changing one checks the other — this skill is what guarantees the alignment.
+- **Never** route a `confidential` adapter to the shared `AGENTS.md`, nor to its `log.md`, **nor to `.claude/mos.json`**: no map line, no log entry, no declared attachment, no shared history trace.
+- A connector fact has **two synchronized homes**: the `AGENTS.md` map (the prose that is authoritative) and the `mos.json` attachment (the machine declaration any reader goes by). Changing one checks the other — this skill is what guarantees the alignment.
 - The core does **not** store the adapters' keys: each one keeps its own `.env`.
 - Access ≠ knowledge: this procedure handles **knowledge** (the map); **access** (`--add-dir`) stays a launch-time shim, outside the bundle.
 - Success condition: the contract is validated, the line is written in the **right** target after the GO; the core's `log.md` is up to date **only** for `knowledge` / `capability`; for `confidential`, no shared trace — the wiring lives only in `CLAUDE.local.md`.

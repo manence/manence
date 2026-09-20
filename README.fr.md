@@ -4,8 +4,6 @@
 
 **Manence rend ton IA fiable sur les projets qui durent.** Une IA, que ce soit en chat ou en agentique, ne connaît que son contexte : ce qu'elle a sous les yeux à l'instant présent, rien d'autre. Ce qui doit durer a donc besoin d'un lieu qui survit à la session — et d'une façon de travailler qui garde ce lieu juste. Manence est les deux : un système de travail où **chaque échange fait le travail *et* range le système**. L'ordre en sous-produit, pas en corvée.
 
-[![La carte visuelle d'un Manence OS en activité](assets/fr/mos-map.png)](https://www.manence.ai/fr/map)
-
 ## Le problème
 
 Avec une IA, c'est génial au début. Elle comprend vite, produit vite, propose juste. Puis le projet dure : les conversations s'allongent, les brouillons finissent par ressembler à des décisions, les erreurs corrigées reviennent.
@@ -43,6 +41,8 @@ curl -fsSL --proto '=https' --tlsv1.2 https://manence.ai/install.sh | bash
 
 Ça pose un MOS dans `~/manence`. Un autre dossier : ajoute `| bash -s -- ~/mon-activite`. Tu ne veux pas piper ? `git clone https://github.com/manence/manence.git && bash manence/install.sh`.
 
+Tu en as déjà un qui tourne ? `bash upgrade.sh <cœur>` fait entrer une nouvelle version sans faire sortir ton travail — voir [UPGRADING.md](UPGRADING.md) (en anglais).
+
 Ensuite :
 
 ```bash
@@ -50,7 +50,9 @@ cd ~/manence/core
 claude
 ```
 
-Dis-lui : **« fais mon premier démarrage »**. L'agent t'interviewe, remplit le système, te montre la carte, supprime le rituel. Installer, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
+Dis-lui : **« fais mon premier démarrage »**. L'agent t'interviewe, remplit le système, vérifie les garde-fous, supprime le rituel. Installer, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
+
+**Voir son MOS : Manence UI, un lecteur à part.** Un MOS, ce sont des fichiers qui s'ouvrent à la main ; Manence UI est un logiciel distinct, avec son propre rythme de sortie, qui en lit un — ce qui est en cours, ce qui est fait, ce qui attend quelqu'un — sans jamais y écrire. Un MOS est complet sans lui.
 
 ## La preuve : il tourne déjà sur du vrai travail
 
@@ -95,7 +97,7 @@ Une règle : un seul agent à la fois sur un conteneur. Rien n'est annoncé comm
 - **[QUICKSTART.fr.md](QUICKSTART.fr.md)** : la porte d'entrée (pour qui, quoi, 3 gestes). **Commence ici.**
 - **[Manifesto.fr.md](Manifesto.fr.md)** : *le pourquoi*. La synthèse du cadre (modèle mental, 7 couches, architecture hexagonale, 9 lois, maturité) + l'index des concepts.
 - **[concept/](concept/index.md)** *(en anglais)* : chaque idée dépliée en un fichier, + [`research/`](concept/research/index.md) (les sources vérifiées : Karpathy, OKF, Anthropic, PKM, loops, OpenClaw, LIVING REFERENCE de JP Noto).
-- **[implementation/](implementation/index.md)** *(en anglais)* : *le comment*, avec [Spec](implementation/Spec.md) (les règles), [Implementation](implementation/Implementation.md) (le playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (le MOS par défaut, prêt à copier : identité, 8 skills (dont `mos-map`, la carte visuelle, et `outward-watch`, l'œil tourné vers l'extérieur), hooks, rituel de démarrage qui se clôt sur la première carte du système) et [`example/`](implementation/example/index.md) (une KB minimale qui tourne).
+- **[implementation/](implementation/index.md)** *(en anglais)* : *le comment*, avec [Spec](implementation/Spec.md) (les règles), [Implementation](implementation/Implementation.md) (le playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (le MOS par défaut, prêt à copier : identité, 7 skills (dont `outward-watch`, l'œil tourné vers l'extérieur), hooks, rituel de démarrage qui se clôt sur le premier chantier) et [`example/`](implementation/example/index.md) (une KB minimale qui tourne).
 - **[CHANGELOG.md](CHANGELOG.md)** *(en anglais)* : les versions.
 
 ## Le nom

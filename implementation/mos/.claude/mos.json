@@ -1,0 +1,38 @@
+{
+  "//": "Machine-readable declaration of this MOS: what is plugged into it, and what runs on its own. Read by the weekly review and by any reader of this system (Manence UI, a script). Schema 3. An attachment = a structured record for one connector: `sommet`, its declared position (0-5, 0 = north, then clockwise), its `id`, its display name, its `nature` (kb | production | mos | git | externe), the one-line summary that describes it, its outbound links. `visible: false` declares without showing. Keep aligned with the AGENTS.md connector map — the connect-adapter skill writes both. NEVER declare a confidential adapter here: this file is versioned and shared (L9).",
+  "//routines": "Schema 3 adds the proof to each routine, so that lateness is computed instead of guessed. `cadence` is no longer free prose: daily | weekly | biweekly | monthly | quarterly. `proof_glob` is a file pattern, relative to the core's root, whose most recent file proves the routine ran; with the optional `proof_marker`, the proof is instead the last line of that file carrying the marker, dated by the `## [YYYY-MM-DD]` heading it sits in. `grace_days` (optional, default 2) is the tolerance before a wait becomes lateness. `etat` and `desc` stay prose. Point `proof_glob` at this system's real folders: a French install writes its watch reports to `knowledge-base/veille/`. A proof not received is a fact to state, never a breakage to presume — the routine may have run somewhere that commits nothing.",
+  "schema": 3,
+  "attaches": [
+    {
+      "sommet": 0,
+      "id": "production",
+      "nature": "production",
+      "nom": "Production",
+      "resume": "Workstreams: work in progress, outside git — one deliverable, one dated folder with its About."
+    },
+    {
+      "sommet": 3,
+      "id": "kb",
+      "nature": "kb",
+      "nom": "Knowledge base",
+      "resume": "Stable knowledge (OKF): one concept, one file; link, never copy."
+    }
+  ],
+  "routines": [
+    {
+      "nom": "weekly-review",
+      "cadence": "weekly",
+      "etat": "manual",
+      "proof_glob": "log.md",
+      "proof_marker": "] review |",
+      "desc": "Lint, inbox triage, workstreams, effect measures."
+    },
+    {
+      "nom": "outward-watch",
+      "cadence": "weekly",
+      "etat": "manual",
+      "proof_glob": "knowledge-base/watch/*.md",
+      "desc": "The outward watch: substrate and trade, filtered, before the review."
+    }
+  ]
+}

@@ -8,7 +8,7 @@ timestamp: 2026-06-30
 
 # Implementation
 
-The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([Spec](Spec.md)). Here is the *how*, for setting up a project without reopening the sources. The default MOS in [`mos/`](mos/BOOTSTRAP.md) (identity files, the 8 base skills, hooks, the startup ritual); a running example of a knowledge base in [`example/`](example/index.md).
+The framework states the *what* ([Manifesto](../Manifesto.md)) and the rules ([Spec](Spec.md)). Here is the *how*, for setting up a project without reopening the sources. The default MOS in [`mos/`](mos/BOOTSTRAP.md) (identity files, the 7 base skills, hooks, the startup ritual); a running example of a knowledge base in [`example/`](example/index.md).
 
 ## 1. Set up a new project (run `install.sh`, then the first setup)
 
@@ -33,8 +33,8 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     CLAUDE.md            @AGENTS.md + Claude Code's own wiring
     SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first setup, openclaw convention)
     .claude/
-      skills/            the 8 base skills (open-work, close-work, weekly-review, kb-ingest,
-                         kb-lint, connect-adapter, mos-map, outward-watch)
+      skills/            the 7 base skills (open-work, close-work, weekly-review, kb-ingest,
+                         kb-lint, connect-adapter, outward-watch)
       agents/            empty at start; a subagent template sits in templates/agent.template.md
       settings.json      hook wiring
       hooks/             guard.sh, lint.sh (executable)
@@ -57,7 +57,7 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
   <adapter>/            ← later: a connected repo (a site, a workshop), plugged in by connect-adapter
 ```
 
-The container is the perimeter of one activity (Spec §0): everything that belongs to this MOS lives under it. It is **not** a repository — only the core (and each adapter) is versioned.
+The container is the perimeter of one activity (Spec §0): everything that belongs to this MOS lives under it. It is **not** a repository — only the core (and each adapter) is versioned. This layout is a contract for readers — whatever reads a MOS without opening it by hand relies on it, so what it may and may not assume is spelled out in [Spec §17](Spec.md).
 
 `.gitignore` provided: `.env`, `.env.*` (except `.env.example`), `node_modules/`, `.DS_Store`, `CLAUDE.local.md`, `.obsidian/workspace*`.
 
@@ -123,7 +123,7 @@ You do **not** pull the live data into the repo. You query it (MCP or script + A
 ## 6. Start small
 Level 1 first (`AGENTS.md` + 1-2 skills), then split out the `knowledge-base/`, then isolate execution into sub-agents. Don't build it all at once; see the maturity ladder of the [framework](../Manifesto.md).
 
-The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first setup was run in French). Eight today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams, outward watch, force of proposal), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `AGENTS.md`), `mos-map` (the visual map of the MOS), and `outward-watch` (the organ that looks outward).
+The skills common to every project (the **"base/OS"** family) live in [`implementation/mos/.claude/skills/`](mos/BOOTSTRAP.md) of `manence`; they arrive with the copy of the default MOS (in French, if the first setup was run in French). Seven today: `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, open workstreams, outward watch, force of proposal), `kb-ingest` (integrate a source), `kb-lint` (audit the KB), `connect-adapter` (connects a new adapter, validating the contract [Spec §15](Spec.md) and routing confidential → `CLAUDE.local.md` / shared → `AGENTS.md`), and `outward-watch` (the organ that looks outward).
 
 Lesson from the field: when the knowledge lives in a **plugged-in adapter** (not a local `knowledge-base/`), **adjust the base skills' paths at copy time** (`kb-ingest`, `open-work`, `weekly-review`... then point to `../<knowledge-bundle>/`), and align the `AGENTS.md` routing table with the core's real directories: every top-level directory gets its own line (Spec §17).
 

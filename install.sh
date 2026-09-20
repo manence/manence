@@ -117,7 +117,7 @@ chmod +x "$TARGET/core/.claude/hooks/"*.sh 2>/dev/null || true
 missing=0
 for organ in \
   .claude/settings.json .claude/hooks/guard.sh .claude/hooks/lint.sh .claude/skills \
-  .claude/manence-version .claude/mos-map.json .env.example .gitattributes .gitignore \
+  .claude/manence-version .claude/mos.json .env.example .gitattributes .gitignore \
   .mcp.json.example CLAUDE.local.md.example \
   AGENTS.md CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox BOOTSTRAP.md
 do
@@ -154,6 +154,6 @@ Then say:  run my first setup
 (or, in French:  fais mon premier démarrage)
 
 The agent interviews you, fills in the system, checks the guardrails,
-shows you the map, and deletes the ritual. Installing is already using it.
+and deletes the ritual. Installing is already using it.
 
 EOF

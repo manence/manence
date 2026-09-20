@@ -18,11 +18,17 @@
 #      lieu de --- (piège d'éditeur qui casse le YAML)
 #   e. review_when: daté et échu (date YYYY-MM-DD passée) → constat doux (0.4.x).
 #      Les valeurs non datées (déclencheurs-événements) sont ignorées en silence.
+#   f. awaiting: (chantiers, type: work seulement, et seulement si la clé est là) :
+#      STRUCTURE uniquement — soit [], soit une liste d'entrées portant who, what,
+#      kind et since (blocks optionnel), avec kind ∈ {decision, action}, since en
+#      YYYY-MM-DD et who sans espace ni "@" → constat doux. Le lint n'invente ni ne
+#      corrige jamais une attente : il dit seulement si celle qui est écrite tient.
 #
 # Portabilité / dépendances (outil LIVRÉ aux utilisateurs) :
 #   - python3 OPTIONNEL : présent → parsing complet (Markdown fences/inline, ancres,
-#     frontmatter, review_when). Absent → mode DÉGRADÉ annoncé : liens en regex
-#     ligne à ligne (bash pur), le reste non vérifié. Aucune régression de format.
+#     frontmatter, review_when, awaiting). Absent → mode DÉGRADÉ annoncé : liens en
+#     regex ligne à ligne (bash pur), le reste — ancres, frontmatter, review_when et
+#     awaiting — non vérifié. Aucune régression de format.
 #   - PyYAML N'EST PLUS requis ni utilisé : le verdict frontmatter est produit par un
 #     validateur stdlib déterministe (même résultat sur toute machine, avec ou sans
 #     PyYAML installé). Le niveau de parsing est annoncé dans la ligne de résumé.
@@ -170,7 +176,7 @@ run_bash_fallback() {
     findings=$(wc -l < /tmp/.lint_bash_$$ | tr -d ' ')
   fi
   rm -f /tmp/.lint_bash_$$
-  echo "--- lint.sh : ${findings} constat(s) sur ${nfiles} fichier(s) — parsing DÉGRADÉ (python3 absent : liens en regex ligne à ligne ; ancres, frontmatter et review_when NON vérifiés) ---"
+  echo "--- lint.sh : ${findings} constat(s) sur ${nfiles} fichier(s) — parsing DÉGRADÉ (python3 absent : liens en regex ligne à ligne ; ancres, frontmatter, review_when et awaiting NON vérifiés) ---"
   [ "$findings" -gt 0 ] && return 1
   return 0
 }
@@ -208,6 +214,13 @@ EXEMPT_BASENAMES = {
 # l'URL peut se replier une fois (liens multilignes raisonnables).
 LINK_RE = re.compile(r'!?\[[^\]\n]*\]\(([^)\n]*(?:\n[^)\n]*)?)\)')
 FM_KEY_RE = re.compile(r'^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
+# awaiting : liste indentée lue sur les lignes brutes du bloc (pas de PyYAML).
+# Une entrée s'ouvre sur un tiret ('  - who: …'), ses clés suivantes sont indentées
+# (4 espaces par convention) et sans tiret.
+AWAITING_ITEM_RE = re.compile(r'^ +-\s+([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
+AWAITING_KEY_RE = re.compile(r'^ +([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
+ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
+AWAITING_KINDS = ("decision", "action")
 FENCE_RE = re.compile(r'^ {0,3}(`{3,}|~{3,})')
 ATX_RE = re.compile(r'^ {0,3}#{1,6}\s+(.*)$')
 # tiret cadratin (—, U+2014) ou demi-cadratin (–, U+2013) tenant lieu de délimiteur
@@ -512,6 +525,85 @@ def top_level_kv(block):
     return kv, line_of
 
 
+def _scalar(value):
+    return value.strip().strip('"').strip("'").strip()
+
+
+def check_awaiting(path, block, kv, line_of):
+    """Structure du champ awaiting (Spec §16), sur les chantiers seulement :
+    soit [], soit une liste d'entrées who/what/kind/since (+ blocks optionnel).
+    Constat DOUX : le lint dit ce qui ne tient pas, il ne corrige rien et
+    n'invente jamais une attente à partir de la prose."""
+    offset = line_of["awaiting"]
+    inline = _scalar(kv["awaiting"])
+    if inline:
+        if inline.replace(" ", "") != "[]":
+            report(path, offset + 2, "awaiting-structure",
+                   f"awaiting attend '[]' ou une liste d'entrées indentées, trouvé : {inline}")
+        return
+
+    entries = []  # [(offset de l'entrée, {clé: (offset, valeur)})]
+    current = None
+    i = offset + 1
+    while i < len(block):
+        raw = block[i]
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            i += 1
+            continue
+        if raw[:1] not in (" ", "\t"):
+            break  # retour au premier niveau : la liste est finie
+        m = AWAITING_ITEM_RE.match(raw)
+        if m:
+            current = {m.group(1): (i, m.group(2))}
+            entries.append((i, current))
+            i += 1
+            continue
+        m = AWAITING_KEY_RE.match(raw)
+        if m and current is not None:
+            current[m.group(1)] = (i, m.group(2))
+            i += 1
+            continue
+        report(path, i + 2, "awaiting-structure",
+               f"ligne d'attente non reconnue (attendu '  - clé: valeur' puis "
+               f"'    clé: valeur') : {raw.strip()}")
+        i += 1
+
+    if not entries:
+        report(path, offset + 2, "awaiting-structure",
+               "awaiting déclaré sans aucune entrée : écrire 'awaiting: []' quand rien n'attend")
+        return
+
+    for eoff, entry in entries:
+        for key in ("who", "what", "kind", "since"):
+            if key not in entry or not _scalar(entry[key][1]):
+                report(path, eoff + 2, "awaiting-structure",
+                       f"entrée d'attente sans '{key}:' (who, what, kind et since "
+                       f"sont obligatoires, blocks est optionnel)")
+        if "kind" in entry:
+            kind = _scalar(entry["kind"][1])
+            if kind and kind not in AWAITING_KINDS:
+                report(path, entry["kind"][0] + 2, "awaiting-structure",
+                       f"kind attend 'decision' ou 'action', trouvé : {kind}")
+        if "since" in entry:
+            since = _scalar(entry["since"][1])
+            bad = not ISO_DATE_RE.match(since)
+            if not bad:
+                try:
+                    date(int(since[0:4]), int(since[5:7]), int(since[8:10]))
+                except ValueError:
+                    bad = True
+            if since and bad:
+                report(path, entry["since"][0] + 2, "awaiting-structure",
+                       f"since attend une date YYYY-MM-DD (le jour où l'attente est "
+                       f"née), trouvé : {since}")
+        if "who" in entry:
+            who = _scalar(entry["who"][1])
+            if who and (" " in who or "@" in who):
+                report(path, entry["who"][0] + 2, "awaiting-structure",
+                       f"who attend un identifiant court et stable du MOS (ni espace "
+                       f"ni '@', pas un e-mail ni un nom complet), trouvé : {who}")
+
+
 def check_frontmatter(path, lines, basename):
     exempt = is_exempt_from_frontmatter(path, basename)
     # Les gabarits, skills, agents et sources gardent leurs formats propres
@@ -579,6 +671,10 @@ def check_frontmatter(path, lines, basename):
                            f"cesse de faire foi seule, reconfirmer ou mettre à jour)")
             except ValueError:
                 pass  # date malformée : pas notre affaire ici
+
+    # awaiting: structure seulement, sur les chantiers et si la clé est présente.
+    if kv.get("type", "").strip() == "work" and "awaiting" in kv:
+        check_awaiting(path, block, kv, line_of)
 
     # Présence de type:
     if not kv.get("type"):
