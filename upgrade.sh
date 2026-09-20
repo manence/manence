@@ -38,9 +38,9 @@ set -eu
 
 SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo ".")
 MOS=implementation/mos
-BASE_SKILLS="close-work connect-adapter kb-ingest kb-lint open-work outward-watch weekly-review"
+BASE_SKILLS="checkpoint close-work connect-adapter kb-ingest kb-lint open-work outward-watch weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -384,7 +384,7 @@ write_file() {  # src dest — only under --apply
   case "$2" in *.sh) chmod +x "$2" 2>/dev/null || true ;; esac
 }
 
-echo "Mechanical organs — hooks, templates, the seven base skills"
+echo "Mechanical organs — hooks, templates, the eight base skills"
 echo "  (three-way merged: your file, the version you have, the new version)"
 
 if [ ! -s "$TABLE" ]; then
@@ -425,8 +425,20 @@ while IFS="$TAB" read -r corepath srcrel; do
     N_REPLACED=$((N_REPLACED + 1)); continue
   fi
 
+  # The case with no common ancestor: the framework ships this file for the
+  # first time, and the system already grew one of its own under that name — a
+  # local skill written before the framework had one (it happens: a good skill
+  # is born in one system and harvested into the framework later). There is no
+  # base to merge against, and the local file was nobody's copy of ours, so it
+  # is never overwritten and never merged in silence: the two versions are laid
+  # side by side, and a human decides what the name should mean here.
+  predates=0
   base=$fromf; basenote=""
-  if [ ! -f "$fromf" ]; then base=$TMP/empty; basenote=" — new file at the target, and you have one too"; fi
+  if [ ! -f "$fromf" ]; then
+    base=$TMP/empty
+    basenote=" — the framework shipped no such file at $FROM_VER"
+    predates=1
+  fi
 
   set +e
   git merge-file -p \
@@ -435,7 +447,15 @@ while IFS="$TAB" read -r corepath srcrel; do
   rc=$?
   set -e
 
-  if [ "$rc" -eq 0 ]; then
+  if [ "$predates" -eq 1 ] && [ "$rc" -lt 128 ]; then
+    case "$corepath" in
+      .claude/skills/*) what="local skill" ;;
+      *)                what="local file" ;;
+    esac
+    write_file "$TMP/merge.out" "$localf.upgrade-conflict"
+    report "CONFLICT" "$corepath ($what predates the shipped one) — yours untouched; the framework's version waits beside it in $corepath.upgrade-conflict$basenote"
+    N_CONFLICT=$((N_CONFLICT + 1))
+  elif [ "$rc" -eq 0 ]; then
     write_file "$TMP/merge.out" "$localf"
     report "merged" "$corepath — your edits kept"
     N_MERGED=$((N_MERGED + 1))

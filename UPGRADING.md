@@ -22,7 +22,7 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh` and `lint.sh`, `templates/**`, and the seven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh` and `lint.sh`, `templates/**`, and the eight base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
@@ -31,6 +31,7 @@ An upgrade is not one gesture but three, and the script is explicit about which 
 | `merged` | both sides moved, in different places; your edits are kept |
 | `created` | the new version ships a file you don't have yet |
 | `CONFLICT` | both sides changed the same lines — nothing is written to the file; the merged text, with markers, is left beside it as `<file>.upgrade-conflict` for you to resolve |
+| `CONFLICT (local skill predates the shipped one)` | the new version ships a file you already had under that name, with no common ancestor — a skill your system wrote before the framework had one. Nothing is written to your file; the framework's version waits beside it as `<file>.upgrade-conflict`, and you decide what the name means here |
 | `SKIPPED` | a symlink, which the script never follows |
 
 Skills you wrote yourself are never touched, and never counted — the script names them and leaves them alone.
@@ -69,6 +70,30 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.8.2 — The handover before a clear
+
+`checkpoint`, the eighth base skill: what a session writes down before its context is wiped, so the next one picks up without being told everything again.
+
+**Automatic**
+
+- The `checkpoint` skill lands through the mechanical merge — `created` if you don't have it, merged if you do.
+- If your system already had a skill of its own under that name, written before the framework shipped one, nothing of yours is overwritten: the verdict reads `CONFLICT (local skill predates the shipped one)` and the framework's version waits beside yours as `.claude/skills/checkpoint/SKILL.md.upgrade-conflict`.
+
+<!-- manual v0.8.2 -->
+- `AGENTS.md` / `CLAUDE.md`: add `checkpoint` to the list of base skills — there are **eight** of them now.
+- If you had a local `checkpoint` skill, merge it by hand: read the `.upgrade-conflict` file beside it, keep what your system actually needs, write the result over the original, and remove the conflict file.
+<!-- /manual -->
+
+---
+
+## 0.8.1 — Housekeeping
+
+*Automatic.* Seven base skills, the skill template and Spec text change; they merge mechanically. Nothing changes in the format a reader relies on.
+
+<!-- manual v0.8.1 -->
+- Nothing to do by hand: reread the merged skills once (`weekly-review` now measures `log.md` and `AGENTS.md` and can run as a signal-only routine; `outward-watch` declares a fallback path for blocked domains).
+<!-- /manual -->
+
 ## 0.8.0 — The observable MOS
 
 The map retires in favour of a separate reader, a workstream declares what it is waiting for, and a routine says where the proof of its running lands.
@@ -81,7 +106,7 @@ The map retires in favour of a separate reader, a workstream declares what it is
 - `awaiting: []` is inserted right under `status:` in the frontmatter of every `<production>/<domain>/in-progress/<slug>/About.md` that has no such key. The script prints how many it touched.
 
 <!-- manual v0.8.0 -->
-- `AGENTS.md` / `CLAUDE.md`: the base skills are **seven**, not eight — remove `mos-map` from the skills list.
+- `AGENTS.md` / `CLAUDE.md`: remove `mos-map` from the list of base skills — the map retires with this version, and the list is one shorter.
 - `AGENTS.md` / `CLAUDE.md`: remove the map from the routing table and from the connector map; seeing the MOS is Manence UI's business now, a separate read-only reader, not a skill.
 - `AGENTS.md` / `CLAUDE.md`: if the identity mentions a `mos-map` routine ("the map is regenerated every…"), remove it — and remove that routine from `.claude/mos.json` as well.
 - `.claude/mos.json`: fill in the `proof_glob` the migration left empty — where the evidence of each routine actually lands (a French install writes its watch reports to `knowledge-base/veille/*.md`, an English one to `knowledge-base/watch/*.md`; `weekly-review` proves itself from `log.md` with `proof_marker: "] review |"`).
@@ -147,7 +172,7 @@ The public repository becomes something a stranger can open: `install.sh`, a REA
 
 **Automatic**
 
-- Nothing, and deliberately so: `upgrade.sh` knows the seven base skills of 0.8.0, where the map has already retired. Walking over this version installs no `mos-map`, and the 0.8.0 migration renames the declaration if you have one.
+- Nothing, and deliberately so: `upgrade.sh` knows the base skills of the version you are taking, where the map has already retired. Walking over this version installs no `mos-map`, and the 0.8.0 migration renames the declaration if you have one.
 
 <!-- manual v0.6.0 -->
 - Nothing to do: the map retired in 0.8.0 and Manence UI reads a MOS from outside now. If you stop before 0.8.0 and want the map, take it from the v0.6.x tag by hand.

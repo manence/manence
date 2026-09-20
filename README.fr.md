@@ -99,7 +99,7 @@ Une règle : un seul agent à la fois sur un conteneur. Rien n'est annoncé comm
 - **[QUICKSTART.fr.md](QUICKSTART.fr.md)** : la porte d'entrée (pour qui, quoi, 3 gestes). **Commence ici.**
 - **[Manifesto.fr.md](Manifesto.fr.md)** : *le pourquoi*. La synthèse du cadre (modèle mental, 7 couches, architecture hexagonale, 9 lois, maturité) + l'index des concepts.
 - **[concept/](concept/index.md)** *(en anglais)* : chaque idée dépliée en un fichier, + [`research/`](concept/research/index.md) (les sources vérifiées : Karpathy, OKF, Anthropic, PKM, loops, OpenClaw, LIVING REFERENCE de JP Noto).
-- **[implementation/](implementation/index.md)** *(en anglais)* : *le comment*, avec [Spec](implementation/Spec.md) (les règles), [Implementation](implementation/Implementation.md) (le playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (le MOS par défaut, prêt à copier : identité, 7 skills (dont `outward-watch`, l'œil tourné vers l'extérieur), hooks, rituel de démarrage qui se clôt sur le premier chantier) et [`example/`](implementation/example/index.md) (une KB minimale qui tourne).
+- **[implementation/](implementation/index.md)** *(en anglais)* : *le comment*, avec [Spec](implementation/Spec.md) (les règles), [Implementation](implementation/Implementation.md) (le playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (le MOS par défaut, prêt à copier : identité, 8 skills (dont `outward-watch`, l'œil tourné vers l'extérieur), hooks, rituel de démarrage qui se clôt sur le premier chantier) et [`example/`](implementation/example/index.md) (une KB minimale qui tourne).
 - **[CHANGELOG.md](CHANGELOG.md)** *(en anglais)* : les versions.
 
 ## Le nom

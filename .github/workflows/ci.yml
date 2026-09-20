@@ -27,7 +27,7 @@ jobs:
         run: bash implementation/mos/.claude/hooks/lint.sh .
 
   # ---------------------------------------------------------------------------
-  # skills: the seven base skills are the framework's own agent surface, and a
+  # skills: the eight base skills are the framework's own agent surface, and a
   # SKILL.md with a malformed frontmatter loads silently degraded — the failure
   # mode is an agent that never routes to the skill, which no test of ours would
   # catch. The Claude Code CLI ships the validator for exactly this; --strict

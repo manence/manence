@@ -9,6 +9,13 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.8.2] - 2026-09-20
+
+The handover before a clear.
+
+- **`checkpoint`, the eighth base skill.** A session ends when its context is wiped, and whatever it held that was never written down ends with it: the threads still open, the decisions still owed by a human, the judgment about which workstream was sound. The skill is the handover, in eight steps. Every live thread goes to `inbox/` with where it stands, what it needs from the user and the next concrete action — that item is the piece the next session reads first. The log gets the entries the conversation never got. The agent memory is brought up to date when the harness keeps one, and skipped without ceremony when it does not, since harnesses differ there. The workstreams are ruled on, `close-work` called when one is delivered. Everything versioned is committed and pushed, the environment is left as it was found, and whatever waits on a GO is **named, never played** — so the next session cannot mistake it for something already decided. The last message before the clear is five lines: where to pick up, what waits on the user, what was pushed, what is still running, what was deliberately left aside. Born in a sister MOS on 2026-09-16, run there for a few sessions, harvested here — the user in place of a name, a CRM or a site in production in place of that system's own connectors, and the memory addressed as something a harness may or may not have.
+- **`upgrade.sh` knows the skill you wrote before the framework did.** A good skill is often born in one system and harvested into the framework later, which leaves its home system holding a local file under a name the framework now ships — with no common ancestor to merge against. That case used to read as an ordinary conflict; it now reads as itself, `CONFLICT (local skill predates the shipped one)`, and behaves the same way the rest of the script does: your file is not touched, the framework's version waits beside it as `<file>.upgrade-conflict`, and a human decides what the name means in that system.
+
 ## [0.8.1] - 2026-09-20
 
 Housekeeping, and the doctrine harvest of the summer. Nothing changes in the format a reader relies on: Manence UI 0.1 reads 0.8.1 as it reads 0.8.0.

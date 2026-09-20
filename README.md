@@ -99,7 +99,7 @@ One rule: one agent at a time on a container. Nothing is claimed as supported be
 - **[QUICKSTART.md](QUICKSTART.md)**: the way in (who it's for, what it is, 3 moves). **Start here.**
 - **[Manifesto.md](Manifesto.md)**: *the why*. The synthesis of the framework (mental model, 7 layers, hexagonal architecture, 9 laws, maturity) + the index of concepts.
 - **[concept/](concept/index.md)**: each idea unfolded into a file, + [`research/`](concept/research/index.md) (the verified sources: Karpathy, OKF, Anthropic, PKM, loops, JP Noto's LIVING REFERENCE).
-- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 7 base skills (including outward-watch, the eye on the outside), hooks, the startup ritual that ends on your first workstream), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
+- **[implementation/](implementation/index.md)**: *the how*, with [Spec](implementation/Spec.md) (the rules), [Implementation](implementation/Implementation.md) (the playbook), [`mos/`](implementation/mos/BOOTSTRAP.md) (the default MOS, ready to copy: identity files, the 8 base skills (including outward-watch, the eye on the outside), hooks, the startup ritual that ends on your first workstream), and [`example/`](implementation/example/index.md) (a minimal KB that runs).
 - **[CHANGELOG.md](CHANGELOG.md)**: the versions.
 
 ## The name
