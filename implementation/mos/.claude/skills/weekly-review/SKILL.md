@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: A weekly health review of Manence OS — mechanical lint (core + production), triaging the inbox, the state of workstreams in progress, spotting orphans and badly born workstreams (production folders with no About.md), effect measures that have come due, the outward watch consumed (the outward-watch report), a divergent force of proposal, and proposed actions. Run it once a week (by hand or via cron/heartbeat), or whenever the user asks "where do we stand?".
+description: Use it once a week — by hand or as a scheduled routine — and whenever the user asks "where do we stand?", wants the state of things, or a health check of the system. Runs the mechanical lint (core and production), triages the inbox, reports on the workstreams in progress and the waits they declare, spots orphans and badly born workstreams, picks up effect measures that have come due, checks the routines' proofs and the framework's freshness, consumes the outward watch, runs the drift checks, and ends on a short synthesis with proposed actions. It observes and proposes; it fixes nothing.
 ---
 
 # weekly-review, the weekly review
@@ -10,6 +10,7 @@ To prevent the two drifts that kill a Manence OS: the disorder that sets in (orp
 
 ## Procedure
 1. **Mechanical lint**: run `.claude/hooks/lint.sh` on the repo, **then** on the production root (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`, resolved to an absolute path): that is where the workstreams' links to the KB have to resolve from (Spec §18). Report the findings. Fix nothing without approval (maker ≠ checker, L4).
+   **Two sizes, measured on the way past** (`wc -c log.md`, `wc -l AGENTS.md`): both are context budget, and both drift too slowly for anyone to notice on an ordinary day. Report a `log.md` over **150 KB** or an `AGENTS.md` over **200 lines** (Spec §9). What you propose for an oversized log is a **rotation**, never played on its own: the entries of a closed year move to `log-archive/YYYY.md` — same format, same append-only rule, still one `grep` away — and the current log keeps the recent ones. Nothing is summarized, nothing is dropped: the history moves, it is not distilled. An oversized `AGENTS.md` is not rotated but trimmed — what has quietly become documentation belongs in the knowledge base, and the identity file links to it.
 2. **Orphans**: look for files and folders that live **outside** the routing table's locations in `AGENTS.md` (at the root of the core, outside `knowledge-base/`, `inbox/`, `.claude/`, `scripts/`; a `skills` link at the root is the bridge some agents need to reach `.claude/skills/`, not an orphan). For each one, propose its destination from the table (a workstream? the KB? the inbox? the trash?).
 3. **Badly born workstreams**: in production, flag any `in-progress/` folder **with no `About.md`** (work born outside the discipline) → propose the retroactive record from `close-work`.
 4. **Inbox**: go through `inbox/` item by item: route each one (a fact → `kb-ingest`, work → a candidate for `open-work`, stale → `trash`, keep as-is → it stays but you date it). **Time guard**: any capture older than 14 days gets sorted or trashed at this review — the inbox is exempt from the file contract precisely because this sweep exists. Goal: an empty or a deliberate inbox.
@@ -32,5 +33,11 @@ To prevent the two drifts that kill a Manence OS: the disorder that sets in (orp
 
 ## Guardrails
 - The review **observes and proposes**, it fixes nothing and opens no workstream without approval.
-- If it runs automatically (cron/heartbeat), the synthesis waits for the user to read it; nothing goes out.
+- Running on a schedule changes nothing about that — see *Running as a scheduled routine* below.
 - Success condition: in one read, the user knows what is healthy, what is dragging, what needs to be measured, and what to do next; the log keeps a trace of it.
+
+## Running as a scheduled routine
+
+The review does not need a human at the keyboard. Schedule it — a cloud routine, a cron, whatever the harness offers — on one condition: **signal only**. Running alone, it reads, measures and proposes; it corrects nothing, opens and closes no workstream, and touches nothing outside the core. The two things it writes are its `## [YYYY-MM-DD] review |` entry in `log.md` (step 14) and its synthesis, pushed where the human will actually read it — a commit, a message, an inbox item: where they look, not where it ran. Every proposed action waits for them. A scheduled review that had already acted on its own findings would be a review nobody reads.
+
+Declare it in `.claude/mos.json` like any other routine, so that it carries its own proof: `cadence: "weekly"`, `proof_glob: "log.md"` and `proof_marker: "] review |"` — the marker its own last step leaves behind. A review that ran somewhere that commits nothing shows up as a proof that did not arrive, which is a fact to state and not a breakage to presume (step 9).

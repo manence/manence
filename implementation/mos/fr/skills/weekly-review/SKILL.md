@@ -1,6 +1,6 @@
 ---
 name: weekly-review
-description: Revue hebdomadaire de santé de Manence OS, lint mécanique (cœur + production), tri de l'inbox, état des chantiers en cours, détection des orphelins et des chantiers mal nés (dossiers de production sans About.md), mesures d'effet arrivées à échéance, veille extérieure consommée (rapport outward-watch), force de proposition divergente, propositions d'actions. À lancer une fois par semaine (à la main ou par cron/heartbeat), ou quand l'utilisateur demande « où on en est ».
+description: À utiliser une fois par semaine — à la main ou en routine planifiée — et chaque fois que l'utilisateur demande « où on en est ? », l'état des lieux, ou un bilan de santé du système. Lance le lint mécanique (cœur et production), trie l'inbox, rend compte des chantiers en cours et des attentes qu'ils déclarent, repère les orphelins et les chantiers mal nés, relève les mesures d'effet échues, vérifie les preuves des routines et la fraîcheur du cadre, consomme la veille extérieure, joue les contrôles de dérive, et finit sur une synthèse courte avec des actions proposées. Elle constate et propose ; elle ne corrige rien.
 ---
 
 # weekly-review, la revue hebdomadaire
@@ -10,6 +10,7 @@ Empêcher les deux dérives qui tuent un Manence OS : le désordre qui s'install
 
 ## Procédure
 1. **Lint mécanique** : lancer `.claude/hooks/lint.sh` sur le repo, **puis** sur la racine de production (`$<PROJET>_PRODUCTION_ROOT`, défaut `../production/`, résolue en absolu) : c'est de là que les liens des chantiers vers la KB doivent résoudre (Spec §18). Rapporter les constats. Ne rien corriger sans validation (maker ≠ checker, L4).
+   **Deux tailles, mesurées au passage** (`wc -c log.md`, `wc -l AGENTS.md`) : c'est du budget de contexte, et ça dérive trop lentement pour que quiconque le voie un jour ordinaire. Signaler un `log.md` au-delà de **150 Ko** ou un `AGENTS.md` au-delà de **200 lignes** (Spec §9). Ce qu'on propose pour un log en dépassement, c'est une **rotation**, jamais jouée d'office : les entrées d'une année close partent dans `log-archive/AAAA.md` — même format, même règle d'append-only, toujours à un `grep` de distance — et le log courant garde les récentes. Rien n'est résumé, rien n'est jeté : l'historique se déplace, il ne se distille pas. Un `AGENTS.md` en dépassement ne tourne pas, il s'élague — ce qui est devenu de la documentation sans le dire part dans la knowledge-base, et le fichier d'identité y renvoie.
 2. **Orphelins** : chercher les fichiers/dossiers qui vivent **hors** des emplacements de la table de routage d'`AGENTS.md` (à la racine du cœur, hors `knowledge-base/`/`inbox/`/`.claude/`/`scripts/` ; un lien `skills` à la racine est le pont dont certains agents ont besoin pour atteindre `.claude/skills/`, ce n'est pas un orphelin). Pour chacun, proposer sa destination selon la table (chantier ? KB ? inbox ? poubelle ?).
 3. **Chantiers mal nés** : dans la production, signaler tout dossier de `in-progress/` **sans `About.md`** (travail né hors discipline) → proposer la fiche rétroactive de `close-work`.
 4. **Inbox** : passer `inbox/` en revue, item par item : router chacun (fait → `kb-ingest`, travail → candidat `open-work`, périmé → `trash`, à garder tel quel → il reste mais on le date). **Garde-temps** : toute capture de plus de 14 jours est triée ou supprimée à cette revue — l'inbox est exemptée du contrat de fichier précisément parce que ce balayage existe. Objectif : inbox vide ou consciente.
@@ -32,5 +33,11 @@ Empêcher les deux dérives qui tuent un Manence OS : le désordre qui s'install
 
 ## Garde-fous
 - La revue **constate et propose**, elle ne corrige rien et n'ouvre aucun chantier sans validation.
-- Si elle tourne en automatique (cron/heartbeat), la synthèse attend la relecture de l'utilisateur ; rien ne part vers l'extérieur.
+- Tourner en routine planifiée n'y change rien — voir *En routine planifiée* ci-dessous.
 - Condition de succès : l'utilisateur sait en une lecture ce qui est sain, ce qui traîne, ce qui doit être mesuré et quoi faire ensuite ; le log en garde la trace.
+
+## En routine planifiée
+
+La revue n'a pas besoin d'un humain au clavier. On peut la planifier — routine cloud, cron, ce que le harnais propose — à une condition : **signal seul**. Seule, elle lit, mesure et propose ; elle ne corrige rien, n'ouvre ni ne clôt aucun chantier, et ne touche à rien hors du cœur. Les deux seules choses qu'elle écrit sont son entrée `## [AAAA-MM-JJ] review |` dans `log.md` (étape 14) et sa synthèse, poussée là où l'humain la lira vraiment — un commit, un message, un item d'inbox : là où il regarde, pas là où elle a tourné. Chaque action proposée l'attend. Une revue planifiée qui aurait déjà agi sur ses propres constats serait une revue que personne ne lit.
+
+La déclarer dans `.claude/mos.json` comme toute routine, pour qu'elle porte sa preuve : `cadence: "weekly"`, `proof_glob: "log.md"` et `proof_marker: "] review |"` — le marqueur que sa dernière étape laisse derrière elle. Une revue qui a tourné là où rien ne se commite apparaît en preuve non reçue, ce qui est un fait à énoncer et pas une panne à présumer (étape 9).

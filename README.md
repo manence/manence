@@ -4,6 +4,8 @@
 
 **Manence makes your AI reliable on long-running projects.** An AI, whether in chat or agentic mode, knows only its context: what it has in front of it right now, nothing else. So whatever needs to last needs a place that outlives the session — and a way of working that keeps that place true. Manence is both: a work system where **every exchange does the work *and* tidies the system**. Order as a by-product, not a chore.
 
+![A running Manence OS seen through Manence UI: the domains of production, what is in progress, what is waiting on someone, the knowledge base at the center](assets/en/manence-ui.png)
+
 ## The problem
 
 With an AI, it's great at the start. It understands fast, produces fast, gets things right. Then the project runs on: conversations grow longer, drafts end up looking like decisions, mistakes you'd fixed come back.

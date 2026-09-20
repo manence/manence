@@ -1,6 +1,6 @@
 ---
 name: close-work
-description: Closes a workstream in production by moving it, name unchanged, from <domain>/in-progress/ to <domain>/done/, with mandatory distillation (durable facts to the KB, a wrap-up in the log): production artifacts are disposable, and this skill is the sole guarantor of durability. Use it when a deliverable is finished and approved, when a workstream is abandoned, or to regularize a badly born workstream (retroactive record).
+description: Use it when a deliverable is finished and approved, when a workstream is being abandoned, or to regularize a badly born workstream (a production folder with no About.md). Closes it by moving it, name unchanged, from <domain>/in-progress/ to <domain>/done/, with mandatory distillation — durable facts to the knowledge base, a wrap-up in the log: production artifacts are disposable, and this skill is the sole guarantor of durability.
 ---
 
 # close-work, closing a workstream

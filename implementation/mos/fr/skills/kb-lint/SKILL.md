@@ -1,6 +1,6 @@
 ---
 name: kb-lint
-description: Audit d'hygiène de la knowledge-base, cherche contradictions, affirmations périmées, pages orphelines, concepts cités sans page, renvois manquants, trous de données. À lancer périodiquement pour garder le wiki sain à mesure qu'il grandit.
+description: À utiliser quand la knowledge-base appelle un audit plutôt qu'une retouche : périodiquement à mesure qu'elle grandit, avant une publication ou une passation, quand la revue hebdomadaire signale que la KB a bougé, ou quand on soupçonne une contradiction. Cherche contradictions, affirmations périmées et review_when échus, pages orphelines, concepts cités sans page, renvois manquants, trous de données. Elle propose ; elle ne corrige rien d'elle-même.
 ---
 
 # kb-lint, audit de la knowledge-base

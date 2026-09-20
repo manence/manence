@@ -1,6 +1,6 @@
 ---
 name: close-work
-description: Clôt un chantier de la production en le déplaçant, nom inchangé, de <domaine>/in-progress/ vers <domaine>/done/, avec distillation obligatoire (faits durables vers la KB, bilan au log) : les artefacts de production sont jetables, ce skill est le seul garant de durabilité. À utiliser quand un livrable est terminé et validé, quand un chantier est abandonné, ou pour régulariser un chantier mal né (fiche rétroactive).
+description: À utiliser quand un livrable est terminé et validé, quand un chantier est abandonné, ou pour régulariser un chantier mal né (un dossier de production sans About.md). Clôt le chantier en le déplaçant, nom inchangé, de <domaine>/in-progress/ vers <domaine>/done/, avec distillation obligatoire — faits durables vers la knowledge-base, bilan au log : les artefacts de production sont jetables, ce skill est le seul garant de durabilité.
 ---
 
 # close-work, clore un chantier

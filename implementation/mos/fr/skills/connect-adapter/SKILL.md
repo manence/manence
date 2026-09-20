@@ -1,6 +1,6 @@
 ---
 name: connect-adapter
-description: Connecte proprement un nouvel adaptateur (bundle de savoir, de capacité, ou confidentiel) à un cœur Manence OS. Valide le contrat d'adaptateur, route selon la confidentialité (carte des connecteurs de l'AGENTS.md partagé, OU CLAUDE.local.md gitignored pour le confidentiel), écrit la ligne de carte, déclare l'attache dans .claude/mos.json (jamais pour le confidentiel), journalise. À utiliser quand on branche un repo voisin au cœur.
+description: À utiliser quand on branche quelque chose de nouveau à un cœur Manence OS — un repo voisin, un bundle de savoir, une capacité, un adaptateur confidentiel — ou quand la déclaration d'un connecteur existant doit être corrigée. Valide le contrat d'adaptateur, route selon la confidentialité (carte des connecteurs de l'AGENTS.md partagé, ou CLAUDE.local.md gitignored pour le confidentiel), écrit la ligne de carte, déclare l'attache dans .claude/mos.json (jamais pour un adaptateur confidentiel), journalise.
 ---
 
 # connect-adapter, brancher un adaptateur

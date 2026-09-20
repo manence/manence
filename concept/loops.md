@@ -24,6 +24,8 @@ A loop does not start without **three stops** set in advance: **success** (obser
 ### Maker ≠ checker, and external verification (law L4)
 The agent that produced the work is the **worst judge** of it, not through lying, but through blindness to its own mistakes. The verifier is **separate** ("it doesn't have to be smarter, just different") and above all **external**: it reports what a **script/test/judge** says, not what it believes. For non-code work (content, ops), you replace `exit 0` with a **fixed-rubric LLM-as-judge** plus an evaluation of the **final state** (judge the artifact, not each turn).
 
+The degenerate case deserves naming, because products ship it: the agent that produces the work is the one that approves it. Several agentic runtimes released in 2026 close a run with a self-review, and self-review approves its own work almost every time — the step reads as verification and is the maker writing its own verdict. It is exactly what L4 rules out, and the law was written before those products existed. The separation therefore has only two acceptable shapes: a checker in a **fresh context**, which did not produce the work and does not inherit the reasoning that led to it, or a **human**. The maker is neither.
+
 ### Single before the agent group
 A **single** loop handles most of the work. An **agent group** (orchestrator + subagents) is only warranted for **parallelizable breadth-first work** where independent threads exceed one window: it wins (+90% vs single on that specific shape) but at **~15× the tokens**. Avoid it for code or shared context. Key hygiene, even in single mode: the **executor subagent** (the main session speaks, the agent runs in its isolated context and returns only its conclusion).
 
@@ -32,7 +34,7 @@ A **single** loop handles most of the work. An **agent group** (orchestrator + s
 Without bounds, a loop causes a **runaway loop** and **comprehension debt** (content in your repo that nobody has read). Without an external verifier, self-evaluation validates its own blind spots. The discipline does not cap what loops can do, it is what makes their multiplication **safe** instead of costly.
 
 ## → Source (verified)
-[research/05 : Loops, vérification & orchestration](research/05-loops-orchestration.md) (open/closed, maker≠checker, stopping conditions, non-code evals, pragmatic solo defaults) and [research/02 : Anthropic](research/02-anthropic-architecture.md) (single before the agent group, few sharp tools).
+[research/05 : Loops, vérification & orchestration](research/05-loops-orchestration.md) (open/closed, maker≠checker, stopping conditions, non-code evals, pragmatic solo defaults) and [research/02 : Anthropic](research/02-anthropic-architecture.md) (single before the agent group, few sharp tools). The 2026 observation that self-approving runtimes validate nearly all of their own runs comes from a comparative audit of those products, not from a controlled benchmark.
 
 ## → Alongside (the how)
 - [templates/agent.template.md](../implementation/mos/templates/agent.template.md): the two canonical subagents, **executor** (context hygiene) and **checker** (maker≠checker).

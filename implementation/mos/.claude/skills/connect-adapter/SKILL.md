@@ -1,6 +1,6 @@
 ---
 name: connect-adapter
-description: Cleanly connects a new adapter (a knowledge bundle, a capability bundle, or a confidential one) to a Manence OS core. Validates the adapter contract, routes by confidentiality (the connector map in the shared AGENTS.md, OR the gitignored CLAUDE.local.md for confidential ones), writes the map line, declares the attachment in .claude/mos.json (never for confidential adapters), logs it. Use it when wiring a neighboring repo to the core.
+description: Use it when plugging something new into a Manence OS core — a neighboring repository, a knowledge bundle, a capability, a confidential adapter — or when an existing connector's declaration needs fixing. Validates the adapter contract, routes by confidentiality (the connector map in the shared AGENTS.md, or the gitignored CLAUDE.local.md for confidential ones), writes the map line, declares the attachment in .claude/mos.json (never for a confidential adapter), and logs it.
 ---
 
 # connect-adapter, wiring in an adapter

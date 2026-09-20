@@ -27,6 +27,29 @@ jobs:
         run: bash implementation/mos/.claude/hooks/lint.sh .
 
   # ---------------------------------------------------------------------------
+  # skills: the seven base skills are the framework's own agent surface, and a
+  # SKILL.md with a malformed frontmatter loads silently degraded — the failure
+  # mode is an agent that never routes to the skill, which no test of ours would
+  # catch. The Claude Code CLI ships the validator for exactly this; --strict
+  # makes its warnings (unrecognized fields, missing metadata) fail the build.
+  # It reads files and needs no account: a bare runner is enough.
+  # Both install sets are checked — the shipped MOS and its French twin.
+  # ---------------------------------------------------------------------------
+  skills:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install the Claude Code CLI (it carries the skill validator)
+        run: npm install -g @anthropic-ai/claude-code
+      - name: Validate the shipped skills (English install set)
+        run: claude plugin validate --strict implementation/mos/.claude/skills
+      - name: Validate the shipped skills (French install set)
+        run: claude plugin validate --strict implementation/mos/fr/skills
+
+  # ---------------------------------------------------------------------------
   # bootstrap-smoke: prove the framework still installs from a clean checkout,
   # on Linux and on Windows (Git Bash is the default bash shell on the Windows
   # runner). We reproduce the three install gestures from the README, check the

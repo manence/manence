@@ -1,6 +1,6 @@
 ---
 name: kb-ingest
-description: Integrates a new source into the knowledge base following the wiki method (Karpathy) — read it, summarize it into one concept page, update the index and the linked pages, flag contradictions, log it. Use it when adding an article, a PDF, a transcript, or raw notes to the project's knowledge.
+description: Use it whenever an outside source has to become knowledge — an article, a PDF, a transcript, a web page, raw notes, or something the user simply pastes in. Reads the source and summarizes it into one concept page following the wiki method (Karpathy), updates the index and the linked pages, flags contradictions with what is already there, and logs it.
 ---
 
 # kb-ingest, integrating a source

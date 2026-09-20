@@ -3,3 +3,6 @@
 node_modules/
 .obsidian/
 __pycache__/
+
+# Claude Code CLI litter (claude plugin validate writes a backup of .claude.json into the cwd)
+backups/

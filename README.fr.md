@@ -4,6 +4,8 @@
 
 **Manence rend ton IA fiable sur les projets qui durent.** Une IA, que ce soit en chat ou en agentique, ne connaît que son contexte : ce qu'elle a sous les yeux à l'instant présent, rien d'autre. Ce qui doit durer a donc besoin d'un lieu qui survit à la session — et d'une façon de travailler qui garde ce lieu juste. Manence est les deux : un système de travail où **chaque échange fait le travail *et* range le système**. L'ordre en sous-produit, pas en corvée.
 
+![Un Manence OS vu par Manence UI : les domaines de production, ce qui est en cours, ce qui attend quelqu'un, la knowledge base au centre](assets/fr/manence-ui.png)
+
 ## Le problème
 
 Avec une IA, c'est génial au début. Elle comprend vite, produit vite, propose juste. Puis le projet dure : les conversations s'allongent, les brouillons finissent par ressembler à des décisions, les erreurs corrigées reviennent.
