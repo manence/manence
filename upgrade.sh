@@ -38,9 +38,9 @@ set -eu
 
 SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo ".")
 MOS=implementation/mos
-BASE_SKILLS="checkpoint close-work connect-adapter kb-ingest kb-lint open-work outward-watch weekly-review"
+BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -345,6 +345,7 @@ add_organ() { printf '%s\t%s\n' "$1" "$2" >> "$TABLE"; }
 
 add_organ ".claude/hooks/guard.sh" "$MOS/.claude/hooks/guard.sh"
 add_organ ".claude/hooks/lint.sh"  "$MOS/.claude/hooks/lint.sh"
+add_organ ".claude/hooks/consignes.sh" "$MOS/.claude/hooks/consignes.sh"
 
 if [ -d "$TO_DIR/$TPL_SRC" ]; then
   (cd "$TO_DIR/$TPL_SRC" && find . -type f ! -name '.DS_Store' | sed 's|^\./||' | sort) \

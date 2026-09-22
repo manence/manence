@@ -47,6 +47,8 @@ If the core has a `.claude/mos.json` (schema 3 — the machine-readable declarat
   "resume": "<one displayed sentence>", "liens": [["<label>", "https://…"]] }
 ```
 ⚠️ **NEVER for a `confidential` adapter**: `mos.json` is versioned and shared — an attachment there would break zero-knowledge (L9), exactly like an `AGENTS.md` map line. A confidential adapter is declared nowhere that is shared, so no reader of this system ever shows it.
+A knowledge bundle that *is* the system's knowledge base (the KB living in a separate repository) also sets `"chemin": "<path relative to the core>"` on its `kb` attachment, so that a reader finds it without guessing.
+
 No `mos.json`? Don't create one for this — just note its absence in the report.
 
 ### 4. Explicit GO

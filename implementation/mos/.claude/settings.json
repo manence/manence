@@ -2,6 +2,13 @@
   "//": "Exemple de .claude/settings.json (couche 5). Deux voies « dures » (Spec §12) : les hooks (garde-fous déterministes avant/après une action) et permissions.deny (liste noire évaluée par le moteur de permissions lui-même). Structure conforme à la doc Claude Code. Les hooks s'invoquent via bash explicitement : sous Windows/PowerShell, un .sh appelé en direct ne lance RIEN, sans erreur — le guard serait fail-open en silence (constat d'install réelle, 2026-08-06).",
 
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/consignes.sh\"" }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit|Write",

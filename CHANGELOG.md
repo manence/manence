@@ -9,6 +9,17 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.9.0] - 2026-09-22
+
+The channel: a MOS can now be answered from where it is read.
+
+- **A MOS has a human → agent channel, and it is a file.** A new base skill, `consignes`, reads the inbox items with `type: instruction` and `status: deposee` — what the user did from Manence UI: an answer to an `awaiting` entry (a decision, or a "done" with its proof) or an instruction on a workstream (close, abandon, change course, correct, ask; optionally on one of its documents) — acts through the framework's own skills (`close-work` on "Clore"/"Abandonner", the explicit GO it requires), writes the effect into the workstream's About, marks each item `traitee` or `rejetee`, logs one entry per run and commits the core. It never writes to a third party and never sends anything. Spec §21 states the contract; AGENTS.md's "At session start" tells every harness to run it first.
+- **A session-start hook points at the inbox.** `.claude/hooks/consignes.sh` (declared under `SessionStart` in the shipped `settings.json`) counts the deposited items and says so at the top of a Claude Code session. It signals; the agent runs the skill. Other harnesses rely on the AGENTS.md line: the file is the channel, the hook only an accelerator.
+- **The routines step fetches before it judges.** The weekly review synchronizes the reference (`git fetch`, compare to `origin`) before reading a routine's proof: a routine that runs in the cloud commits its proof there, and a lagging clone would report a silence that does not exist (lived, 2026-09-20).
+- **A knowledge base outside the core declares its path.** The `kb` attachment of `.claude/mos.json` may carry `chemin`, the KB's path relative to the core, for a knowledge base kept in a separate repository; readers use it before guessing (`connect-adapter` says when to set it).
+- **UPGRADING tells the truth about reruns.** After a hand-resolved conflict that keeps a local change inside a hunk the new version also changed, the dry run reports the same conflict again; the page now says so and tells you to write the stamp yourself, until the script learns to treat "no conflict file left" as resolved.
+- **The guardrail's header names a French false positive**: « à la main » in a heredoc commit message next to a `git push` reads as a push to main; write the message with `-F <file>`.
+
 ## [0.8.3] - 2026-09-20
 
 A hotfix, found by the first three upgrades.

@@ -1,4 +1,7 @@
 #!/bin/bash
+# Note (2026-09-20, lived): the whole-command rule also catches the branch name *inside prose* — a commit
+# message written in a heredoc that contains « à la main » next to a `git push` reads as a push to main.
+# Write commit messages with `-F <file>`, or commit and push in two commands.
 # HARD guardrail (layer 5): an ANTI-MISTAKE BARRIER, not a security boundary.
 # It blocks the most common shapes of destructive commands (exact scope below);
 # it matches with regular expressions, so an unusual phrasing can get through.

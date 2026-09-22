@@ -20,7 +20,7 @@ Before anything else, check that this core still has all its organs. A copy made
 Every one of these must exist, here, at the root:
 
 ```
-.claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/skills/
+.claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/hooks/consignes.sh   .claude/skills/
 .claude/manence-version   .claude/mos.json   .env.example   .gitattributes   .gitignore
 .mcp.json.example   CLAUDE.local.md.example   AGENTS.md   CLAUDE.md   SOUL.md   STRATEGY.md
 log.md   knowledge-base/   templates/   inbox/

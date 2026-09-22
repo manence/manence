@@ -9,6 +9,7 @@ Ce fichier est l'identité du système, et il est neutre vis-à-vis de l'agent :
 - Lire `knowledge-base/index.md` (la carte du savoir) et la tête de `log.md` (les dernières décisions).
 - Vérifier s'il existe un `CLAUDE.local.md` à la racine : s'il déclare des connecteurs locaux, les charger aussi. Sinon, ignorer.
 - Regarder les chantiers en cours dans la production (`$<PROJET>_PRODUCTION_ROOT`, défaut `../production/` : les dossiers `<domaine>/in-progress/`) et `inbox/` (capture brute à trier).
+- Si `inbox/` contient un item `type: instruction` en `status: deposee` (un geste de l'utilisateur déposé depuis Manence UI : réponse à une attente, ou consigne sur un chantier), **jouer le skill `consignes` en premier** : le fichier est le canal, un hook de démarrage ne fait que le signaler (Spec §21).
 
 ## Ce que fait ce projet
 <En 2-3 lignes.>
@@ -46,7 +47,7 @@ Avant de créer ou déplacer un fichier, deux questions : **statique ou dynamiqu
 - Règles complètes : la Spec du cadre Manence, dans un repo séparé : <https://github.com/manence/manence> (`implementation/Spec.md`).
 
 ## Skills
-Base (fournis par le cadre) : `open-work` (ouvrir un chantier), `close-work` (publier un chantier), `weekly-review` (revue hebdo : lint, inbox, chantiers), `kb-ingest` (intégrer une source au savoir), `kb-lint` (audit de la KB), `connect-adapter` (brancher un adaptateur), `outward-watch` (regarder dehors : le substrat et le métier), `checkpoint` (la passation avant un clear).
+Base (fournis par le cadre) : `open-work` (ouvrir un chantier), `close-work` (publier un chantier), `weekly-review` (revue hebdo : lint, inbox, chantiers), `kb-ingest` (intégrer une source au savoir), `kb-lint` (audit de la KB), `connect-adapter` (brancher un adaptateur), `outward-watch` (regarder dehors : le substrat et le métier), `checkpoint` (la passation avant un clear), `consignes` (traiter ce que l'utilisateur a déposé depuis Manence UI).
 Ils vivent dans `.claude/skills/`, quel que soit l'agent — c'est leur domicile unique. Certains agents les trouvent par un lien `skills/` à la racine, posé par le premier démarrage : un pont, jamais un second domicile ; on n'y écrit jamais.
 <Skills propres au projet : à lister ici au fur et à mesure.>
 

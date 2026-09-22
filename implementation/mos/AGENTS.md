@@ -9,6 +9,7 @@ This file is the system's identity, and it is agent-neutral: whichever coding ag
 - Read `knowledge-base/index.md` (the map of your knowledge) and the top of `log.md` (the latest decisions).
 - Check whether a `CLAUDE.local.md` exists at the root: if it declares local connectors, load them too. Otherwise, ignore it.
 - Look at the open workstreams in production (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`: the `<domain>/in-progress/` folders) and `inbox/` (raw capture to sort).
+- If `inbox/` holds an item with `type: instruction` and `status: deposee` (something the user did from Manence UI: an answer to an `awaiting` entry, or an instruction on a workstream), **run the `consignes` skill first**: the file is the channel; a session-start hook only points at it (Spec §21).
 
 ## What this project does
 <In 2-3 lines.>
@@ -46,7 +47,7 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 - Full rules: the Manence framework Spec, in a separate repo: <https://github.com/manence/manence> (`implementation/Spec.md`).
 
 ## Skills
-Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear).
+Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear), `consignes` (act on what the user dropped from Manence UI).
 They live in `.claude/skills/`, whatever the agent — that is their single home. Some agents find them through a `skills/` link at the root, installed by the first setup: a bridge, never a second home; you never write there.
 <Project-specific skills: list them here as you add them.>
 

@@ -24,7 +24,7 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh` and `lint.sh`, `templates/**`, and the eight base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the nine base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
@@ -69,6 +69,22 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 (Written with the real version number, of course — the markers above are spelled with a placeholder so that this explanation is not itself read as a version's list.)
 
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
+
+---
+
+## 0.9.0 — The channel
+
+A MOS gains a human → agent channel, and it is a file: an inbox item the user drops from Manence UI, read first by a new base skill.
+
+**Automatic**
+
+- The `consignes` skill lands in `.claude/skills/consignes/` (`created`), and the session-start hook in `.claude/hooks/consignes.sh` (`created`). Nothing else moves: the channel is an inbox item, and the inbox is yours.
+
+<!-- manual v0.9.0 -->
+- `.claude/settings.json`: declare the hook — add a `SessionStart` block to `hooks` with `bash "${CLAUDE_PROJECT_DIR}/.claude/hooks/consignes.sh"` (copy it from the shipped `implementation/mos/.claude/settings.json`). Without it, Claude Code sessions do not announce deposited items; the AGENTS.md line still applies.
+- `AGENTS.md` / `CLAUDE.md`: under "At session start", add the line that runs `consignes` first when `inbox/` holds an item with `type: instruction` and `status: deposee` (copy it from the shipped `AGENTS.md`), and add `consignes` to the list of base skills.
+- Manence UI ≥ 0.2.0 writes these items; an older reader simply shows nothing to answer from. Nothing to do in the core for that.
+<!-- /manual -->
 
 ---
 
@@ -224,7 +240,7 @@ The guard was silently absent on Windows: under PowerShell, invoking a `.sh` fil
 
 Nothing is lost by construction: an upgrade that leaves conflicts leaves every original file untouched, with the proposed merge beside it. Three ways out, in order of preference:
 
-1. **Resolve the conflicts.** Open each `<file>.upgrade-conflict`, keep what you mean to keep, write it over the original, delete the conflict file, rerun the dry run: it should come back clean and stamp the version.
+1. **Resolve the conflicts.** Open each `<file>.upgrade-conflict`, keep what you mean to keep, write it over the original, delete the conflict file. Then rerun the dry run — but read it knowingly: if you kept a local change inside a hunk the new version also changed, the same conflict comes back (the base is still the version you had, and your file now differs from both sides). That is not a failure; it is the script being unable to tell a resolved conflict from an unresolved one. In that case write the stamp yourself: `.claude/manence-version` = the target version. A cleaner rule ("no conflict file left = resolved") is planned.
 2. **Take the new version whole** on a file whose local edits you no longer care about: copy it from the clone, and note in your `log.md` what you dropped.
 3. **Undo.** The script commits nothing, so `git checkout -- <file>` puts you back. If the core is not a git repository — it should be — the migrations are the only irreversible-looking step, and even those only ever *move* things, into `.upgrade-removed/`.
 

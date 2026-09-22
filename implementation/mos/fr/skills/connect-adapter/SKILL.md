@@ -47,6 +47,8 @@ Si le cœur a un `.claude/mos.json` (schema 3 — la déclaration machine-lisibl
   "resume": "<une phrase affichée>", "liens": [["<libellé>", "https://…"]] }
 ```
 ⚠️ **JAMAIS pour un `confidentiel`** : `mos.json` est versionné et partagé — y inscrire un adaptateur confidentiel trahirait le zéro-connaissance (L9), exactement comme une ligne dans l'`AGENTS.md`. Un adaptateur confidentiel ne se déclare nulle part de partagé : aucun lecteur de ce système ne le montrera jamais.
+Un bundle de savoir qui *est* la knowledge base du système (la KB dans un dépôt séparé) pose aussi `"chemin": "<chemin relatif au cœur>"` sur son attache `kb`, pour qu'un lecteur la trouve sans deviner.
+
 Pas de `mos.json` ? Ne pas le créer pour ça — noter seulement son absence dans le rapport.
 
 ### 4. GO explicite

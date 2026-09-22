@@ -33,11 +33,11 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     CLAUDE.md            @AGENTS.md + Claude Code's own wiring
     SOUL.md  STRATEGY.md  the voice, the strategy (filled by the first setup, openclaw convention)
     .claude/
-      skills/            the 8 base skills (open-work, close-work, weekly-review, kb-ingest,
-                         kb-lint, connect-adapter, outward-watch, checkpoint)
+      skills/            the 9 base skills (open-work, close-work, weekly-review, kb-ingest,
+                         kb-lint, connect-adapter, outward-watch, checkpoint, consignes)
       agents/            empty at start; a subagent template sits in templates/agent.template.md
       settings.json      hook wiring
-      hooks/             guard.sh, lint.sh (executable)
+      hooks/             guard.sh, lint.sh, consignes.sh (executable)
     .mcp.json.example     MCP connectors (copy to .mcp.json if needed)
     .env.example          env variables, including $MY_PROJECT_PRODUCTION_ROOT (copy to .env, gitignored)
     CLAUDE.local.md.example  map of local/confidential connectors (copy to CLAUDE.local.md, gitignored)
