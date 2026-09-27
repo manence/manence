@@ -1,30 +1,27 @@
 ---
 name: kb-lint
-description: Use it when the knowledge base calls for an audit rather than an edit: periodically as it grows, before a release or a handover, when the weekly review reports that the KB has moved, or when a contradiction is suspected. Looks for contradictions, stale claims and due review_when dates, orphan pages, concepts cited without a page, missing cross-references, and data gaps. It proposes; it repairs nothing on its own.
+description: Use it when the knowledge base calls for an audit rather than an edit: periodically as it grows, before a release or a handover, when the weekly review reports that the KB has moved, or when a contradiction is suspected. Produces a dated report of proposals (contradictions, stale claims, orphans, concepts without a page, missing cross-references, data gaps, pruning); it repairs nothing.
 ---
 
 # kb-lint, auditing the knowledge base
 
 ## Purpose
-To keep the wiki healthy as it grows. It produces a list of fixes **and** of new questions to dig into. (This is the *checker* from law L4, separate from whoever wrote the pages.)
+To keep the wiki healthy as it grows: a list of fixes **and** of new questions to dig into. This is the *checker* from law L4: if the session itself wrote pages of the KB, the audit runs in a fresh context (a subagent given the scope, the commit under audit, and the right to write its report and nothing else).
 
 ## Procedure
-Walk through `knowledge-base/` and flag, following the Karpathy method:
+First run `.claude/hooks/lint.sh knowledge-base/` and take its findings as they are (links, frontmatter, `type:`, dated `review_when:` that have come due) rather than redoing them by hand. Then walk through `knowledge-base/` and flag, following the Karpathy method:
 1. **Contradictions** between pages (same facts, diverging values).
-2. **Stale claims**, superseded by more recent sources (cross-check `timestamp` and `superseded_by`); and any **due `review_when:`** (date passed, or trigger event occurred): the page stops being authoritative on its own — propose reconfirming or updating it.
+2. **Stale claims**, superseded by more recent sources (cross-check `timestamp` and `superseded_by`); and any `review_when:` whose trigger **event** has occurred: the page stops being authoritative on its own, so propose reconfirming or updating it (Spec §6).
 3. **Orphan pages**, with no incoming link.
 4. **Concepts cited without a dedicated page**, a name that recurs across several pages but has none of its own.
 5. **Missing cross-references**, two pages semantically linked but with no link between them.
-6. **Data gaps**, open questions a web search could fill.
-7. **OKF / L2 compliance**, a missing `type:`, an `index.md` that has drifted, duplicates (one fact in two places). Exception: `type: research` pages (source records) are **excluded** from the duplicate check — their overlap with the Manifesto and the framework's concepts is expected.
-8. **Broken / ungraphable links**, a target that doesn't exist, or a link with a **leading slash** (`/folder/page.md`) that the Obsidian graph doesn't trace — flag it to be put back to relative-to-file.
-9. **Pruning (the redo test)**: a page no longer tied to any living decision **and** whose loss would force nothing to be redone → propose consolidating or archiving it. Two verifiable questions, never a judgment of importance — and propose only, never delete.
-10. **Valid frontmatter + typography**: every page (except `index.md` / `log.md`) has a **parseable** YAML frontmatter — the classic trap: an unquoted `:` in `title` / `description` (e.g. "Product: the pitch") breaks the YAML, and the value has to be quoted; and **no em dash `—`** in the frontmatter (use a comma / colon / parentheses; the en dash `–` for ranges stays allowed).
+6. **Data gaps**, open questions a search could fill.
+7. **L2**: an `index.md` that has drifted, duplicates (one fact in two places; `type: research` pages are excluded, Spec §8).
+8. **Pruning**: the redo test (Spec §8), as a proposal only.
 
-## Output
-A markdown report, by category: the list of files + the proposed action. **Fix nothing automatically** — propose, and the user approves.
+If the wiki is large: sample by folder **and say so** (no silent cap).
 
-## Guardrails
-- Read-only by default; every fix goes through approval.
-- A visual aid is available: the **Obsidian graph** (isolated nodes = orphans).
-- If the wiki is large: sample by folder **and say so** (no silent cap).
+## Done
+- Success condition: a dated report exists, `inbox/YYYY-MM-DD-kb-lint.md` (or the synthesis of the `weekly-review` that called it); it names the commit it audited (Spec §11), groups its findings by category, and each finding cites its file with the proposed action; `git status knowledge-base/` shows no change.
+- Reading criterion: every contradiction is cited with both sentences and their files.
+- Stop: no fix without the user's agreement.

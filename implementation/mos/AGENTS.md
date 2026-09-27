@@ -44,10 +44,11 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 - A **framework-level** lesson (one that should change Manence itself, not just this project) is tagged in the log: `## [YYYY-MM-DD] framework | title`. The framework harvests them per version workstream.
 - Paths are passed, not guessed: movable locations have a root variable (`.env.example`); every subagent prompt that touches a workstream carries the **resolved absolute path**.
 - Standard markdown links, relative to the file (`../folder/page.md`, `neighbor-page.md`), never a leading slash (the Obsidian graph doesn't trace those).
+- **Before acting inside a system** (a neighboring repo, a third-party tool, a production folder), look at how it is organized: its connector entry, its identity file, what already exists where you are about to write. Bound the reading to what the gesture touches; stop once you know where to write and what is already there. Skills only carry the path to what there is to look at.
 - Full rules: the Manence framework Spec, in a separate repo: <https://github.com/manence/manence> (`implementation/Spec.md`).
 
 ## Skills
-Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear), `consignes` (act on what the user dropped from Manence UI).
+Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear), `consignes` (act on what the user dropped from Manence UI), `skill-craft` (write, review, prune a skill: the method).
 They live in `.claude/skills/`, whatever the agent — that is their single home. Some agents find them through a `skills/` link at the root, installed by the first setup: a bridge, never a second home; you never write there.
 <Project-specific skills: list them here as you add them.>
 
@@ -59,4 +60,4 @@ They live in `.claude/skills/`, whatever the agent — that is their single home
 - API keys in `.env` (gitignored, template in `.env.example`), never committed. Local/confidential config: `CLAUDE.local.md` (gitignored), never in this file.
 
 ## Language
-<Files in …; conversations in ….>
+<The working language of this MOS: …. Everything the agent writes — log entries, About fields, knowledge base, replies — is in that language. The framework's organs (skills, hooks, templates) are in English and stay so; they produce their outputs in the working language.>

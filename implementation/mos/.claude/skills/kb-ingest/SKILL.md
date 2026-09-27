@@ -1,6 +1,6 @@
 ---
 name: kb-ingest
-description: Use it whenever an outside source has to become knowledge — an article, a PDF, a transcript, a web page, raw notes, or something the user simply pastes in. Reads the source and summarizes it into one concept page following the wiki method (Karpathy), updates the index and the linked pages, flags contradictions with what is already there, and logs it.
+description: Use it whenever an outside source has to become knowledge — an article, a PDF, a transcript, a web page, raw notes, or something the user simply pastes in. Produces one concept page integrated into the knowledge base following the wiki method (Karpathy): the index and the linked pages brought up to date, contradictions with what is already there flagged.
 ---
 
 # kb-ingest, integrating a source
@@ -9,19 +9,17 @@ description: Use it whenever an outside source has to become knowledge — an ar
 To turn a raw source into **integrated knowledge**, without piling up duplicates. Law L7: *to ingest is to integrate*, not to drop off.
 
 ## Input
-A source: a file in `sources/` or `inbox/`, or a URL / path the user provides.
+A source: a file (often in `inbox/`), a URL, or whatever the user provides.
 
 ## Procedure
-1. **Read** the source in full.
-2. **Discuss** the 3-5 key points to keep with the user, and wait for approval. You don't keep everything (law L1: high signal).
-3. **Write / update the concept page** in `knowledge-base/`: one concept, one file (`domain/specific-thing.md`), OKF frontmatter (`type`, `title`, `description`, `resource` = the source, `tags`, `timestamp`). Template: `concept.template.md`.
-4. **Update `knowledge-base/index.md`**: add or adjust the line (a link + one sentence). *(index.md = an OKF listing, no frontmatter.)*
-5. **Update the linked pages**: connect to the entities and concepts involved (markdown links **relative to the file**, no leading slash, see Spec §3, a condition for the Obsidian graph). One source often touches several.
-6. **Flag contradictions**: if the source contradicts an existing fact, **don't overwrite it** — tell the user, and where appropriate set `superseded_by:` / `status:` on the old page.
-7. **Add to `log.md`**: `## [YYYY-MM-DD] ingest | <source title>` + one line.
+1. **Choose what to keep with the user**, and wait for their agreement before you write: you don't keep everything (law L1: high signal), and what matters to this MOS is something they know.
+2. **Write or update the concept page** in `knowledge-base/`, following the file contract (Spec §1, `AGENTS.md` "Conventions"; template `templates/concept.template.md`), with the source in `resource:`.
+3. **Update `knowledge-base/index.md`**: the page's line (a link + one sentence).
+4. **Update the linked pages**: connect to the entities and concepts involved; one source often touches several.
+5. **Contradictions**: if the source contradicts an existing fact, **don't overwrite it**; tell the user, and where appropriate set `superseded_by:` / `status:` on the old page (Spec §6).
+6. **Log**: `## [YYYY-MM-DD] ingest | <source title>` if the ingestion passes the sieve (Spec §11), for instance when it invalidates an established fact.
 
-## Guardrails
-- One source at a time, supervised. **Don't invent** a fact the source doesn't contain.
-- Record the origin in `resource:`.
-- Success condition: the concept page exists, `index.md` and `log.md` are up to date, **no contradiction left silent**.
-- Internal skill: publish nothing, send nothing.
+## Done
+- Success condition: the concept page exists with its `resource:`, `index.md` lists it, `lint.sh` is clean on the files touched, **no contradiction left silent**.
+- Reading criterion: a fresh context reads the page without the source and understands it; every fact it states can be found in the source.
+- Trace: the concept page and its `index.md` line; the `ingest |` entry when the sieve keeps it.

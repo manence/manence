@@ -1,33 +1,23 @@
 ---
 name: open-work
-description: Use it whenever the user wants to work on something new — a campaign, a webinar, a document, an exploration — that has an identifiable deliverable. Opens a workstream in the container's production, following the routing table in AGENTS.md. IMPLICIT TRIGGER: creating a work folder in production IS opening a workstream; this discipline applies on its own, even if no one invoked the skill.
+description: Use it whenever the user wants to work on something new that has an identifiable deliverable — a campaign, a webinar, a document, an exploration. Opens a workstream in the container's production, after checking against the routing table in AGENTS.md that it is one, and leaves a dated folder, its About.md, and a work-open entry in the log. IMPLICIT TRIGGER: creating a work folder in production IS opening a workstream; the discipline applies on its own, even if no one invoked the skill.
 ---
 
 # open-work, opening a workstream
 
 ## Purpose
-So that every piece of work is born **in the right place, with its context**, instead of ending up as an orphan folder. A workstream is a folder `<domain>/in-progress/YYYYMMDD-<slug>/` in the container's **production** (outside git), with a typed `About.md`, an identifiable deliverable, and a trace.
+So that every piece of work is born in the right place, with its context, instead of ending up as an orphan folder. The workstream contract (folder, `About.md`, `work_id`, `awaiting`, disposable artifacts) is Spec §16; this skill is its opening procedure.
 
 ## Procedure
-1. **Resolve the production root.** `$<PROJECT>_PRODUCTION_ROOT` (see `.env` / `.env.example`), default: `../production/` from the core. Resolve it to an **absolute path**: that is the one you use everywhere (and pass as-is to any subagent, never left "to guess", Spec §18).
-2. **Route first.** Use the routing table in `AGENTS.md` to confirm this really is *work in progress*:
-   - a stable fact → not a workstream, this is `kb-ingest`;
-   - a raw note with no deliverable → `inbox/`;
-   - a procedure → a skill;
-   - a decision on its own → an entry in `log.md`;
-   - a periodic report → the KB (consolidated knowledge), not a workstream.
-3. **Choose the domain.** Production is organized by business domain (`ads/`, `content/`, `reporting/`…), **created on first need** with its two subfolders `in-progress/` and `done/`. Reuse an existing domain if the work belongs there.
-4. **Name it.** The opening date + a readable slug: `YYYYMMDD-<slug>` (`20260712-meta-back-to-school-campaign`). The prefix is set **at birth** and never changes: closing just moves the folder, so no incoming link ever breaks. Check that no similar workstream already exists in `in-progress/`, `done/`, or `inbox/` (if so: pick up the existing one, don't duplicate).
-5. **Create** `<domain>/in-progress/YYYYMMDD-<slug>/About.md` from `templates/workstream/About.template.md` (in the core) and fill in the **brief** with the user: the goal in one sentence, the expected deliverable, and a deadline if there is one. Set `work_id` to the folder name you have just chosen: it is the workstream's identity from here on, and it never changes again. Ask whether something **already waits on someone** (a decision to be made, a gesture only they can perform): if so, fill `awaiting` with it; otherwise leave `awaiting: []`, so that the field's presence is the norm. The **minimal About is enough to be born**: the frontmatter, the goal in one sentence, the next step; the rest of the template fills in as the stakes grow — what applies to every workstream, whatever its size, is the discipline, not the length of the record.
-6. **Wire up the context, without copying it**: link the relevant KB pages, the pertinent measures (connectors), and the previous workstream of the same kind if there is one. The links are **computed from the workstream's final location** (you alone know both roots: verify them by resolving, not by assuming). You link, you don't recopy (L2).
-7. **Trace it**: an entry `## [YYYY-MM-DD] work-open | <domain>/<slug>` in the core's `log.md` (one line: the goal).
-8. **Announce** the next concrete step of the workstream.
+1. **Resolve the production root** to an absolute path: `$<PROJECT>_PRODUCTION_ROOT`, default `../production/` (Spec §18).
+2. **Route first**: the table in `AGENTS.md` ("Where each thing goes") tells you whether this really is work in progress. If not, send it to its home and stop there.
+3. **Look for a duplicate** in `in-progress/`, `done/`, and `inbox/`: if one exists, pick it up rather than open a second workstream.
+4. **Domain and name**: an existing business domain if the work belongs there, otherwise create it with `in-progress/` and `done/`; the folder is named `YYYYMMDD-<slug>` from the opening day (`20260712-meta-back-to-school-campaign`), once and for all (Spec §16).
+5. **Create `About.md`** from `templates/workstream/About.template.md` and fill in the brief **with the user**, who alone knows it: the goal in one sentence, the deliverable, a deadline if there is one. If no one can say what will be delivered, it's an exploration: write it down as such, with the question to settle. `work_id` = the folder name; `awaiting` = whatever already waits on someone, otherwise `[]` (Spec §16). The minimal form is enough to be born.
+6. **Link the context, don't copy it**: KB pages, measures, the previous workstream of the same kind; links computed from the final location and verified by resolving them (Spec §18).
+7. **Trace it**: `## [YYYY-MM-DD] work-open | <domain>/<slug>` in the core's `log.md`, one line: the goal.
 
-## Guardrails
-- A workstream is **one identifiable deliverable**. If you can't say what will be delivered, it's an exploration: note it as such in the brief, with a question to settle.
-- All the work's files live **inside the workstream folder**, heavy assets included (production isn't versioned, so they clutter no git repo). Iterations overwrite in place, no `old/` subfolder.
-- **Artifacts are disposable by doctrine**: whatever needs to last goes through `close-work` (distillation to the KB + log). Tell the user when a doubt comes up.
-- A workstream born **without** this skill (a folder created by hand or in an ordinary session): apply this same discipline retroactively, right away or through the retroactive record in `close-work`.
-- **A question asked of the user and left unresolved at the end of a session belongs in `awaiting`** before the session closes: an unanswered question that lives only in a conversation is lost work.
-- Internal skill: publish nothing, send nothing.
-- Success condition: the folder exists with its `About.md` filled in (`status: proposal`), its links to the KB resolve, the log is up to date, and the user knows what the next step is.
+## Done
+- Success condition: the folder exists under `in-progress/` with an `About.md` (`type: work`, `status: proposal`, `work_id`, `awaiting`) that `lint.sh` passes from production.
+- Reading criterion: a fresh context that reads only the `About.md` can state the deliverable and the next step.
+- Trace: the `work-open` entry in the log.

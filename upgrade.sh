@@ -17,15 +17,22 @@
 #   bash upgrade.sh <core-dir> --apply                  # writes
 #   bash upgrade.sh <core-dir> --to v0.8.0 --apply
 #   bash upgrade.sh <core-dir> --source ../manence --to HEAD
+#   bash upgrade.sh <core-dir> --resolved --apply       # after resolving conflicts by hand
 #
 # Options:
 #   --to <rev>            target version (default: the newest tag of the source)
 #   --from <vX.Y.Z>       version you have (default: <core>/.claude/manence-version)
 #   --source <dir|url>    where the target tree comes from (default: the public repo)
 #   --from-source <dir>   where the *installed* version's tree comes from (default: --source)
-#   --lang en|fr          install set to merge from (default: detected from the core)
+#   --lang en|fr          language the core was installed in (default: detected);
+#                         since 0.10 it only picks the merge BASE: the French
+#                         set is retired, every core receives the English organs
 #   --production <dir>    production root (default: <core>/.env, else <core>/../production)
 #   --apply               write; without it nothing on disk changes
+#   --resolved            the conflicts of a previous run were resolved by hand:
+#                         a file whose merge still conflicts is taken as it
+#                         stands, provided no <file>.upgrade-conflict is left
+#                         beside it and it carries no conflict marker
 #
 # It never commits, never pushes, never deletes, and never touches your
 # identity files. See UPGRADING.md for what it leaves to your hands.
@@ -38,9 +45,9 @@ set -eu
 
 SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo ".")
 MOS=implementation/mos
-BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch weekly-review"
+BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -51,9 +58,14 @@ usage: upgrade.sh <core-dir> [options]
   --from <vX.Y.Z>       version installed (default: <core>/.claude/manence-version)
   --source <dir|url>    source of the target tree (default: the public repo)
   --from-source <dir>   source of the installed version's tree (default: --source)
-  --lang en|fr          install set (default: detected)
+  --lang en|fr          language the core was installed in (default: detected);
+                        picks the merge base only — the target is always English
+                        from 0.10 on (the French set is retired)
   --production <dir>    production root (default: <core>/.env, else <core>/../production)
   --apply               write (without it: dry run, nothing is written)
+  --resolved            conflicts were resolved by hand: take a still-conflicting
+                        file as it stands if no .upgrade-conflict file and no
+                        conflict marker is left (then the stamp can be written)
 
   dry run first, then --apply. Nothing is ever committed: you reread and commit.
   See UPGRADING.md.
@@ -67,12 +79,13 @@ die() { echo "upgrade.sh: $*" >&2; exit 1; }
 # Arguments
 # ---------------------------------------------------------------------------
 CORE=""; TO_REV=""; FROM_VER=""; SOURCE=""; FROM_SOURCE=""; LANG_SET=""
-PROD_OPT=""; APPLY=0
+PROD_OPT=""; APPLY=0; RESOLVED=0
 
 while [ $# -gt 0 ]; do
   case $1 in
     -h|--help) usage ;;
     --apply) APPLY=1 ;;
+    --resolved) RESOLVED=1 ;;
     --to) shift; [ $# -gt 0 ] || usage; TO_REV=$1 ;;
     --from) shift; [ $# -gt 0 ] || usage; FROM_VER=$1 ;;
     --source) shift; [ $# -gt 0 ] || usage; SOURCE=$1 ;;
@@ -220,6 +233,13 @@ is_version "$TO_REV" && TO_IS_VERSION=1
 # ---------------------------------------------------------------------------
 # Language. A French core was installed from implementation/mos/fr/; the giveaway
 # is structural (templates/chantier) before it is textual.
+#
+# Since 0.10 the French set is retired: every core receives the English organs,
+# and its working language stays its own (AGENTS.md). The language now picks one
+# thing, the merge BASE: a French core's organs descend from the French set of
+# the version it has. A target that still ships fr/ (0.9 and older) is merged
+# French to French as before; a target without it, from a French base, is the
+# switch — handled file by file below, never merged across languages.
 # ---------------------------------------------------------------------------
 LANG_WHY=""
 if [ -n "$LANG_SET" ]; then
@@ -242,10 +262,18 @@ else
   LANG_WHY="detected: fr $_fr / en $_en${_seen:+, $_seen}"
 fi
 
+# Target set: what the new version ships. Base set: what the core descends from.
+SK_SRC=$MOS/.claude/skills; TPL_SRC=$MOS/templates
+BASE_SK=$MOS/.claude/skills; BASE_TPL=$MOS/templates
+SWITCH=0; ORGANS_WHY="English"
 if [ "$LANG_SET" = fr ]; then
-  SK_SRC=$MOS/fr/skills; TPL_SRC=$MOS/fr/templates
-else
-  SK_SRC=$MOS/.claude/skills; TPL_SRC=$MOS/templates
+  if [ -d "$TO_DIR/$MOS/fr" ]; then
+    SK_SRC=$MOS/fr/skills; TPL_SRC=$MOS/fr/templates; ORGANS_WHY="French (the target still ships fr/)"
+  fi
+  if [ -d "$FROM_DIR/$MOS/fr" ]; then
+    BASE_SK=$MOS/fr/skills; BASE_TPL=$MOS/fr/templates
+    [ -d "$TO_DIR/$MOS/fr" ] || { SWITCH=1; ORGANS_WHY="English — this core moves from the French set, retired in 0.10"; }
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -325,12 +353,14 @@ echo "upgrade.sh — a Manence OS in place"
 echo
 printf '  core          %s\n' "$CORE"
 printf '  language      %s (%s)\n' "$LANG_SET" "$LANG_WHY"
+printf '  organs        %s\n' "$ORGANS_WHY"
 printf '  production    %s (%s)\n' "$PROD" "$PROD_WHY"
 printf '  from          %s (%s) — %s\n' "$FROM_VER" "$FROM_ORIGIN" "$FROM_SOURCE"
 printf '  to            %s (%s) — %s\n' "$TO_REV" "$TO_ORIGIN" "$SOURCE"
 printf "  versions      %s\n" "${VERSIONS:-$VERSIONS_NOTE}"
 printf '  UPGRADING.md  %s\n' "${UPGRADING_WHY:-not found (manual touches will not be listed)}"
 printf '  mode          %s\n' "$MODE"
+[ "$RESOLVED" -eq 1 ] && printf '  resolved      --resolved: conflicts resolved by hand are taken as they stand\n'
 echo
 
 # ---------------------------------------------------------------------------
@@ -341,8 +371,10 @@ TABLE=$TMP/organs.tsv
 : > "$TABLE"
 TAB=$(printf '\t')
 
-add_organ() { printf '%s\t%s\n' "$1" "$2" >> "$TABLE"; }
+# Three columns: path in the core, path in the target tree, path in the base tree.
+add_organ() { printf '%s\t%s\t%s\n' "$1" "$2" "$2" >> "$TABLE"; }
 
+# Hooks exist in one language only: never part of the switch.
 add_organ ".claude/hooks/guard.sh" "$MOS/.claude/hooks/guard.sh"
 add_organ ".claude/hooks/lint.sh"  "$MOS/.claude/hooks/lint.sh"
 add_organ ".claude/hooks/consignes.sh" "$MOS/.claude/hooks/consignes.sh"
@@ -351,7 +383,7 @@ if [ -d "$TO_DIR/$TPL_SRC" ]; then
   (cd "$TO_DIR/$TPL_SRC" && find . -type f ! -name '.DS_Store' | sed 's|^\./||' | sort) \
   | while IFS= read -r f; do
       [ -n "$f" ] || continue
-      printf 'templates/%s\t%s/%s\n' "$f" "$TPL_SRC" "$f" >> "$TABLE"
+      printf 'templates/%s\t%s/%s\t%s/%s\n' "$f" "$TPL_SRC" "$f" "$BASE_TPL" "$f" >> "$TABLE"
     done
 fi
 
@@ -360,12 +392,12 @@ for s in $BASE_SKILLS; do
   (cd "$TO_DIR/$SK_SRC/$s" && find . -type f ! -name '.DS_Store' | sed 's|^\./||' | sort) \
   | while IFS= read -r f; do
       [ -n "$f" ] || continue
-      printf '.claude/skills/%s/%s\t%s/%s/%s\n' "$s" "$f" "$SK_SRC" "$s" "$f" >> "$TABLE"
+      printf '.claude/skills/%s/%s\t%s/%s/%s\t%s/%s/%s\n' "$s" "$f" "$SK_SRC" "$s" "$f" "$BASE_SK" "$s" "$f" >> "$TABLE"
     done
 done
 
 N_MERGED=0; N_REPLACED=0; N_CREATED=0; N_SAME=0; N_CONFLICT=0; N_SKIPPED=0
-N_MIGRATED=0; N_MANUAL=0
+N_MIGRATED=0; N_MANUAL=0; N_RESOLVED=0
 
 report() { printf '  %-14s %s\n' "$1" "$2"; }
 
@@ -385,18 +417,33 @@ write_file() {  # src dest — only under --apply
   case "$2" in *.sh) chmod +x "$2" 2>/dev/null || true ;; esac
 }
 
-echo "Mechanical organs — hooks, templates, the eight base skills"
+# After a hand resolution the merge cannot tell a resolved conflict from an
+# unresolved one: the base is still the version you had, and a local change kept
+# inside a hunk the new version also changed conflicts again. --resolved is the
+# human saying "I resolved it"; this is the check that the saying holds.
+# Prints why not, or nothing when the file reads resolved.
+unresolved_why() {  # localf
+  if [ -e "$1.upgrade-conflict" ]; then
+    echo "$(basename -- "$1").upgrade-conflict is still there"
+  elif grep -qE '^(<<<<<<<|>>>>>>>)( |$)' "$1" 2>/dev/null; then
+    echo "conflict markers are still in the file"
+  fi
+}
+
+echo "Mechanical organs — hooks, templates, the ten base skills"
 echo "  (three-way merged: your file, the version you have, the new version)"
 
 if [ ! -s "$TABLE" ]; then
-  report "—" "nothing shipped for language $LANG_SET at $TO_REV (wrong --lang?)"
+  report "—" "nothing shipped at $TO_REV (wrong --source?)"
 fi
 
-while IFS="$TAB" read -r corepath srcrel; do
+while IFS="$TAB" read -r corepath srcrel baserel; do
   [ -n "$corepath" ] || continue
   localf=$CORE/$corepath
   tof=$TO_DIR/$srcrel
-  fromf=$FROM_DIR/$srcrel
+  fromf=$FROM_DIR/${baserel:-$srcrel}
+  switched=0
+  [ "$SWITCH" -eq 1 ] && [ "$srcrel" != "${baserel:-$srcrel}" ] && switched=1
   [ -f "$tof" ] || continue
 
   if [ -L "$localf" ]; then
@@ -408,6 +455,13 @@ while IFS="$TAB" read -r corepath srcrel; do
     write_file "$tof" "$localf"
     report "created" "$corepath"
     N_CREATED=$((N_CREATED + 1)); continue
+  fi
+
+  # A conflict file from the French-to-English switch holds this core's edits,
+  # not yet re-applied: the English file in place does not make it up to date.
+  if [ "$switched" -eq 1 ] && [ -e "$localf.upgrade-conflict" ]; then
+    report "CONFLICT" "$corepath — this core's French edits wait in $corepath.upgrade-conflict: re-apply them by hand in English, remove that file, then rerun with --resolved"
+    N_CONFLICT=$((N_CONFLICT + 1)); continue
   fi
 
   if cmp -s "$localf" "$tof"; then
@@ -422,8 +476,27 @@ while IFS="$TAB" read -r corepath srcrel; do
 
   if [ -f "$fromf" ] && cmp -s "$localf" "$fromf"; then
     write_file "$tof" "$localf"
-    report "replaced" "$corepath — no local change"
+    if [ "$switched" -eq 1 ]; then
+      report "replaced" "$corepath — moved to the English organ (no local change to the French one)"
+    else
+      report "replaced" "$corepath — no local change"
+    fi
     N_REPLACED=$((N_REPLACED + 1)); continue
+  fi
+
+  # The switch with local edits: a merge from a French base to an English target
+  # conflicts on every line, so it is not attempted. The English organ lands; the
+  # local file, French edits and all, waits beside it as the conflict file. A
+  # conflict file already there holds those edits: it is never overwritten.
+  if [ "$switched" -eq 1 ] && [ -f "$fromf" ]; then
+    if [ "$RESOLVED" -eq 1 ] && [ -z "$(unresolved_why "$localf")" ]; then
+      report "resolved" "$corepath — your edits re-applied in English, kept as it stands (--resolved: no conflict file, no marker)"
+      N_RESOLVED=$((N_RESOLVED + 1)); continue
+    fi
+    write_file "$localf" "$localf.upgrade-conflict"
+    write_file "$tof" "$localf"
+    report "CONFLICT" "$corepath — this core's local edits to it were written in French; the organ is now English: the English file is in place, yours waits in $corepath.upgrade-conflict — re-apply them by hand in English, then rerun with --resolved"
+    N_CONFLICT=$((N_CONFLICT + 1)); continue
   fi
 
   # The case with no common ancestor: the framework ships this file for the
@@ -448,13 +521,23 @@ while IFS="$TAB" read -r corepath srcrel; do
   rc=$?
   set -e
 
+  why=""
+  if [ "$RESOLVED" -eq 1 ] && [ "$rc" -gt 0 ] && [ "$rc" -lt 128 ]; then
+    why=$(unresolved_why "$localf")
+    if [ -z "$why" ]; then
+      report "resolved" "$corepath — resolved by hand, kept as it stands (--resolved: no conflict file, no marker)"
+      N_RESOLVED=$((N_RESOLVED + 1)); continue
+    fi
+    why=" (--resolved refused: $why)"
+  fi
+
   if [ "$predates" -eq 1 ] && [ "$rc" -lt 128 ]; then
     case "$corepath" in
       .claude/skills/*) what="local skill" ;;
       *)                what="local file" ;;
     esac
     write_file "$TMP/merge.out" "$localf.upgrade-conflict"
-    report "CONFLICT" "$corepath ($what predates the shipped one) — yours untouched; the framework's version waits beside it in $corepath.upgrade-conflict$basenote"
+    report "CONFLICT" "$corepath ($what predates the shipped one) — yours untouched; the framework's version waits beside it in $corepath.upgrade-conflict$basenote$why"
     N_CONFLICT=$((N_CONFLICT + 1))
   elif [ "$rc" -eq 0 ]; then
     write_file "$TMP/merge.out" "$localf"
@@ -462,7 +545,7 @@ while IFS="$TAB" read -r corepath srcrel; do
     N_MERGED=$((N_MERGED + 1))
   elif [ "$rc" -gt 0 ] && [ "$rc" -lt 128 ]; then
     write_file "$TMP/merge.out" "$localf.upgrade-conflict"
-    report "CONFLICT" "$corepath — $rc hunk(s); resolve by hand in $corepath.upgrade-conflict$basenote"
+    report "CONFLICT" "$corepath — $rc hunk(s); resolve by hand in $corepath.upgrade-conflict$basenote$why"
     N_CONFLICT=$((N_CONFLICT + 1))
   else
     report "ERROR" "$corepath — git merge-file failed: $(head -1 "$TMP/merge.err" 2>/dev/null)"
@@ -491,6 +574,9 @@ if [ -d "$CORE/.claude/skills" ]; then
   done
 fi
 [ -n "$EXTRA" ] && { echo; report "untouched" "skills of your own:$EXTRA"; }
+if [ "$SWITCH" -eq 1 ] && [ -d "$CORE/templates/chantier" ]; then
+  report "left" "templates/chantier/ — the French workstream template is no longer shipped (templates/workstream/ replaces it); yours until you remove it"
+fi
 
 # ---------------------------------------------------------------------------
 # Class (b), identity: never touched. Named so the silence is explicit.
@@ -751,7 +837,11 @@ fi
 echo
 echo "Version stamp"
 if [ "$N_CONFLICT" -gt 0 ]; then
-  report "not written" "$N_CONFLICT conflict(s) left — resolve them, then rerun"
+  if [ "$RESOLVED" -eq 1 ]; then
+    report "not written" "$N_CONFLICT conflict(s) left — finish them (remove each .upgrade-conflict, no marker left), then rerun with --resolved"
+  else
+    report "not written" "$N_CONFLICT conflict(s) left — resolve them, then rerun with --resolved"
+  fi
 elif [ "$TO_IS_VERSION" -ne 1 ]; then
   report "not written" "$TO_REV is not a released version — the stamp names releases only"
 elif [ "$APPLY" -ne 1 ]; then
@@ -760,7 +850,11 @@ elif [ -z "$VERSIONS" ]; then
   report "unchanged" ".claude/manence-version = $FROM_VER (nothing traversed)"
 else
   printf 'v%s\n' "${TO_REV#v}" > "$CORE/.claude/manence-version"
-  report "written" ".claude/manence-version = v${TO_REV#v}"
+  if [ "$N_RESOLVED" -gt 0 ]; then
+    report "written" ".claude/manence-version = v${TO_REV#v} ($N_RESOLVED conflict(s) taken as resolved by hand)"
+  else
+    report "written" ".claude/manence-version = v${TO_REV#v}"
+  fi
 fi
 
 # ---------------------------------------------------------------------------
@@ -768,8 +862,8 @@ fi
 # ---------------------------------------------------------------------------
 echo
 echo "Summary"
-printf '  merged %d · replaced %d · created %d · up to date %d · CONFLICT %d · skipped %d · migrations %d · manual touches %d\n' \
-  "$N_MERGED" "$N_REPLACED" "$N_CREATED" "$N_SAME" "$N_CONFLICT" "$N_SKIPPED" "$N_MIGRATED" "$N_MANUAL"
+printf '  merged %d · replaced %d · created %d · up to date %d · resolved by hand %d · CONFLICT %d · skipped %d · migrations %d · manual touches %d\n' \
+  "$N_MERGED" "$N_REPLACED" "$N_CREATED" "$N_SAME" "$N_RESOLVED" "$N_CONFLICT" "$N_SKIPPED" "$N_MIGRATED" "$N_MANUAL"
 
 if [ "$APPLY" -ne 1 ]; then
   echo "  dry run: nothing was written. Rerun with --apply when the plan above suits you."

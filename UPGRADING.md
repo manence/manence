@@ -24,7 +24,7 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the nine base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the ten base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
@@ -34,6 +34,7 @@ An upgrade is not one gesture but three, and the script is explicit about which 
 | `created` | the new version ships a file you don't have yet |
 | `CONFLICT` | both sides changed the same lines — nothing is written to the file; the merged text, with markers, is left beside it as `<file>.upgrade-conflict` for you to resolve |
 | `CONFLICT (local skill predates the shipped one)` | the new version ships a file you already had under that name, with no common ancestor — a skill your system wrote before the framework had one. Nothing is written to your file; the framework's version waits beside it as `<file>.upgrade-conflict`, and you decide what the name means here |
+| `resolved` | with `--resolved` only: the merge still conflicts, but you resolved it by hand — no `.upgrade-conflict` file, no marker left — so your file stands as it is |
 | `SKIPPED` | a symlink, which the script never follows |
 
 Skills you wrote yourself are never touched, and never counted — the script names them and leaves them alone.
@@ -69,6 +70,25 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 (Written with the real version number, of course — the markers above are spelled with a placeholder so that this explanation is not itself read as a version's list.)
 
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
+
+---
+
+## 0.10.0 — Every core moves to the English organs
+
+The French install set (`implementation/mos/fr/`) is retired. From 0.10 on, every core receives the English organs — base skills (the new `skill-craft` among them), templates, hooks — whatever language it was installed in. A core's working language stays its own: `AGENTS.md` says it, and the skills write in it.
+
+**Automatic**
+
+- `skill-craft`, the tenth base skill, lands in `.claude/skills/skill-craft/` (`created`).
+- A core installed in French (detected, or `--lang fr`) is merged from its French base to the English target, file by file. A skill or template you never touched is replaced by the English one: `replaced — moved to the English organ`. One you did retouch is not merged across languages — that would conflict on every line: the English file is written in place, and your French file waits beside it as `<file>.upgrade-conflict`, with the verdict `CONFLICT — this core's local edits to it were written in French; the organ is now English`. The stamp stays at 0.9 until those are settled.
+- The French workstream template `templates/chantier/` is no longer shipped; `templates/workstream/` arrives beside it (`created`), and the old one is named `left` — yours until you remove it.
+- Hooks, `AGENTS.md`, `CLAUDE.md` and every identity organ are untouched by the switch: hooks were always one language, and the identity is never merged.
+
+<!-- manual v0.10.0 -->
+- French core: for each `<file>.upgrade-conflict` the switch left, re-apply your local edits by hand, in English, in the English file; remove the conflict file; then rerun with `--resolved` (dry run first) — the verdict reads `resolved` and the stamp is written.
+- `AGENTS.md` / `CLAUDE.md`: add `skill-craft` to the list of base skills — there are **ten** of them now. A French core keeps its "Langue" section: the working language does not change with the organs.
+- French core: once nothing points to `templates/chantier/` any more (your own skills, `AGENTS.md`), remove it.
+<!-- /manual -->
 
 ---
 
@@ -240,7 +260,7 @@ The guard was silently absent on Windows: under PowerShell, invoking a `.sh` fil
 
 Nothing is lost by construction: an upgrade that leaves conflicts leaves every original file untouched, with the proposed merge beside it. Three ways out, in order of preference:
 
-1. **Resolve the conflicts.** Open each `<file>.upgrade-conflict`, keep what you mean to keep, write it over the original, delete the conflict file. Then rerun the dry run — but read it knowingly: if you kept a local change inside a hunk the new version also changed, the same conflict comes back (the base is still the version you had, and your file now differs from both sides). That is not a failure; it is the script being unable to tell a resolved conflict from an unresolved one. In that case write the stamp yourself: `.claude/manence-version` = the target version. A cleaner rule ("no conflict file left = resolved") is planned.
+1. **Resolve the conflicts.** Open each `<file>.upgrade-conflict`, keep what you mean to keep, write it over the original, delete the conflict file. Then rerun with `--resolved` (dry run first, then `--resolved --apply`): if you kept a local change inside a hunk the new version also changed, the merge conflicts again — the base is still the version you had — and the script cannot tell a resolved conflict from an unresolved one on its own; `--resolved` is you telling it, and it takes such a file as it stands (verdict `resolved`, the stamp can then be written) only if no `<file>.upgrade-conflict` is left beside it and no conflict marker is left in it. Without the flag a missing conflict file proves nothing — a first run has none either — so the conflict is reported as before.
 2. **Take the new version whole** on a file whose local edits you no longer care about: copy it from the clone, and note in your `log.md` what you dropped.
 3. **Undo.** The script commits nothing, so `git checkout -- <file>` puts you back. If the core is not a git repository — it should be — the migrations are the only irreversible-looking step, and even those only ever *move* things, into `.upgrade-removed/`.
 

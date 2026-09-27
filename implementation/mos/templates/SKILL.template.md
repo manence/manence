@@ -1,28 +1,27 @@
 ---
 name: <skill-name>
-description: <when to use it, one triggerable sentence. This is what the agent reads to decide whether to load this skill.>
+description: <when to use it and what it produces, one triggerable sentence; it is the only text the agent reads to decide whether to load this skill. Don't quote an everyday phrase that belongs to another gesture.>
 ---
 
 # <Skill name>
 
-## Purpose
-<What this skill accomplishes, in one line.>
+<!-- Skeleton. The method (where each sentence lives, the four fates of a rule, "done", the routing test, the review) is the base skill `skill-craft`: load it before writing here. -->
 
-## When to use it
-<Trigger conditions.>
+## Purpose
+<What this gesture accomplishes, in one line.>
+
+## Context
+<Links to the homes (AGENTS.md, the Spec, knowledge-base pages, the connector's page for a third-party system). Link, don't copy.>
 
 ## Procedure
-1. <step>
-2. <step>
-3. <step>
+<What must be true at each step, not the sequence of clicks. The role (fresh context, subagent, human GO) is written only where it is the mechanism of the step.>
 
 ## Inputs / outputs
 - Input: <…>
-- Output: <where the result goes, e.g. `knowledge-base/`, the current workstream (path passed as input)…>
+- Output: <where the result goes>
 
-## Guardrails
-- Success condition: <one sentence, verifiable>.
-- Limits: <max-turns / budget / stop if stuck>.
-- Verification: external (script/test/judge), not self-assessment.
-- Reading gate: <at least one criterion a machine cannot tick, next to the mechanical ones: a rereading under constraint, phrased so that anyone replays it identically (e.g. "hide the subtitles: the sequence of titles must stand on its own"). Any quality criterion left implicit disappears within a few dozen runs; a production skill writes at least one, and points at the copies to reread — with their path — for each dimension it means to preserve.>
-- <If this skill WRITES at a third party (creating, publishing, sending): an explicit GO before writing; a dry-run (`validateOnly`) when the API offers one; before/after logged in the deliverable; create it paused/as a draft first, activate as a second step (Spec §12).>
+## Done
+- Success condition: <an observable state, verifiable from outside, one sentence>.
+- Reading gate: <at least one criterion a machine cannot tick, replayable identically>.
+- Trace: <what the gesture leaves behind: About, log, knowledge base>.
+- Stops: <destructive or irreversible action, scope change, information only the human holds; writing at a third party = GO, dry run, before/after, draft first (Spec §12), in one line that points at AGENTS.md>.

@@ -42,48 +42,7 @@ Then, version control. This folder must become **its own** repository: run `git 
 
 ## 2. Language
 
-Ask which language this system should work in: **English or French?**
-
-- **French**: replace the English files with their `fr/` counterparts — `fr/AGENTS.md` → `AGENTS.md`, `fr/CLAUDE.md` → `CLAUDE.md`, `fr/SOUL.md` → `SOUL.md`, `fr/STRATEGY.md` → `STRATEGY.md`, `fr/CLAUDE.local.md.example` → `CLAUDE.local.md.example`, `fr/.env.example` → `.env.example`, `fr/skills/<name>/SKILL.md` → `.claude/skills/<name>/SKILL.md` (all 8), `fr/templates/` → `templates/` (the workstream template folder is named `templates/chantier/` in French — remove the now-superseded `templates/workstream/`), `fr/knowledge-base/` → `knowledge-base/`, `fr/log.md` → `log.md`. Then remove `fr/` (`git rm -r fr`) and continue the conversation in French.
-- **English**: remove `fr/` (`git rm -r fr`).
-
-## 2 bis. The agent — which one drives this MOS?
-
-Ask: **which agent will drive this MOS — Claude Code, OpenAI Codex, or Grok Build?** The identity itself is already neutral (`AGENTS.md`, which `CLAUDE.md` imports); what changes from one agent to the next is only the wiring of the skills and of the guardrails.
-
-- **Claude Code**: nothing to install. It reads `CLAUDE.md`, loads `.claude/skills/`, and the hooks declared in `.claude/settings.json` are already armed.
-- **Grok Build**: nothing to install either. It reads `AGENTS.md` natively, and its Claude compatibility loads `.claude/skills/`, the permissions and the hooks of `.claude/settings.json` as they stand. Say so plainly rather than adding files "just in case".
-- **OpenAI Codex**: two gestures, because it reads `AGENTS.md` natively but looks for skills at the root and wires its hooks in its own file.
-
-  1. The skills bridge — a link at the root pointing at their single home (`.claude/skills/`), which stays the only place you ever write:
-
-     ```bash
-     ln -s .claude/skills skills          # macOS, Linux
-     ```
-
-     On Windows, from a `cmd` prompt, an NTFS junction instead — it needs no developer mode, where a symlink does:
-
-     ```
-     mklink /J skills .claude\skills
-     ```
-
-     This link is installed by the ritual and never committed — git turns a committed symlink into a dead text file on a Windows checkout — which is why `/skills` is already in `.gitignore`. Leave it there.
-
-  2. The hard boundary — write `.codex/config.toml` so the shipped guardrail runs before every writing tool (Codex only loads it once the project is *trusted*):
-
-     ```toml
-     # The MOS hard boundary, wired for Codex: the same guard.sh Claude Code runs.
-     [[hooks.PreToolUse]]
-     matcher = "^(Bash|Edit|Write|apply_patch)$"
-
-     [[hooks.PreToolUse.hooks]]
-     type = "command"
-     command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/guard.sh"'
-     timeout = 30
-     statusMessage = "guard.sh — the MOS hard boundary"
-     ```
-
-Whichever answer comes, tell the human the one standing rule: **one agent at a time on this container**. Two agents working the same core at once race on the journal and on the guardrails — you alternate, you never run them in parallel. Nothing stops them from installing a second agent's wiring later: it is additive, and this step can be re-run for it.
+Ask which language this system should **work in** — the language of the human's files, log entries, workstream notes and of your replies. Write the answer into the Language section of `AGENTS.md` (it is a placeholder until you do). The framework's organs (skills, hooks, templates, the structure of the identity files) are in English and stay so: they read as programs and produce their outputs in the working language. There is no French install set to swap in (removed in 0.10): a French MOS runs the English organs and writes in French.
 
 ## 3. Interview
 
