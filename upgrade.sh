@@ -45,9 +45,9 @@ set -eu
 
 SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || echo ".")
 MOS=implementation/mos
-BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft weekly-review"
+BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -159,7 +159,7 @@ prepare_repo() {
   esac
   CLONE_N=$((CLONE_N + 1))
   _dest=$TMP/clone-$CLONE_N
-  echo "upgrade.sh: fetching $_spec…" >&2
+  echo "upgrade.sh: fetching ${_spec}…" >&2
   git clone --quiet --no-checkout "$_spec" "$_dest" >&2 \
     || die "could not clone $_spec"
   echo "$_dest"
@@ -430,7 +430,7 @@ unresolved_why() {  # localf
   fi
 }
 
-echo "Mechanical organs — hooks, templates, the ten base skills"
+echo "Mechanical organs — hooks, templates, the eleven base skills"
 echo "  (three-way merged: your file, the version you have, the new version)"
 
 if [ ! -s "$TABLE" ]; then
@@ -871,10 +871,14 @@ else
   echo "  written, not committed: reread the diff (git diff) and commit it yourself."
 fi
 
-if [ "$N_CONFLICT" -gt 0 ] || [ "$N_MANUAL" -gt 0 ]; then
+if [ "$N_CONFLICT" -gt 0 ]; then
   echo
   echo "  exit 2 — something is left for you: $N_CONFLICT conflict(s), $N_MANUAL manual touch(es)."
   exit 2
+elif [ "$N_MANUAL" -gt 0 ]; then
+  echo
+  echo "  exit 0 — the upgrade is complete; $N_MANUAL manual touch(es) listed above are yours to do (the script cannot check them)."
+  exit 0
 fi
 
 exit 0

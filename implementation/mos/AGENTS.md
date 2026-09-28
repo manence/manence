@@ -48,7 +48,7 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 - Full rules: the Manence framework Spec, in a separate repo: <https://github.com/manence/manence> (`implementation/Spec.md`).
 
 ## Skills
-Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear), `consignes` (act on what the user dropped from Manence UI), `skill-craft` (write, review, prune a skill: the method).
+Base (provided by the framework): `open-work` (open a workstream), `close-work` (publish a workstream), `weekly-review` (weekly review: lint, inbox, workstreams), `kb-ingest` (integrate a source into your knowledge), `kb-lint` (audit the KB), `connect-adapter` (plug in an adapter), `outward-watch` (look outward: the substrate and the trade), `checkpoint` (the handover before a clear), `consignes` (act on what the user dropped from Manence UI), `skill-craft` (write, review, prune a skill: the method), `upgrade` (bring the MOS onto a newer framework version: dry run, GO, fate of each conflict, trace).
 They live in `.claude/skills/`, whatever the agent — that is their single home. Some agents find them through a `skills/` link at the root, installed by the first setup: a bridge, never a second home; you never write there.
 <Project-specific skills: list them here as you add them.>
 

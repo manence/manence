@@ -9,6 +9,17 @@ timestamp: 2026-07-09
 
 Log of Manence's public releases. Format based on [Keep a Changelog](https://keepachangelog.com/en/). Numbering stays in **0.x**: the framework is young and its doctrine is still shifting; 1.0.0 will arrive once that doctrine has settled under use by hands other than our own.
 
+## [0.11.0] - 2026-09-28
+
+The upgrade has its skill; three fixes found by the first real upgrades to 0.10.0.
+
+- **An eleventh base skill, `upgrade`.** The script carries the mechanics; the skill carries the judgment: read the dry run, get the user's GO before `--apply`, give each conflict its fate (already covered → dropped; content of the MOS → a page of its knowledge base, pointed to from `AGENTS.md`; guidance useful to every MOS → rewritten in English and filed for upstreaming), confirm with `--resolved`, do the manual touches, leave an `event |` entry. Written from the brief the four cores of the first installation followed on 2026-09-27, each sorting its conflicts the same way before the text existed.
+- **`weekly-review` reads the watch folder from the MOS's scope page**, like `outward-watch` below (found by the first real run of the reread review).
+
+- **`upgrade.sh` runs again with the default source on macOS.** bash 3.2 read `$_spec…` (the variable followed by an ellipsis) as one variable name and stopped with `unbound variable`; every variable followed by a non-ASCII character is now braced. Found by the second core upgraded (the first ran under `LC_ALL=C`).
+- **`upgrade.sh` exits 0 once no conflict is left**, even when manual touches remain: they are listed for the operator, the script cannot check them, and an exit code 2 on a finished upgrade surprised a caller (reported by the third core upgraded).
+- **`outward-watch` reads the watch folder from the MOS's scope page** (default `knowledge-base/watch/`) instead of hard-coding it: a MOS that already keeps its reports elsewhere (the first one did, under a French name) keeps them there. Found at the first real upgrade of a core to 0.10.0.
+
 ## [0.10.0] - 2026-09-27
 
 The method for skills, and one language for what the framework ships.

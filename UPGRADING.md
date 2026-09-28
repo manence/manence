@@ -24,7 +24,7 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the ten base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the eleven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`, `upgrade`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
@@ -72,6 +72,12 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.11.0 — The upgrade has its skill, and two fixes
+
+- **A new base skill, `upgrade`**, arrives as a new file (`created`). It carries the judgment the script cannot have: reading the dry run, the user's GO before `--apply`, the fate of each conflict (dropped, moved into a page of the MOS's knowledge base, or rewritten in English for upstreaming), the manual touches, the `event |` trace. By hand: add `upgrade` to the list of base skills in your `AGENTS.md` — there are **eleven** now.
+- `upgrade.sh` runs again with the default (public) source on macOS, and exits 0 once no conflict is left even when manual touches remain (they are listed; the script cannot check them).
+- `outward-watch` and `weekly-review` read the watch folder from the MOS's scope page instead of hard-coding `knowledge-base/watch/`. If your MOS keeps its reports elsewhere, say so in that page and in the `outward-watch` line of `AGENTS.md`.
 
 ## 0.10.0 — Every core moves to the English organs
 
