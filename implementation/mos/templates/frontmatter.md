@@ -58,7 +58,7 @@ awaiting:
 ## Reserved OKF files
 
 - **`index.md`**, a folder listing, **without frontmatter** (see `index.template.md`).
-- **`log.md`**, an append-only chronological log (a small `type: log` frontmatter is still tolerated).
+- **`log.md`**, the journal: you add, you never rewrite, and each entry is prepended under the H1, newest first (a small `type: log` frontmatter is still tolerated).
 
 ## Ready-to-copy templates
 
@@ -88,7 +88,7 @@ timestamp: 2026-06-30
 ---
 type: log
 title: "Log: <project or folder>"
-description: Append-only history.
+description: The journal. You add, you never rewrite; newest first.
 timestamp: 2026-06-30
 ---
 ```

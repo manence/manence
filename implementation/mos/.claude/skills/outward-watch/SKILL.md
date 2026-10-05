@@ -1,6 +1,6 @@
 ---
 name: outward-watch
-description: Use it about once a week, ahead of the weekly-review that consumes it — by hand or as a scheduled routine — and whenever the user asks what is moving outside. Looks outward at the substrate (Anthropic, Claude Code, agentic practice; the same for every MOS) and at the trade (a slot each installation fills for itself), puts every finding through a single filter, "what does this change for this MOS, or for the framework?", writes a dated report into knowledge-base/watch/ (a time series), and routes the candidate actions to inbox/.
+description: Use it about once a week, ahead of the weekly-review that consumes it — by hand or as a scheduled routine — and whenever the user asks what is moving outside. Looks outward at the substrate (the harnesses the MOS runs on and their vendors, agentic practice; the same for every MOS) and at the trade (a slot each installation fills for itself), puts every finding through a single filter, "what does this change for this MOS, or for the framework?", writes a dated report into the MOS's watch folder (named in its scope page; default knowledge-base/watch/; a time series), and routes the candidate actions to inbox/.
 ---
 
 # outward-watch, the organ that looks outward
@@ -10,7 +10,7 @@ Every other organ of a MOS looks inward, and the substrate it runs on changes fa
 
 ## Two things to watch
 
-**The substrate** — the same for every MOS: Anthropic and Claude Code (releases, changelog, announcements, **the blog included**, not just the documentation: blind recall test of 2026-08-30, target missed on the blog) and the practice around them (context engineering, memory, multi-agent patterns, tooling).
+**The substrate** — the same for every MOS: the harnesses this MOS is driven from and their vendors (releases, changelog, announcements, **the blog included**, not just the documentation: blind recall test of 2026-08-30, target missed on the blog) and the practice around them (context engineering, memory, multi-agent patterns, tooling).
 
 **The trade** — a slot, one per MOS, empty on delivery: the competitors and adjacent players, the public mentions that matter, the sources that count. Fill it once and it holds:
 
@@ -28,7 +28,7 @@ The slot lives in a file of the MOS, never in this skill (an installed copy is r
    - **P0** — it breaks something here, or the window to act on it is short;
    - **P1** — fold it into the next workstream that touches the area;
    - **P2** — worth watching, nothing to do.
-4. **The report.** `<watch folder>/YYYY-MM-DD.md` (OKF, `type: report`; the folder is the one the scope page names, default `knowledge-base/watch/`), listed in that folder's `index.md` — create the folder and its index on the first run. At the top, the actual window and the reliability section; then three sections: substrate, trade, seen-no-effect. Each finding keeps the **fact** (what shipped, sourced and dated) apart from the **reading** (what it changes here): the fact still holds its value on the day the reading turns out wrong.
+4. **The report.** `<watch folder>/YYYY-MM-DD.md` (OKF, `type: report`; the folder is the one the scope page names, default `knowledge-base/watch/`), listed in that folder's `index.md` — create the folder and its index on the first run. At the top, the actual window and the reliability section; then three sections: substrate, trade, seen-no-effect. Section names and markers ("seen, no effect", "read degraded, to be confirmed", "unverified", "not done") are written in the working language. Each finding keeps the **fact** (what shipped, sourced and dated) apart from the **reading** (what it changes here): the fact still holds its value on the day the reading turns out wrong.
 5. **Candidate actions.** The P0s and P1s that call for something go into one dated item, `inbox/YYYY-MM-DD-watch-actions.md`, as candidates for `open-work` or `kb-ingest`. The watch proposes, the weekly-review sorts, the user decides.
 6. **The log.** Nothing by default: a routine report changes no status and no constraint. A confirmed P0 earns its entry.
 
@@ -39,7 +39,7 @@ A watch that reports nothing is indistinguishable from a watch that sees nothing
 1. **Plant the target.** A human picks a real publication from the current window, objectively major for this MOS, and leaves it untouched: nothing about it enters the log, the knowledge base or the inbox before the run.
 2. **Let it run.** The watch runs normally, knowing nothing of the test.
 3. **Read the verdict from the report alone.** The target is in it, or it is not. Absent, that is a **missed recall**, and it qualifies itself: *an access failure* (the source was out of reach) or *a filter failure* (it was read, then set aside). The first is repaired in the fallback path, the second in the filter.
-4. **Clear and trace.** The target is then handled normally, and the verdict goes to the log as a dated entry: it is the only reliability figure this organ will ever produce.
+4. **Clear and trace.** The target is then handled normally, and the verdict goes to the log as a dated entry, at the top of `log.md`, under its H1 (Spec §4): it is the only reliability figure this organ will ever produce.
 
 The test proves a gap, never completeness.
 
@@ -50,5 +50,5 @@ The test proves a gap, never completeness.
 
 ## Done
 - Success condition: a dated report in the MOS's watch folder, listed in its index, that declares its window and its reliability (or "not done"); the `watch-actions` item if there are P0s or P1s.
-- Reading gate: the blind recall test, above.
+- Reading criterion: a fresh context reading any one finding can tell the fact, its source and its date apart from the reading of it; once a quarter, the blind recall test above.
 - Trace: the report and the inbox item; the log only for a confirmed P0 or the test's verdict.

@@ -7,7 +7,7 @@ What it demonstrates:
 - **One concept = one file**, with OKF frontmatter (`type`, `title`, `description`, `resource`, `tags`, `timestamp`).
 - **File-relative** markdown links between concepts (this is what the Obsidian graph draws).
 - `index.md` = a listing **with no frontmatter** (an OKF reserved name).
-- `log.md` = a dated, append-only journal (`ingest` and `decision` entries).
+- `log.md` = a dated journal, added to and never rewritten, newest first (`ingest` and `decision` entries).
 - **Freshness**: `valid_from`, and a fact updated without overwriting its history (Pro €19 → €29).
 - **Types**: `reference` (product) and `competitor`.
 - **Status**: `status: canon` on `positioning.md`, a page's validation cycle.

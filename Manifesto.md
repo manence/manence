@@ -79,7 +79,7 @@ Everything in the system belongs to a layer, and every layer has a home. The det
 | 3. **Capability** | *how to do it*: reusable procedures | `.claude/skills/`, loaded when used (three families: base, project, shared) |
 | 4. **Execution** | *how the work runs* | subagents with isolated context, **maker ≠ checker**, [bounded loops](concept/loops.md) |
 | 5. **Automation** | *what starts without you* | hooks (hard guardrails), crons, heartbeat; only where "done" can be verified objectively |
-| 6. **Memory** | *what happened*: events, decisions, work in progress | `log.md` (append-only), `inbox/`, and the workstreams in production, outside git ([the workshop](concept/atelier.md)) |
+| 6. **Memory** | *what happened*: events, decisions, work in progress | `log.md` (added to, never rewritten), `inbox/`, and the workstreams in production, outside git ([the workshop](concept/atelier.md)) |
 | 7. **Connection** | *the bridge to the real world* (read and act) | MCP, direct API, or git; you query the live world, you don't pull it in (L2, L8) |
 
 ---
@@ -137,7 +137,7 @@ A complete install of the framework, dedicated to one activity, is called a **MO
     knowledge-base/               LAYER 2: OKF bundle (index.md · <concept>.md · log.md)
     templates/chantier/           workstream template (copied by open-work)
     inbox/                        raw capture to sort
-    log.md                        LAYER 6: episodic, append-only
+    log.md                        LAYER 6: episodic, never rewritten
   production/                    ← LAYER 6, OUTSIDE git ($<PROJECT>_PRODUCTION_ROOT, default ../production)
     <domain>/                     one domain per line of work, created on first need
       in-progress/YYYYMMDD-<slug>/ the workstreams in progress (the workshop): text AND assets together

@@ -79,7 +79,7 @@ Chaque chose du système appartient à une couche, chaque couche a un domicile. 
 | 3. **Capacité** | *comment faire* : les procédures réutilisables | `.claude/skills/`, chargées à l'usage (trois familles : base, projet, partagée) |
 | 4. **Exécution** | *comment le travail tourne* | sous-agents au contexte isolé, **maker ≠ checker**, [loops bornées](concept/loops.md) |
 | 5. **Automatisation** | *ce qui démarre sans toi* | hooks (garde-fous durs), crons, heartbeat ; seulement si le « fini » se vérifie objectivement |
-| 6. **Mémoire** | *ce qui s'est passé* : événements, décisions, travail en cours | `log.md` (append-only), `inbox/`, les chantiers dans la production, hors git ([l'atelier](concept/atelier.md)) |
+| 6. **Mémoire** | *ce qui s'est passé* : événements, décisions, travail en cours | `log.md` (on ajoute, on ne réécrit jamais), `inbox/`, les chantiers dans la production, hors git ([l'atelier](concept/atelier.md)) |
 | 7. **Connexion** | *le pont avec le réel* (lire et agir) | MCP, API directe ou git ; on interroge le vivant, on ne l'aspire pas (L2, L8) |
 
 ---
@@ -137,7 +137,7 @@ Une installation complète du cadre, dédiée à une activité, s'appelle un **M
     knowledge-base/               COUCHE 2 : bundle OKF (index.md · <concept>.md · log.md)
     templates/chantier/           gabarit de chantier (copié par open-work)
     inbox/                        capture brute à trier
-    log.md                        COUCHE 6 : épisodique, append-only
+    log.md                        COUCHE 6 : épisodique, jamais réécrit
   production/                    ← COUCHE 6, HORS git ($<PROJET>_PRODUCTION_ROOT, défaut ../production)
     <domaine>/                    un domaine par métier, créé au premier besoin
       in-progress/YYYYMMDD-<slug>/ les chantiers en cours (l'atelier) : textes ET assets ensemble

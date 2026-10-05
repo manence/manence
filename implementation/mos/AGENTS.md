@@ -24,7 +24,7 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 | a finished deliverable | `<domain>/done/`, through `close-work` (same folder name — never renamed, so links survive; KB distillation + log **required**: production artifacts are disposable) |
 | raw capture not yet sorted | `inbox/` |
 | a reusable procedure | `.claude/skills/<name>/SKILL.md` (the rule of three: ad hoc twice, a skill the third time) |
-| an event, a decision | a dated entry in `log.md` (append-only) |
+| an event, a decision | a dated entry in `log.md` (prepended under the H1, newest first; never rewritten) |
 | a live piece of data from an external system | nowhere: you query it through a connector (layer 7) and keep only the distilled conclusion |
 | a periodic report (a review, reporting) | `knowledge-base/`: a time series is **consolidated knowledge**, not a workstream; its candidate actions go to `inbox/` |
 | a heavy asset (video, PSD, deck) | **with its workstream**, in production (outside git). A reference from the KB goes through a pointer file (`resource:`) |
@@ -40,9 +40,10 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 
 ## Conventions
 - Knowledge: `knowledge-base/` (OKF: YAML frontmatter, `type:` required, one concept per file; you link, you never recopy a fact).
-- Dynamic: workstreams in the container's production (see the routing table); the journal in `log.md`, append-only, with `## [YYYY-MM-DD] type | title` prefixes.
+- Dynamic: workstreams in the container's production (see the routing table); the journal in `log.md`, with `## [YYYY-MM-DD] type | title` prefixes: you add, you never rewrite, and each entry is prepended under the H1 (newest first). Past 150 KB, the review proposes `scripts/log-rotate.py` (Spec §8).
 - A **framework-level** lesson (one that should change Manence itself, not just this project) is tagged in the log: `## [YYYY-MM-DD] framework | title`. The framework harvests them per version workstream.
 - Paths are passed, not guessed: movable locations have a root variable (`.env.example`); every subagent prompt that touches a workstream carries the **resolved absolute path**.
+- **A subagent gets a budget**: a number of tool calls or a duration, and the instruction to stop cleanly at the limit (or when one point blocks it) with a partial report — what is done, what is left, why. A partial report is worth more than a stop with no trace.
 - Standard markdown links, relative to the file (`../folder/page.md`, `neighbor-page.md`), never a leading slash (the Obsidian graph doesn't trace those).
 - **Before acting inside a system** (a neighboring repo, a third-party tool, a production folder), look at how it is organized: its connector entry, its identity file, what already exists where you are about to write. Bound the reading to what the gesture touches; stop once you know where to write and what is already there. Skills only carry the path to what there is to look at.
 - Full rules: the Manence framework Spec, in a separate repo: <https://github.com/manence/manence> (`implementation/Spec.md`).
@@ -55,6 +56,7 @@ They live in `.claude/skills/`, whatever the agent — that is their single home
 ## Security, hard vs soft
 - **Soft (this file)**: this file only *suggests*. The agent may depart from it.
 - **Hard (what actually constrains)**: a `PreToolUse` hook or a denied permission, declared in the agent's own configuration. To *forbid* (e.g. `rm -rf`, a direct push), that's where it goes, not here. The guardrails themselves are shipped once, under `.claude/`: `.claude/hooks/guard.sh` (blocks) and `.claude/hooks/lint.sh` (reports). Each harness wires them its own way — Claude Code: `.claude/settings.json` + those hooks; OpenAI Codex: `.codex/config.toml`; Grok Build: its native Claude compatibility, nothing to wire.
+- **The guardrail's own files** (`.claude/hooks/`, `.claude/settings.json`, `.claude/settings.local.json`) change only through `upgrade.sh` or by the user's hand; the agent's file tools and shell writes are refused there. A manual touch an upgrade asks for in those files is the user's to make.
 - Common sense: `trash` over `rm`; internal work (reading, drafts) → free.
 - **Writing at a third party** (creating, publishing, sending, activating): an explicit GO + a dry-run (`validateOnly`) when the API offers one + before/after logged in the deliverable + **create it paused/as a draft first**, activate as a second step. Separate read and write credentials: measurement stays read-only, write capability is added on decision.
 - API keys in `.env` (gitignored, template in `.env.example`), never committed. Local/confidential config: `CLAUDE.local.md` (gitignored), never in this file.

@@ -22,6 +22,6 @@ description: <when to use it and what it produces, one triggerable sentence; it 
 
 ## Done
 - Success condition: <an observable state, verifiable from outside, one sentence>.
-- Reading gate: <at least one criterion a machine cannot tick, replayable identically>.
+- Reading criterion: <at least one criterion a machine cannot tick, replayable identically>.
 - Trace: <what the gesture leaves behind: About, log, knowledge base>.
 - Stops: <destructive or irreversible action, scope change, information only the human holds; writing at a third party = GO, dry run, before/after, draft first (Spec §12), in one line that points at AGENTS.md>.

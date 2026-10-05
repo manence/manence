@@ -8,8 +8,11 @@ description: Use it when the knowledge base calls for an audit rather than an ed
 ## Purpose
 To keep the wiki healthy as it grows: a list of fixes **and** of new questions to dig into. This is the *checker* from law L4: if the session itself wrote pages of the KB, the audit runs in a fresh context (a subagent given the scope, the commit under audit, and the right to write its report and nothing else).
 
+## Input
+The whole `knowledge-base/`, or the pages the caller names (the `weekly-review` names those that moved this week); the report says which.
+
 ## Procedure
-First run `.claude/hooks/lint.sh knowledge-base/` and take its findings as they are (links, frontmatter, `type:`, dated `review_when:` that have come due) rather than redoing them by hand. Then walk through `knowledge-base/` and flag, following the Karpathy method:
+First run `.claude/hooks/lint.sh knowledge-base/` and take its findings as they are (links, frontmatter, `type:`, dated `review_when:` that have come due) rather than redoing them by hand. Then walk through `knowledge-base/` and flag, following the wiki method:
 1. **Contradictions** between pages (same facts, diverging values).
 2. **Stale claims**, superseded by more recent sources (cross-check `timestamp` and `superseded_by`); and any `review_when:` whose trigger **event** has occurred: the page stops being authoritative on its own, so propose reconfirming or updating it (Spec §6).
 3. **Orphan pages**, with no incoming link.
@@ -22,6 +25,7 @@ First run `.claude/hooks/lint.sh knowledge-base/` and take its findings as they 
 If the wiki is large: sample by folder **and say so** (no silent cap).
 
 ## Done
-- Success condition: a dated report exists, `inbox/YYYY-MM-DD-kb-lint.md` (or the synthesis of the `weekly-review` that called it); it names the commit it audited (Spec §11), groups its findings by category, and each finding cites its file with the proposed action; `git status knowledge-base/` shows no change.
+- Success condition: a dated report exists, `inbox/YYYY-MM-DD-kb-lint.md` (its findings are candidate actions, so it goes to the inbox, not to the knowledge base like a periodic report; or the synthesis of the `weekly-review` that called it); it names the commit it audited (Spec §11), groups its findings by category, and each finding cites its file with the proposed action; `git status knowledge-base/` shows no change.
 - Reading criterion: every contradiction is cited with both sentences and their files.
+- Trace: the report itself; nothing in the log unless the user acts on it.
 - Stop: no fix without the user's agreement.

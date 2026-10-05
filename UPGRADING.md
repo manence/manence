@@ -24,11 +24,12 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `lint.sh` and `consignes.sh`, `templates/**`, and the eleven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`, `upgrade`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `test-guard.sh`, `lint.sh` and `consignes.sh`, `scripts/log-rotate.py`, `templates/**`, and the eleven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`, `upgrade`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
 | `up to date` | your file already matches the new version |
+| `diverges` | the new version leaves the organ as the version you had, and your file differs from it — a local edit, or the prototype of a skill the framework has since shipped. Nothing is written; the difference is named at every run until you keep it, upstream it, or take the shipped file |
 | `replaced` | you had never touched it — the new version simply lands |
 | `merged` | both sides moved, in different places; your edits are kept |
 | `created` | the new version ships a file you don't have yet |
@@ -72,6 +73,30 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.12.0 — The guardrail guards itself, and the journal rotates
+
+The guardrail refuses to rewrite its own files and leaves a trace of every refusal; the journal gets its direction written down and a script to rotate it; the base skills take the fixes of their first month in use.
+
+**Automatic**
+
+- `guard.sh` is replaced (`replaced`, or `merged` if you touched it): pushes are read by segment, only when the segment begins with the git command; rule 4 refuses the agent's writes to `.claude/hooks/` and `.claude/settings*.json`, by file tool and by shell; every refusal appends a line to `.claude/guard-refusals.log`. A core that rewrote the push block locally gets a three-way merge on this file: the upstream version already contains that fix, take upstream.
+- `test-guard.sh` arrives next to it (`created`; 64 cases). A core that copied an earlier version by hand sees `CONFLICT (local file predates the shipped one)`: take the shipped file.
+- `lint.sh` gains two structural checks in standalone mode: an `in-progress/` or `done/` nested below another, and the two sizes the Spec bounds (`log.md` over 150 KB, `AGENTS.md` over 200 lines). A core whose journal is already over the threshold gets one finding until it is rotated.
+- `scripts/log-rotate.py` arrives (`created`): from this version it is a mechanical organ, merged like the hooks.
+- The eleven base skills are replaced or merged; `templates/log.template.md` and `templates/SKILL.template.md` too.
+- A new verdict, `diverges`: an organ the new version leaves as it was, but that differs locally. Nothing is written; it is named at every run until you keep it, upstream it, or take the shipped file.
+- `.claude/mos.json`: nothing. The shipped file no longer carries `sommet`; yours may keep it, readers ignore it (no schema change).
+
+<!-- manual v0.12.0 -->
+- `.claude/settings.json` (your hand: the new guard refuses the agent there): add `Edit(./.claude/hooks/**)`, `Edit(./.claude/settings.json)` and `Edit(./.claude/settings.local.json)` to `permissions.deny`, and a second `PreToolUse` entry with matcher `Edit|Write|MultiEdit|NotebookEdit` running `guard.sh` (copy both from the shipped `settings.json`). Without them, shell writes are refused but the file tools pass.
+- `.gitignore`: add `.claude/guard-refusals.log` (the refusal trace stays local, never committed).
+- Every harness you use: run `bash .claude/hooks/test-guard.sh` (64 cases conform), then, in a real session, ask the agent to edit `.claude/hooks/guard.sh` and see the refusal; that end-to-end observation is what the shipped `AGENTS.md` asks for before the first risky gesture.
+- `AGENTS.md`: under "Security, hard vs soft", the line on the guardrail's own files; under "Conventions", the journal's direction (entries prepended under the H1, newest first; you add, you never rewrite) and the subagent budget; copy the three from the shipped `AGENTS.md`.
+- `CLAUDE.md`: nothing to do. If yours holds nothing but the `@AGENTS.md` import, you may delete it (Spec §9).
+- `log.md` over 150 KB (the lint says so): `python3 scripts/log-rotate.py --out <a temporary folder>` to read the plan and the files, then, on the user's GO, `python3 scripts/log-rotate.py --apply`; commit `log.md` and `log-archive/` together.
+- A skill your MOS wrote that the framework has since shipped (`CONFLICT (local skill predates the shipped one)` or `diverges`): take the shipped file; what your prototype held beyond it is your MOS's content (a knowledge-base page) or gone on purpose (`Implementation.md` §10).
+<!-- /manual -->
 
 ## 0.11.0 — The upgrade has its skill, and two fixes
 

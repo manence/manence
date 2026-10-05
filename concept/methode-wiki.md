@@ -26,7 +26,7 @@ The insight that justifies investing here: the cost of a knowledge base **is not
 2. **The wiki** (`knowledge-base/`): the pages **the LLM generates and links to one another** (summaries, entity pages, concept pages, comparisons, syntheses). **One concept = one file.** The LLM owns it; you read it. This is the *binary*.
 3. **The schema** (`AGENTS.md`): the structure, conventions, and workflows the LLM follows. It co-evolves with the domain. This is the *build config*.
 
-Markdown throughout — in Karpathy's words, "the most compact structured format, readable by the LLM and auditable by the human." The index (`index.md`) catalogs the pages (one link plus one line); the log (`log.md`) is append-only, with dated, parseable prefixes.
+Markdown throughout — in Karpathy's words, "the most compact structured format, readable by the LLM and auditable by the human." The index (`index.md`) catalogs the pages (one link plus one line); the log (`log.md`) is added to and never rewritten, newest first, with dated, parseable prefixes.
 
 ### Three loops (the life of the wiki)
 Three motions keep the wiki alive. Here their *nature* and their principle; the exact steps live in the companion piece.

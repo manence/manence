@@ -23,6 +23,9 @@
 #      kind et since (blocks optionnel), avec kind ∈ {decision, action}, since en
 #      YYYY-MM-DD et who sans espace ni "@" → constat doux. Le lint n'invente ni ne
 #      corrige jamais une attente : il dit seulement si celle qui est écrite tient.
+#   g. (0.12, standalone on a folder) an in-progress/ or done/ nested below
+#      another one (Spec §17), and h. the sizes the Spec bounds: log.md over
+#      150 KB, AGENTS.md over 200 lines (Spec §8, §9). See the end of the file.
 #
 # Portabilité / dépendances (outil LIVRÉ aux utilisateurs) :
 #   - python3 OPTIONNEL : présent → parsing complet (Markdown fences/inline, ancres,
@@ -731,6 +734,53 @@ echo "$REPORT"
 
 if [ "$HOOK_MODE" -eq 1 ]; then
   exit 0  # PostToolUse : on rapporte, on ne bloque jamais
+fi
+
+# --- Structure (0.12), standalone mode on a folder only; bash, no python needed.
+#   g. nesting (Spec §17, one level): an in-progress/ or done/ folder that sits
+#      below another in-progress/ or done/ is outside the production contract.
+#   h. sizes the Spec bounds (§8, §9): log.md over 150 KB, AGENTS.md over 200
+#      lines, read at the top of the folder linted. Thresholds can be moved with
+#      MANENCE_LOG_MAX_BYTES and MANENCE_AGENTS_MAX_LINES.
+if [ -d "$TARGET" ]; then
+  STRUCT=""
+  _root=${TARGET%/}
+  while IFS= read -r _d; do
+    [ -n "$_d" ] || continue
+    _rel=${_d#"$_root"/}
+    _above=$(dirname -- "$_rel")
+    case "/$_above/" in
+      */in-progress/*|*/done/*)
+        STRUCT="${STRUCT}${_d}:1: nested-workstream-folder: $(basename -- "$_d")/ below another in-progress/ or done/ (Spec §17: <domain>/in-progress/ and <domain>/done/, one level, never deeper)
+" ;;
+    esac
+  done <<EOF_DIRS
+$(find "$_root" \( -name .git -o -name .obsidian -o -name node_modules \) -prune -o \
+    -type d \( -name in-progress -o -name done \) -print 2>/dev/null)
+EOF_DIRS
+  _logmax=${MANENCE_LOG_MAX_BYTES:-150000}
+  _agmax=${MANENCE_AGENTS_MAX_LINES:-200}
+  if [ -f "$_root/log.md" ]; then
+    _b=$(wc -c < "$_root/log.md" | tr -d ' ')
+    if [ "$_b" -gt "$_logmax" ]; then
+      STRUCT="${STRUCT}${_root}/log.md:1: size: ${_b} bytes, over ${_logmax} (Spec §8: the review proposes a rotation, scripts/log-rotate.py, played on the user's GO)
+"
+    fi
+  fi
+  if [ -f "$_root/AGENTS.md" ]; then
+    _l=$(wc -l < "$_root/AGENTS.md" | tr -d ' ')
+    if [ "$_l" -gt "$_agmax" ]; then
+      STRUCT="${STRUCT}${_root}/AGENTS.md:1: size: ${_l} lines, over ${_agmax} (Spec §9: the review proposes a measured trim)
+"
+    fi
+  fi
+  _n=0
+  if [ -n "$STRUCT" ]; then
+    printf '%s' "$STRUCT"
+    _n=$(printf '%s' "$STRUCT" | grep -c . || true)
+    STATUS=1
+  fi
+  echo "--- lint.sh structure: ${_n} finding(s) (nesting, sizes) ---"
 fi
 
 exit "$STATUS"

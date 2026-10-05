@@ -15,9 +15,9 @@ So that every piece of work is born in the right place, with its context, instea
 4. **Domain and name**: an existing business domain if the work belongs there, otherwise create it with `in-progress/` and `done/`; the folder is named `YYYYMMDD-<slug>` from the opening day (`20260712-meta-back-to-school-campaign`), once and for all (Spec §16).
 5. **Create `About.md`** from `templates/workstream/About.template.md` and fill in the brief **with the user**, who alone knows it: the goal in one sentence, the deliverable, a deadline if there is one. If no one can say what will be delivered, it's an exploration: write it down as such, with the question to settle. `work_id` = the folder name; `awaiting` = whatever already waits on someone, otherwise `[]` (Spec §16). The minimal form is enough to be born.
 6. **Link the context, don't copy it**: KB pages, measures, the previous workstream of the same kind; links computed from the final location and verified by resolving them (Spec §18).
-7. **Trace it**: `## [YYYY-MM-DD] work-open | <domain>/<slug>` in the core's `log.md`, one line: the goal.
+7. **Trace it**: `## [YYYY-MM-DD] work-open | <domain>/<slug>`, at the top of `log.md`, under its H1 (Spec §4), one line: the goal.
 
 ## Done
-- Success condition: the folder exists under `in-progress/` with an `About.md` (`type: work`, `status: proposal`, `work_id`, `awaiting`) that `lint.sh` passes from production.
+- Success condition: the folder exists under `in-progress/` with an `About.md` (`type: work`, `status: proposal`, `work_id`, `awaiting`) that `lint.sh` passes from production; no second workstream open on a subject that already had one (step 3).
 - Reading criterion: a fresh context that reads only the `About.md` can state the deliverable and the next step.
 - Trace: the `work-open` entry in the log.

@@ -47,7 +47,7 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     knowledge-base/      the wiki (layer 2), see §3
       index.md  log.md   skeletons, stamped by the first setup; ready for kb-ingest
     inbox/               raw capture to be sorted
-    log.md               the project journal (append-only)
+    log.md               the project journal (added to, never rewritten; newest first)
 
   production/           ← OUTSIDE git (default ../production/ from the core, created by the first setup)
     <domain>/           a business domain, created on first need by open-work
@@ -193,4 +193,5 @@ The framework improves through its deployments, and the channel is doctrined (it
 
 - **At each AIOS project**: any lesson **at the framework level** (a trap or a pattern that should change Manence itself, not just this project) = an entry in the **project's** log, tagged `## [YYYY-MM-DD] framework | title`, noted that same day. The lesson is born where it was lived.
 - **On the framework side**: the lessons are **harvested per version workstream**: a harvest document (one lesson = its generalized experience + its proposed doctrine + its destinations in the framework), worked through in a **dedicated session** in the framework repo: accept / amend / reject, propagate to the destinations, verify (`lint.sh` at 0 findings, a first setup from `mos/` produces a conforming MOS), one decision per lesson in the log (L8).
+- **A harvested skill goes home as the shipped file.** When a version ships a base skill that was born as a prototype in one MOS, the publication hands the shipped file to the MOS of origin, which replaces its prototype at once, in its own session, rather than at its next upgrade: the upgrade would only flag the prototype (`diverges`, or a local skill that predates the shipped one) and keep it (2026-09-28). Whatever the prototype held that the harvest set aside is either the MOS's own content (a page of its knowledge base) or gone on purpose.
 - **Never a client example in the framework**: the harvest generalizes (a neutral lesson); the detailed experience stays with the project, in its log.

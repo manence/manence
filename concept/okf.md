@@ -31,7 +31,7 @@ A single required field, because it is what you use to **filter and route**: "re
 A consumer **must preserve** keys it does not recognize and **must not** reject a bundle over any of: a missing optional field, an unknown `type`, a broken link, or a missing `index.md`. The guiding consequence: the format **tolerates incompleteness and extension** — you can enrich a bundle without breaking existing readers, and connect bundles from different origins.
 
 ### Two reserved names (the entry points)
-`index.md` (a folder's catalog, **with no frontmatter**) and `log.md` (an append-only journal) are exempt from the frontmatter rule; they are the agent's entry maps.
+`index.md` (a folder's catalog, **with no frontmatter**) and `log.md` (a journal you add to and never rewrite, newest first) are exempt from the frontmatter rule; they are the agent's entry maps.
 
 ### The freshness extensions
 Outside OKF but allowed (permissive conformance), for facts that expire: `valid_from`, `superseded_by`, `status:`. They give you the "poor man's Graphiti" (see [modele-memoire](modele-memoire.md)).

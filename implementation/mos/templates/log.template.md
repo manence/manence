@@ -1,7 +1,7 @@
 ---
 type: log
 title: "Log: <project or folder>"
-description: Append-only history. You add, you don't rewrite.
+description: The journal. You add, you never rewrite; each entry is prepended under the H1, newest first.
 timestamp: 2026-06-30
 ---
 

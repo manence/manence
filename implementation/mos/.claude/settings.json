@@ -1,5 +1,5 @@
 {
-  "//": "Exemple de .claude/settings.json (couche 5). Deux voies « dures » (Spec §12) : les hooks (garde-fous déterministes avant/après une action) et permissions.deny (liste noire évaluée par le moteur de permissions lui-même). Structure conforme à la doc Claude Code. Les hooks s'invoquent via bash explicitement : sous Windows/PowerShell, un .sh appelé en direct ne lance RIEN, sans erreur — le guard serait fail-open en silence (constat d'install réelle, 2026-08-06).",
+  "//": "The core's .claude/settings.json (layer 5). Two hard paths (Spec §12): the hooks (deterministic guardrails before/after an action) and permissions.deny (a blocklist evaluated by the permission engine itself). Structure per the Claude Code documentation. Hooks are invoked through bash explicitly: under Windows/PowerShell, a .sh called directly runs NOTHING, without an error, and the guard would fail open in silence (real install, 2026-08-06). This file and .claude/hooks/ change through upgrade.sh or by the user's hand, never through the agent's file tools (the deny below, and guard.sh rule 4).",
 
   "hooks": {
     "SessionStart": [
@@ -23,18 +23,27 @@
         "hooks": [
           { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.sh\"" }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard.sh\"" }
+        ]
       }
     ]
   },
 
   "permissions": {
-    "//": "2e voie dure (Spec §12) : liste noire évaluée avant tout appel, redondante avec guard.sh par design (défense en profondeur), pas un remplacement.",
+    "//": "Second hard path (Spec §12): a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are denied so that the agent cannot rewrite what constrains it.",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.*)",
+      "Edit(./.claude/hooks/**)",
+      "Edit(./.claude/settings.json)",
+      "Edit(./.claude/settings.local.json)"
     ]
   }
 }

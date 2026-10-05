@@ -3,19 +3,22 @@
 .env.*
 !.env.example
 
-# Système
+# System
 .DS_Store
 
-# Dépendances
+# Dependencies
 node_modules/
 
-# Config Claude Code locale (jamais commitée)
+# Local Claude Code config (never committed)
 CLAUDE.local.md
 
-# Pont vers .claude/skills/ posé par le premier démarrage pour certains agents :
-# un lien ne se commite jamais (git le casse au checkout Windows)
+# Bridge to .claude/skills/ set up by the first setup for some agents:
+# a link is never committed (git breaks it on a Windows checkout)
 /skills
 
 # Obsidian
 .obsidian/workspace*
 carte-*.html
+
+# The guardrail's refusal trace (guard.sh): local, append-only, never committed
+.claude/guard-refusals.log

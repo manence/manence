@@ -47,7 +47,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -378,6 +378,9 @@ add_organ() { printf '%s\t%s\t%s\n' "$1" "$2" "$2" >> "$TABLE"; }
 add_organ ".claude/hooks/guard.sh" "$MOS/.claude/hooks/guard.sh"
 add_organ ".claude/hooks/lint.sh"  "$MOS/.claude/hooks/lint.sh"
 add_organ ".claude/hooks/consignes.sh" "$MOS/.claude/hooks/consignes.sh"
+add_organ ".claude/hooks/test-guard.sh" "$MOS/.claude/hooks/test-guard.sh"
+# The framework's own script in the core's scripts/ (0.12): the log rotation.
+add_organ "scripts/log-rotate.py" "$MOS/scripts/log-rotate.py"
 
 if [ -d "$TO_DIR/$TPL_SRC" ]; then
   (cd "$TO_DIR/$TPL_SRC" && find . -type f ! -name '.DS_Store' | sed 's|^\./||' | sort) \
@@ -397,7 +400,7 @@ for s in $BASE_SKILLS; do
 done
 
 N_MERGED=0; N_REPLACED=0; N_CREATED=0; N_SAME=0; N_CONFLICT=0; N_SKIPPED=0
-N_MIGRATED=0; N_MANUAL=0; N_RESOLVED=0
+N_MIGRATED=0; N_MANUAL=0; N_RESOLVED=0; N_DIVERGES=0
 
 report() { printf '  %-14s %s\n' "$1" "$2"; }
 
@@ -430,7 +433,7 @@ unresolved_why() {  # localf
   fi
 }
 
-echo "Mechanical organs — hooks, templates, the eleven base skills"
+echo "Mechanical organs — hooks, templates, the eleven base skills, scripts/log-rotate.py"
 echo "  (three-way merged: your file, the version you have, the new version)"
 
 if [ ! -s "$TABLE" ]; then
@@ -470,8 +473,16 @@ while IFS="$TAB" read -r corepath srcrel baserel; do
   fi
 
   if [ -f "$fromf" ] && cmp -s "$fromf" "$tof"; then
-    report "unchanged" "$corepath — the new version doesn't touch it; yours stands"
-    N_SAME=$((N_SAME + 1)); continue
+    # The new version leaves this organ as it was, and yours differs from it: a
+    # local edit, or a local prototype an earlier upgrade kept (incident of
+    # 2026-09-28: "yours stands" hid a prototype of a skill the framework had
+    # since shipped). Nothing is written; the difference is named every time.
+    case "$corepath" in
+      .claude/skills/*) hint="a local edit, or the prototype of a skill the framework has since shipped" ;;
+      *)                hint="a local edit" ;;
+    esac
+    report "diverges" "$corepath — the new version doesn't change it, but yours differs from the shipped one ($hint): kept as it is; compare, then keep it, upstream it, or take the shipped one"
+    N_DIVERGES=$((N_DIVERGES + 1)); continue
   fi
 
   if [ -f "$fromf" ] && cmp -s "$localf" "$fromf"; then
@@ -862,8 +873,8 @@ fi
 # ---------------------------------------------------------------------------
 echo
 echo "Summary"
-printf '  merged %d · replaced %d · created %d · up to date %d · resolved by hand %d · CONFLICT %d · skipped %d · migrations %d · manual touches %d\n' \
-  "$N_MERGED" "$N_REPLACED" "$N_CREATED" "$N_SAME" "$N_RESOLVED" "$N_CONFLICT" "$N_SKIPPED" "$N_MIGRATED" "$N_MANUAL"
+printf '  merged %d · replaced %d · created %d · up to date %d · diverges %d · resolved by hand %d · CONFLICT %d · skipped %d · migrations %d · manual touches %d\n' \
+  "$N_MERGED" "$N_REPLACED" "$N_CREATED" "$N_SAME" "$N_DIVERGES" "$N_RESOLVED" "$N_CONFLICT" "$N_SKIPPED" "$N_MIGRATED" "$N_MANUAL"
 
 if [ "$APPLY" -ne 1 ]; then
   echo "  dry run: nothing was written. Rerun with --apply when the plan above suits you."

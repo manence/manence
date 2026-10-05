@@ -27,14 +27,14 @@ To add an adapter to the core **without breaking zero-knowledge** (L9, Spec §12
 ### 3. Draft the map line
 One entry **in the existing map's format**, saying what to open and why, and naming the connector's skills if it has any. Drafted, not written yet.
 
-### 3 bis. Draft the attachment for `.claude/mos.json` (`knowledge`/`capability` only)
+### 4. Draft the attachment for `.claude/mos.json` (`knowledge`/`capability` only)
 Draft the attachment following the schema described at the top of the file (the `//` key) and in Spec §19. No `mos.json`? Don't create one for this: note its absence in the report.
 
-### 4. Explicit GO
+### 5. Explicit GO
 Show the user **the exact line** + **the target file** (`AGENTS.md` or `CLAUDE.local.md`), plus **the `mos.json` attachment** when applicable, and **wait for the GO**; only then write both.
 
-### 5. Log it (`knowledge`/`capability` only)
-After writing, in the core's `log.md`: `## [YYYY-MM-DD] connect | <adapter> → AGENTS.md`.
+### 6. Log it (`knowledge`/`capability` only)
+After writing, at the top of `log.md`, under its H1 (Spec §4): `## [YYYY-MM-DD] connect | <adapter> → AGENTS.md`.
 
 ## Guardrails
 - A `confidential` adapter enters **no shared file**: not the `AGENTS.md` map, not `log.md`, not `.claude/mos.json`. Its only trace lives in `CLAUDE.local.md` (zero-knowledge, Spec §12).
@@ -42,5 +42,5 @@ After writing, in the core's `log.md`: `## [YYYY-MM-DD] connect | <adapter> → 
 
 ## Done
 - Success condition: the contract is validated, the line is written in the **right** target after the GO; a `mos.json` attachment and a log entry **only** for `knowledge` / `capability`.
-- Reading gate: the map line, read alone by a fresh context, is enough to know what to open and why.
+- Reading criterion: the map line, read alone by a fresh context, is enough to know what to open and why.
 - Trace: the `connect |` log entry or, for a `confidential` adapter, its single line in `CLAUDE.local.md`.

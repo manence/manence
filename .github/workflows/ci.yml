@@ -25,15 +25,17 @@ jobs:
         run: python3 -m pip install --quiet pyyaml
       - name: Lint the whole repository (OKF frontmatter, relative links)
         run: bash implementation/mos/.claude/hooks/lint.sh .
+      - name: The guardrail's test suite (blocked and passed cases, throwaway sandbox)
+        run: bash implementation/mos/.claude/hooks/test-guard.sh
 
   # ---------------------------------------------------------------------------
-  # skills: the eight base skills are the framework's own agent surface, and a
+  # skills: the eleven base skills are the framework's own agent surface, and a
   # SKILL.md with a malformed frontmatter loads silently degraded — the failure
   # mode is an agent that never routes to the skill, which no test of ours would
   # catch. The Claude Code CLI ships the validator for exactly this; --strict
   # makes its warnings (unrecognized fields, missing metadata) fail the build.
   # It reads files and needs no account: a bare runner is enough.
-  # Both install sets are checked — the shipped MOS and its French twin.
+  # One install set since 0.10 (English); the French twin is retired.
   # ---------------------------------------------------------------------------
   skills:
     runs-on: ubuntu-latest
@@ -44,10 +46,8 @@ jobs:
           node-version: '22'
       - name: Install the Claude Code CLI (it carries the skill validator)
         run: npm install -g @anthropic-ai/claude-code
-      - name: Validate the shipped skills (English install set)
+      - name: Validate the shipped skills
         run: claude plugin validate --strict implementation/mos/.claude/skills
-      - name: Validate the shipped skills (French install set)
-        run: claude plugin validate --strict implementation/mos/fr/skills
 
   # ---------------------------------------------------------------------------
   # bootstrap-smoke: prove the framework still installs from a clean checkout,

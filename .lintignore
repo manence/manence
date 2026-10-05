@@ -9,3 +9,6 @@ SECURITY.md
 PORTABILITY.md
 # Upgrade page (0.8): a door-level page like README and PORTABILITY, no OKF frontmatter.
 UPGRADING.md
+# Routing bench (0.12): claude plugin eval cases, their own frontmatter schema
+# (prompt.md, graders/*.md), no type:. Atelier-only, like archive/.
+scripts/skill-bench/
