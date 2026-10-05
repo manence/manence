@@ -47,7 +47,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -379,6 +379,9 @@ add_organ ".claude/hooks/guard.sh" "$MOS/.claude/hooks/guard.sh"
 add_organ ".claude/hooks/lint.sh"  "$MOS/.claude/hooks/lint.sh"
 add_organ ".claude/hooks/consignes.sh" "$MOS/.claude/hooks/consignes.sh"
 add_organ ".claude/hooks/test-guard.sh" "$MOS/.claude/hooks/test-guard.sh"
+add_organ ".claude/hooks/since-last-session.sh" "$MOS/.claude/hooks/since-last-session.sh"
+add_organ ".claude/hooks/admin-go.sh" "$MOS/.claude/hooks/admin-go.sh"
+add_organ ".claude/hooks/verify-go.sh" "$MOS/.claude/hooks/verify-go.sh"
 # The framework's own script in the core's scripts/ (0.12): the log rotation.
 add_organ "scripts/log-rotate.py" "$MOS/scripts/log-rotate.py"
 
@@ -547,7 +550,11 @@ while IFS="$TAB" read -r corepath srcrel baserel; do
       .claude/skills/*) what="local skill" ;;
       *)                what="local file" ;;
     esac
-    write_file "$TMP/merge.out" "$localf.upgrade-conflict"
+    # The file beside yours is the shipped organ itself, byte for byte: a merge
+    # against an empty base is nothing but conflict markers, and a conflict file
+    # taken at its word ("the framework's version") once broke a core's test suite
+    # behind a guard that then refused the repair (2026-10-05, two cores).
+    write_file "$tof" "$localf.upgrade-conflict"
     report "CONFLICT" "$corepath ($what predates the shipped one) — yours untouched; the framework's version waits beside it in $corepath.upgrade-conflict$basenote$why"
     N_CONFLICT=$((N_CONFLICT + 1))
   elif [ "$rc" -eq 0 ]; then
@@ -599,6 +606,25 @@ for f in AGENTS.md CLAUDE.md CLAUDE.local.md SOUL.md STRATEGY.md .claude/setting
   [ -e "$CORE/$f" ] && report "yours" "$f"
 done
 report "yours" "everything else the core holds (brand/, scripts/, your own skills…)"
+
+# The guard's local rules (0.13): a file of the core's own, never merged, never
+# written. Said every time, so that "does this core have local guard rules?" has
+# an answer; and when guard.sh itself still carries local edits, where they go.
+if [ -f "$CORE/.claude/hooks/guard.local.sh" ]; then
+  _lift=$(sed -n "s/^[[:space:]]*GUARD_LIFT=[\"']\{0,1\}\([^\"'#]*\).*/\1/p" "$CORE/.claude/hooks/guard.local.sh" | tail -1 | sed 's/[[:space:]]*$//')
+  report "local guard" ".claude/hooks/guard.local.sh — your guard rules, never touched (lifts: ${_lift:-none})"
+  [ -f "$CORE/.claude/hooks/test-guard.local.sh" ] \
+    && report "local guard" ".claude/hooks/test-guard.local.sh — its cases, played by test-guard.sh" \
+    || report "local guard" "no .claude/hooks/test-guard.local.sh — your local rules have no cases of their own"
+else
+  report "local guard" "none (.claude/hooks/guard.local.sh absent)"
+fi
+_gl=$CORE/.claude/hooks/guard.sh; _gb=$FROM_DIR/$MOS/.claude/hooks/guard.sh
+if [ -f "$_gl" ] && [ -f "$_gb" ] && ! cmp -s "$_gl" "$_gb" && ! cmp -s "$_gl" "$TO_DIR/$MOS/.claude/hooks/guard.sh"; then
+  if grep -q 'guard.local.sh' "$TO_DIR/$MOS/.claude/hooks/guard.sh" 2>/dev/null; then
+    report "hint" ".claude/hooks/guard.sh differs from the shipped organ: move your rules into .claude/hooks/guard.local.sh and take the shipped guard.sh as it is (UPGRADING, 0.13.0)"
+  fi
+fi
 
 # ---------------------------------------------------------------------------
 # Class (c), declared migrations — in version order, each idempotent.

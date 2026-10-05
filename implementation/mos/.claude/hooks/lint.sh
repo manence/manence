@@ -1,58 +1,59 @@
 #!/bin/bash
-# Linter mécanique du cadre Manence (couche 5). Remplace le placeholder :
-# c'est le "dur" (script vérifiable) qui prend le relais de kb-lint (skill agentique,
-# jugement) et sert de méthode de repli quand on n'a pas la vue graphe Obsidian.
+# Mechanical linter of the Manence framework (layer 5). Replaces the placeholder:
+# it is the "hard" side (a verifiable script) that takes over from kb-lint (an
+# agentic skill, judgment) and serves as the fallback method when the Obsidian
+# graph view is not at hand.
 #
-# Contrôles sur les .md (hors .git/, .obsidian/, node_modules/), voir Spec §1/§3 :
-#   a. liens markdown relatifs cassés (cible inexistante, après urldecode des %20),
-#      en ignorant les liens cités dans un bloc de code (``` fences) ou en code
-#      inline (`backticks`) : ils documentent, ils ne lient pas
-#   b. liens à slash initial ](/...) (interdits par la Spec §3)
-#   c. ancres cassées : un lien fichier.md#ancre (ou #ancre dans le même fichier)
-#      dont aucun titre de la cible ne produit le slug GitHub correspondant
-#      (algo github-slugger : minuscule, accents conservés, ponctuation retirée sauf
-#      tiret/underscore, espaces→tirets, doublons -1/-2). Leçon d'origine : le slug
-#      d'un titre traduit casse (2026-07-09)
-#   d. frontmatter YAML présent + parseable + champ type: (sauf fichiers exemptés) ;
-#      ":" non quoté dans title/description ; délimiteur en tiret cadratin (—) au
-#      lieu de --- (piège d'éditeur qui casse le YAML)
-#   e. review_when: daté et échu (date YYYY-MM-DD passée) → constat doux (0.4.x).
-#      Les valeurs non datées (déclencheurs-événements) sont ignorées en silence.
-#   f. awaiting: (chantiers, type: work seulement, et seulement si la clé est là) :
-#      STRUCTURE uniquement — soit [], soit une liste d'entrées portant who, what,
-#      kind et since (blocks optionnel), avec kind ∈ {decision, action}, since en
-#      YYYY-MM-DD et who sans espace ni "@" → constat doux. Le lint n'invente ni ne
-#      corrige jamais une attente : il dit seulement si celle qui est écrite tient.
+# Checks on .md files (excluding .git/, .obsidian/, node_modules/), see Spec §1/§3:
+#   a. broken relative markdown links (target does not exist, after urldecoding %20),
+#      ignoring links quoted in a code block (``` fences) or in inline code
+#      (`backticks`): they document, they do not link
+#   b. links with a leading slash ](/...) (forbidden by Spec §3)
+#   c. broken anchors: a file.md#anchor link (or #anchor in the same file)
+#      for which no heading of the target produces the matching GitHub slug
+#      (github-slugger algorithm: lowercase, accents kept, punctuation removed except
+#      hyphen/underscore, spaces→hyphens, duplicates -1/-2). Original lesson: the slug
+#      of a translated heading breaks (2026-07-09)
+#   d. YAML frontmatter present + parseable + a type: field (except exempted files);
+#      unquoted ":" in title/description; delimiter written as an em dash (—)
+#      instead of --- (an editor trap that breaks the YAML)
+#   e. review_when: dated and past due (a YYYY-MM-DD date in the past) → soft finding (0.4.x).
+#      Undated values (event triggers) are silently ignored.
+#   f. awaiting: (workstreams, type: work only, and only if the key is there):
+#      STRUCTURE only: either [], or a list of entries carrying who, what,
+#      kind and since (blocks optional), with kind ∈ {decision, action}, since as
+#      YYYY-MM-DD and who without a space or "@" → soft finding. The lint never invents
+#      nor corrects a wait: it only says whether the one written down holds.
 #   g. (0.12, standalone on a folder) an in-progress/ or done/ nested below
 #      another one (Spec §17), and h. the sizes the Spec bounds: log.md over
 #      150 KB, AGENTS.md over 200 lines (Spec §8, §9). See the end of the file.
 #
-# Portabilité / dépendances (outil LIVRÉ aux utilisateurs) :
-#   - python3 OPTIONNEL : présent → parsing complet (Markdown fences/inline, ancres,
-#     frontmatter, review_when, awaiting). Absent → mode DÉGRADÉ annoncé : liens en
-#     regex ligne à ligne (bash pur), le reste — ancres, frontmatter, review_when et
-#     awaiting — non vérifié. Aucune régression de format.
-#   - PyYAML N'EST PLUS requis ni utilisé : le verdict frontmatter est produit par un
-#     validateur stdlib déterministe (même résultat sur toute machine, avec ou sans
-#     PyYAML installé). Le niveau de parsing est annoncé dans la ligne de résumé.
+# Portability / dependencies (a tool SHIPPED to users):
+#   - python3 OPTIONAL: present → full parsing (Markdown fences/inline, anchors,
+#     frontmatter, review_when, awaiting). Absent → announced DEGRADED mode: links by
+#     line-by-line regex (pure bash), the rest — anchors, frontmatter, review_when and
+#     awaiting — not checked. No format regression.
+#   - PyYAML is NO LONGER required nor used: the frontmatter verdict comes from a
+#     deterministic stdlib validator (same result on any machine, with or without
+#     PyYAML installed). The parsing level is announced in the summary line.
 #
-# Exemptions structurelles :
-#   - la production (Spec §16 : hors git, artefacts jetables) : les chantiers clos
-#     (composant de chemin "done", ou l'ancien production/published/) sont exemptés
-#     des contrôles c et d (jamais réécrits, L3 ; les liens restent contrôlés) ;
-#     dans "in-progress", seul About.md est tenu à l'OKF, les autres artefacts
-#     ne sont contrôlés que sur leurs liens
-#   - .lintignore à la racine du repo (le dossier qui contient .git) : une ligne
-#     par chemin relatif à ignorer entièrement (préfixe ; "#" = commentaire).
-#     Pour les zones hors périmètre du lint : corpus hérité, fichiers dans une
-#     autre langue, etc.
+# Structural exemptions:
+#   - production (Spec §16: outside git, disposable artifacts): closed workstreams
+#     (a "done" path component, or the legacy production/published/) are exempted
+#     from checks c and d (never rewritten, L3; links are still checked);
+#     in "in-progress", only About.md is held to OKF, the other artifacts
+#     are only checked for their links
+#   - .lintignore at the repo root (the folder that contains .git): one line
+#     per relative path to ignore entirely (prefix; "#" = comment).
+#     For areas outside the lint's scope: legacy corpus, files in another
+#     language, etc.
 #
-# Deux modes d'usage :
-#   - standalone : lint.sh [chemin]   -> un fichier, ou tout le repo (défaut : ".")
-#                                         exit 1 s'il y a des constats, 0 sinon
-#   - hook       : lint.sh --hook     -> lit le JSON PostToolUse sur stdin
-#                                         (tool_input.file_path), lint SEULEMENT
-#                                         ce fichier, ne bloque jamais (exit 0)
+# Two modes of use:
+#   - standalone: lint.sh [path]      -> one file, or the whole repo (default: ".")
+#                                         exit 1 if there are findings, 0 otherwise
+#   - hook      : lint.sh --hook      -> reads the PostToolUse JSON on stdin
+#                                         (tool_input.file_path), lints ONLY
+#                                         that file, never blocks (exit 0)
 
 set -uo pipefail
 
@@ -67,10 +68,10 @@ for arg in "$@"; do
 done
 
 if [ "$HOOK_MODE" -eq 1 ]; then
-  # PostToolUse : le fichier édité vient du JSON sur stdin, pas d'un argument chemin.
+  # PostToolUse: the edited file comes from the JSON on stdin, not from a path argument.
   FILE_PATH=$(jq -r '.tool_input.file_path // empty' 2>/dev/null)
   if [ -z "$FILE_PATH" ] || [[ "$FILE_PATH" != *.md ]]; then
-    exit 0  # rien à faire : pas de fichier, ou pas un .md
+    exit 0  # nothing to do: no file, or not a .md
   fi
   TARGET="$FILE_PATH"
 elif [ -z "$TARGET" ]; then
@@ -78,12 +79,12 @@ elif [ -z "$TARGET" ]; then
 fi
 
 if [ ! -e "$TARGET" ]; then
-  echo "lint.sh : chemin introuvable : $TARGET" >&2
+  echo "lint.sh: path not found: $TARGET" >&2
   [ "$HOOK_MODE" -eq 1 ] && exit 0
   exit 0
 fi
 
-# Liste des .md à contrôler, en excluant .git/, .obsidian/, node_modules/
+# List of .md files to check, excluding .git/, .obsidian/, node_modules/
 if [ -f "$TARGET" ]; then
   FILES="$TARGET"
 else
@@ -93,23 +94,23 @@ else
 fi
 
 if [ -z "$FILES" ]; then
-  exit 0  # rien à lint
+  exit 0  # nothing to lint
 fi
 
-# (pas de mapfile : macOS embarque bash 3.2, mapfile/readarray n'existent qu'en 4+)
+# (no mapfile: macOS ships bash 3.2, mapfile/readarray only exist in 4+)
 FILE_ARR=()
 while IFS= read -r line; do
   [ -n "$line" ] && FILE_ARR+=("$line")
 done <<< "$FILES"
 
-# --- Repli DÉGRADÉ sans python3 : les deux contrôles historiques de liens en bash
-# pur (regex ligne à ligne, code inline retiré), honorant .lintignore et les
-# gabarits. Ancres, frontmatter et review_when ne sont PAS vérifiés (annoncé). ---
+# --- DEGRADED fallback without python3: the two historical link checks in pure
+# bash (line-by-line regex, inline code removed), honoring .lintignore and the
+# templates. Anchors, frontmatter and review_when are NOT checked (announced). ---
 run_bash_fallback() {
   local findings=0
   local nfiles=$#
 
-  # racine du repo (dossier ancêtre portant .lintignore ou .git) pour un fichier
+  # repo root (ancestor folder holding .lintignore or .git) for a file
   _repo_root() {
     local d
     d=$(cd "$(dirname "$1")" 2>/dev/null && pwd)
@@ -151,24 +152,24 @@ run_bash_fallback() {
     lineno=0
     while IFS= read -r rawline || [ -n "$rawline" ]; do
       lineno=$((lineno + 1))
-      # retire le code inline `...` (documentation, pas des liens)
+      # remove inline code `...` (documentation, not links)
       local line
       line=$(printf '%s' "$rawline" | sed 's/`[^`]*`/ /g')
-      # extrait chaque cible de lien markdown ](...)
+      # extract each markdown link target ](...)
       printf '%s\n' "$line" | grep -oE '\]\([^)]+\)' 2>/dev/null | \
         sed -E 's/^\]\(//; s/\)$//' | while IFS= read -r target; do
           [ -z "$target" ] && continue
           case "$target" in
-            /*) printf '%s:%s: lien-slash-initial: lien à slash initial interdit (Spec §3) : %s\n' "$file" "$lineno" "$target"; continue ;;
+            /*) printf '%s:%s: leading-slash-link: link with a leading slash is forbidden (Spec §3): %s\n' "$file" "$lineno" "$target"; continue ;;
             *://*|mailto:*|\#*) continue ;;
           esac
-          # retire l'ancre, urldecode %20, résout relativement au fichier
+          # remove the anchor, urldecode %20, resolve relative to the file
           local rel decoded
           rel="${target%%#*}"
           [ -z "$rel" ] && continue
           decoded=$(printf '%s' "$rel" | sed 's/%20/ /g')
           if [ ! -e "$dir/$decoded" ]; then
-            printf '%s:%s: lien-casse: cible introuvable : %s\n' "$file" "$lineno" "$target"
+            printf '%s:%s: broken-link: target not found: %s\n' "$file" "$lineno" "$target"
           fi
         done
     done < "$file"
@@ -179,20 +180,20 @@ run_bash_fallback() {
     findings=$(wc -l < /tmp/.lint_bash_$$ | tr -d ' ')
   fi
   rm -f /tmp/.lint_bash_$$
-  echo "--- lint.sh : ${findings} constat(s) sur ${nfiles} fichier(s) — parsing DÉGRADÉ (python3 absent : liens en regex ligne à ligne ; ancres, frontmatter, review_when et awaiting NON vérifiés) ---"
+  echo "--- lint.sh: ${findings} finding(s) in ${nfiles} file(s) — DEGRADED parsing (python3 missing: links by line-by-line regex; anchors, frontmatter, review_when and awaiting NOT checked) ---"
   [ "$findings" -gt 0 ] && return 1
   return 0
 }
 
-# Sonde d'exécution réelle, pas `command -v` : sous Windows 11, un stub
-# python3.exe (WindowsApps) qui ouvre le Microsoft Store répond « présent »
-# au command -v — le repli dégradé ne se déclenchait jamais et le lint cassait
-# (constat d'install réelle, 2026-08-06).
+# Real execution probe, not `command -v`: on Windows 11, a python3.exe stub
+# (WindowsApps) that opens the Microsoft Store answers "present" to
+# command -v, so the degraded fallback never kicked in and the lint broke
+# (found on a real install, 2026-08-06).
 if python3 -c 'pass' >/dev/null 2>&1; then
-  # Le corps python part dans un fichier temporaire via une simple redirection
-  # (jamais dans un $(...) : le scanner de substitution de bash 3.2 compte les
-  # backticks même à l'intérieur d'un heredoc quoté, et un nombre impair casse
-  # le parsing). Robuste quel que soit le contenu du script.
+  # The python body goes to a temporary file through a plain redirection
+  # (never inside a $(...): the bash 3.2 substitution scanner counts backticks
+  # even inside a quoted heredoc, and an odd number breaks the parsing).
+  # Robust whatever the script contains.
   PYSCRIPT=$(mktemp "${TMPDIR:-/tmp}/lint.XXXXXX") || PYSCRIPT="${TMPDIR:-/tmp}/lint.$$.py"
   cat > "$PYSCRIPT" <<'PYEOF'
 import bisect
@@ -213,23 +214,23 @@ EXEMPT_BASENAMES = {
     "CLAUDE.md",
 }
 
-# Lien markdown inline : le texte reste sur une ligne (comportement historique),
-# l'URL peut se replier une fois (liens multilignes raisonnables).
+# Inline markdown link: the text stays on one line (historical behavior),
+# the URL may wrap once (reasonable multi-line links).
 LINK_RE = re.compile(r'!?\[[^\]\n]*\]\(([^)\n]*(?:\n[^)\n]*)?)\)')
 FM_KEY_RE = re.compile(r'^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
-# awaiting : liste indentée lue sur les lignes brutes du bloc (pas de PyYAML).
-# Une entrée s'ouvre sur un tiret ('  - who: …'), ses clés suivantes sont indentées
-# (4 espaces par convention) et sans tiret.
+# awaiting: indented list read from the raw lines of the block (no PyYAML).
+# An entry opens on a hyphen ('  - who: …'), its following keys are indented
+# (4 spaces by convention) and have no hyphen.
 AWAITING_ITEM_RE = re.compile(r'^ +-\s+([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
 AWAITING_KEY_RE = re.compile(r'^ +([A-Za-z_][A-Za-z0-9_-]*)\s*:\s?(.*)$')
 ISO_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 AWAITING_KINDS = ("decision", "action")
 FENCE_RE = re.compile(r'^ {0,3}(`{3,}|~{3,})')
 ATX_RE = re.compile(r'^ {0,3}#{1,6}\s+(.*)$')
-# tiret cadratin (—, U+2014) ou demi-cadratin (–, U+2013) tenant lieu de délimiteur
+# em dash (—, U+2014) or en dash (–, U+2013) standing in for a delimiter
 DASH_LINE_RE = re.compile(r'^\s*[—–]+\s*$')
-# github-slugger : ponctuation retirée (accents et lettres unicode conservés,
-# tiret et underscore conservés)
+# github-slugger: punctuation removed (accents and unicode letters kept,
+# hyphen and underscore kept)
 SPECIALS_RE = re.compile(
     "[\\u2000-\\u206F\\u2E00-\\u2E7F\\\\'!\"#$%&()*+,./:;<=>?@\\[\\]^`{|}~\\u2019]")
 
@@ -243,9 +244,9 @@ def report(path, line, kind, detail):
 
 
 def _repo_root(start_dir):
-    """Remonte jusqu'au premier dossier qui contient un .lintignore ou un .git
-    (la production vit hors git par doctrine : son .lintignore doit porter quand
-    même — sémantique .gitignore)."""
+    """Walk up to the first folder that contains a .lintignore or a .git
+    (production lives outside git by doctrine: its .lintignore must still
+    apply, .gitignore semantics)."""
     d = os.path.abspath(start_dir) or "/"
     while True:
         if os.path.isfile(os.path.join(d, ".lintignore")) or os.path.isdir(os.path.join(d, ".git")):
@@ -257,7 +258,7 @@ def _repo_root(start_dir):
 
 
 def is_lintignored(path):
-    """Vrai si le fichier matche un préfixe du .lintignore de son repo."""
+    """True if the file matches a prefix of its repo's .lintignore."""
     root = _repo_root(os.path.dirname(os.path.abspath(path)) or ".")
     if root is None:
         return False
@@ -280,9 +281,9 @@ def is_lintignored(path):
 
 
 def is_loose_production(path):
-    """Artefacts de production exemptés d'OKF/typographie, liens contrôlés (Spec §16/§8) :
-    chantiers clos (done/, ou l'ancien production/published/), et tout artefact
-    d'un chantier en cours (in-progress/) autre que son About.md."""
+    """Production artifacts exempted from OKF/typography, links checked (Spec §16/§8):
+    closed workstreams (done/, or the legacy production/published/), and every artifact
+    of a workstream in progress (in-progress/) other than its About.md."""
     parts = os.path.normpath(path).split(os.sep)
     if "done" in parts or ("production" in parts and "published" in parts):
         return True
@@ -297,28 +298,28 @@ def is_exempt_from_frontmatter(path, basename):
     if basename.endswith(".template.md"):
         return True
     if basename == "SKILL.md":
-        return True  # format skill Claude Code : frontmatter name/description, pas OKF
+        return True  # Claude Code skill format: name/description frontmatter, not OKF
     parts = os.path.normpath(path).split(os.sep)
     if "inbox" in parts:
-        return True  # inbox/ : capture brute pré-contrat, frictionless par doctrine ;
-        # le garde-temps est à la weekly-review : capture > 14 j = triée ou supprimée
+        return True  # inbox/: raw pre-contract capture, frictionless by doctrine;
+        # the time guard is the weekly-review's: capture > 14 days = sorted or deleted
     if "sources" in parts:
-        return True  # sources/ : inputs bruts immuables (méthode wiki), pas des pages de connaissance
+        return True  # sources/: immutable raw inputs (wiki method), not knowledge pages
     if ".claude" in parts and "agents" in parts:
-        return True  # format sous-agent Claude Code : frontmatter name/description/tools/model, pas OKF
+        return True  # Claude Code subagent format: name/description/tools/model frontmatter, not OKF
     return False
 
 
-# --- Slug GitHub (github-slugger) et index des ancres d'un fichier -----------
+# --- GitHub slug (github-slugger) and the anchor index of a file -------------
 
 def github_slug(text):
-    """Reproduit github-slugger : lien/image réduits à leur texte visible,
-    minuscule, ponctuation retirée (SPECIALS), espaces → tirets. Accents,
-    lettres unicode, tiret et underscore conservés."""
+    """Reproduces github-slugger: link/image reduced to its visible text,
+    lowercase, punctuation removed (SPECIALS), spaces → hyphens. Accents,
+    unicode letters, hyphen and underscore kept."""
     text = re.sub(r'!\[([^\]]*)\]\([^)]*\)', r'\1', text)
     text = re.sub(r'\[([^\]]*)\]\([^)]*\)', r'\1', text)
     text = text.strip()
-    text = re.sub(r'\s+#+\s*$', '', text)  # ATX fermé : "## Titre ##"
+    text = re.sub(r'\s+#+\s*$', '', text)  # closed ATX: "## Title ##"
     text = text.lower()
     text = SPECIALS_RE.sub('', text)
     text = re.sub(r'\s', '-', text)
@@ -326,8 +327,8 @@ def github_slug(text):
 
 
 def heading_slugs(path):
-    """Ensemble des slugs de titres (ATX, hors blocs de code) d'un fichier,
-    avec la dé-duplication -1/-2 de github-slugger."""
+    """Set of heading slugs (ATX, outside code blocks) of a file,
+    with github-slugger's -1/-2 de-duplication."""
     if path in _slug_cache:
         return _slug_cache[path]
     slugs = set()
@@ -369,12 +370,12 @@ def heading_slugs(path):
     return slugs
 
 
-# --- Parsing Markdown des liens (fences + code inline + multiligne) ----------
+# --- Markdown parsing of links (fences + inline code + multi-line) -----------
 
 def strip_inline_code(text):
-    """Neutralise les spans de code inline (`...`, ``...``) en préservant les
-    positions (remplacement par des espaces, retours à la ligne gardés) pour
-    que les offsets restent alignés sur les numéros de ligne."""
+    """Neutralizes inline code spans (`...`, ``...``) while preserving
+    positions (replaced by spaces, newlines kept) so that the offsets
+    stay aligned with line numbers."""
     res = list(text)
     n = len(text)
     i = 0
@@ -400,7 +401,7 @@ def strip_inline_code(text):
             else:
                 k += 1
         if closed_at == -1:
-            i = j  # run non fermé : pas un span, on le laisse
+            i = j  # unclosed run: not a span, leave it
             continue
         for p in range(i, closed_at):
             if res[p] != "\n":
@@ -410,8 +411,8 @@ def strip_inline_code(text):
 
 
 def build_scan_text(content):
-    """Texte prêt à scanner : lignes de blocs de code (``` / ~~~) blanchies,
-    code inline neutralisé, longueurs et retours à la ligne préservés."""
+    """Text ready to scan: code block lines (``` / ~~~) blanked,
+    inline code neutralized, lengths and newlines preserved."""
     out = []
     in_fence = False
     fence_char = None
@@ -433,7 +434,7 @@ def build_scan_text(content):
 
 def check_links(path, content):
     if os.path.basename(path).endswith(".template.md"):
-        return  # gabarits : les liens sont des placeholders volontaires
+        return  # templates: the links are deliberate placeholders
     directory = os.path.dirname(path)
     text = build_scan_text(content)
     newline_offsets = [mo.start() for mo in re.finditer("\n", text)]
@@ -447,11 +448,11 @@ def check_links(path, content):
             continue
         lineno = lineno_at(match.start())
         if target.startswith("/"):
-            report(path, lineno, "lien-slash-initial",
-                   f"lien à slash initial interdit (Spec §3) : {target}")
+            report(path, lineno, "leading-slash-link",
+                   f"link with a leading slash is forbidden (Spec §3): {target}")
             continue
         if "://" in target or target.startswith("mailto:"):
-            continue  # lien externe, hors périmètre
+            continue  # external link, out of scope
         if "#" in target:
             file_part, anchor = target.split("#", 1)
         else:
@@ -459,28 +460,28 @@ def check_links(path, content):
         file_part = file_part.strip()
 
         if file_part == "":
-            resolved = path  # ancre dans le même fichier
+            resolved = path  # anchor in the same file
         else:
             decoded = unquote(file_part)
             resolved = os.path.normpath(os.path.join(directory, decoded))
             if not os.path.exists(resolved):
-                report(path, lineno, "lien-casse",
-                       f"cible introuvable : {target} (résolu : {resolved})")
+                report(path, lineno, "broken-link",
+                       f"target not found: {target} (resolved: {resolved})")
                 continue
 
         if anchor:
             anchor_dec = unquote(anchor).strip().lower()
             if anchor_dec and resolved.endswith(".md") and os.path.isfile(resolved):
                 if anchor_dec not in heading_slugs(resolved):
-                    where = "ce fichier" if file_part == "" else os.path.basename(resolved)
-                    report(path, lineno, "ancre-cassee",
-                           f"ancre introuvable : #{anchor} (aucun titre de {where} ne produit ce slug)")
+                    where = "this file" if file_part == "" else os.path.basename(resolved)
+                    report(path, lineno, "broken-anchor",
+                           f"anchor not found: #{anchor} (no heading of {where} produces this slug)")
 
 
-# --- Frontmatter : validateur stdlib déterministe (aucune dépendance PyYAML) -
+# --- Frontmatter: deterministic stdlib validator (no PyYAML dependency) ------
 
 def parse_frontmatter_block(lines):
-    """Retourne (block_lines, start_index, end_index) ou (None, None, None)."""
+    """Returns (block_lines, start_index, end_index) or (None, None, None)."""
     if not lines or lines[0].strip() != "---":
         return None, None, None
     for i in range(1, len(lines)):
@@ -494,22 +495,22 @@ def _leading_ws(raw):
 
 
 def frontmatter_structural_error(block):
-    """Détecte les cassures YAML porteuses en stdlib pur : tabulation dans
-    l'indentation, ou ligne de premier niveau qui n'est ni 'clé: valeur' ni un
-    item de liste. Retourne (offset, message) ou None."""
+    """Detects load-bearing YAML breakage in pure stdlib: a tab in the
+    indentation, or a top-level line that is neither 'key: value' nor a
+    list item. Returns (offset, message) or None."""
     for offset, raw in enumerate(block):
         if "\t" in _leading_ws(raw):
-            return offset, "tabulation dans l'indentation (interdit en YAML)"
+            return offset, "tab in the indentation (forbidden in YAML)"
     for offset, raw in enumerate(block):
         s = raw.strip()
         if not s or s.startswith("#"):
             continue
         if raw[:1] in (" ", "\t"):
-            continue  # ligne indentée : continuation / liste / imbrication
+            continue  # indented line: continuation / list / nesting
         if s.startswith("- "):
-            continue  # item de liste de premier niveau
+            continue  # top-level list item
         if not FM_KEY_RE.match(raw):
-            return offset, f"ligne non reconnue (attendu 'clé: valeur') : {s}"
+            return offset, f"unrecognized line (expected 'key: value'): {s}"
     return None
 
 
@@ -532,26 +533,26 @@ def _scalar(value):
     return value.strip().strip('"').strip("'").strip()
 
 
-def _sans_commentaire(v):
-    """Retire un commentaire YAML de fin de ligne (un '#' précédé d'un blanc) : le gabarit
-    et la migration 0.8 posent `awaiting: []   # ...`, ce qui doit rester valide."""
+def _strip_comment(v):
+    """Removes a trailing YAML comment (a '#' preceded by whitespace): the template
+    and the 0.8 migration write `awaiting: []   # ...`, which must stay valid."""
     return re.split(r"\s+#", v or "", maxsplit=1)[0].strip()
 
 
 def check_awaiting(path, block, kv, line_of):
-    """Structure du champ awaiting (Spec §16), sur les chantiers seulement :
-    soit [], soit une liste d'entrées who/what/kind/since (+ blocks optionnel).
-    Constat DOUX : le lint dit ce qui ne tient pas, il ne corrige rien et
-    n'invente jamais une attente à partir de la prose."""
+    """Structure of the awaiting field (Spec §16), on workstreams only:
+    either [], or a list of who/what/kind/since entries (+ optional blocks).
+    SOFT finding: the lint says what does not hold, corrects nothing and
+    never invents a wait from the prose."""
     offset = line_of["awaiting"]
-    inline = _sans_commentaire(_scalar(kv["awaiting"]))
+    inline = _strip_comment(_scalar(kv["awaiting"]))
     if inline:
         if inline.replace(" ", "") != "[]":
             report(path, offset + 2, "awaiting-structure",
-                   f"awaiting attend '[]' ou une liste d'entrées indentées, trouvé : {inline}")
+                   f"awaiting expects '[]' or a list of indented entries, found: {inline}")
         return
 
-    entries = []  # [(offset de l'entrée, {clé: (offset, valeur)})]
+    entries = []  # [(offset of the entry, {key: (offset, value)})]
     current = None
     i = offset + 1
     while i < len(block):
@@ -560,39 +561,39 @@ def check_awaiting(path, block, kv, line_of):
             i += 1
             continue
         if raw[:1] not in (" ", "\t"):
-            break  # retour au premier niveau : la liste est finie
+            break  # back to the top level: the list is over
         m = AWAITING_ITEM_RE.match(raw)
         if m:
-            current = {m.group(1): (i, _sans_commentaire(m.group(2)))}
+            current = {m.group(1): (i, _strip_comment(m.group(2)))}
             entries.append((i, current))
             i += 1
             continue
         m = AWAITING_KEY_RE.match(raw)
         if m and current is not None:
-            current[m.group(1)] = (i, _sans_commentaire(m.group(2)))
+            current[m.group(1)] = (i, _strip_comment(m.group(2)))
             i += 1
             continue
         report(path, i + 2, "awaiting-structure",
-               f"ligne d'attente non reconnue (attendu '  - clé: valeur' puis "
-               f"'    clé: valeur') : {raw.strip()}")
+               f"unrecognized wait line (expected '  - key: value' then "
+               f"'    key: value'): {raw.strip()}")
         i += 1
 
     if not entries:
         report(path, offset + 2, "awaiting-structure",
-               "awaiting déclaré sans aucune entrée : écrire 'awaiting: []' quand rien n'attend")
+               "awaiting declared without any entry: write 'awaiting: []' when nothing is waiting")
         return
 
     for eoff, entry in entries:
         for key in ("who", "what", "kind", "since"):
             if key not in entry or not _scalar(entry[key][1]):
                 report(path, eoff + 2, "awaiting-structure",
-                       f"entrée d'attente sans '{key}:' (who, what, kind et since "
-                       f"sont obligatoires, blocks est optionnel)")
+                       f"wait entry without '{key}:' (who, what, kind and since "
+                       f"are required, blocks is optional)")
         if "kind" in entry:
             kind = _scalar(entry["kind"][1])
             if kind and kind not in AWAITING_KINDS:
                 report(path, entry["kind"][0] + 2, "awaiting-structure",
-                       f"kind attend 'decision' ou 'action', trouvé : {kind}")
+                       f"kind expects 'decision' or 'action', found: {kind}")
         if "since" in entry:
             since = _scalar(entry["since"][1])
             bad = not ISO_DATE_RE.match(since)
@@ -603,23 +604,23 @@ def check_awaiting(path, block, kv, line_of):
                     bad = True
             if since and bad:
                 report(path, entry["since"][0] + 2, "awaiting-structure",
-                       f"since attend une date YYYY-MM-DD (le jour où l'attente est "
-                       f"née), trouvé : {since}")
+                       f"since expects a YYYY-MM-DD date (the day the wait "
+                       f"began), found: {since}")
         if "who" in entry:
             who = _scalar(entry["who"][1])
             if who and (" " in who or "@" in who):
                 report(path, entry["who"][0] + 2, "awaiting-structure",
-                       f"who attend un identifiant court et stable du MOS (ni espace "
-                       f"ni '@', pas un e-mail ni un nom complet), trouvé : {who}")
+                       f"who expects a short, stable MOS identifier (no space "
+                       f"and no '@', not an e-mail nor a full name), found: {who}")
 
 
 def check_frontmatter(path, lines, basename):
     exempt = is_exempt_from_frontmatter(path, basename)
-    # Les gabarits, skills, agents et sources gardent leurs formats propres
-    # (placeholders, frontmatter Claude Code) : entièrement hors périmètre.
-    # Les points d'entrée (index/README/QUICKSTART/AGENTS/CLAUDE) ne sont pas TENUS
-    # d'avoir un frontmatter, mais s'ils en ont un, il doit être VALIDE
-    # (piège vécu : un ":" non quoté dans QUICKSTART cassait le rendu Obsidian).
+    # Templates, skills, agents and sources keep their own formats
+    # (placeholders, Claude Code frontmatter): entirely out of scope.
+    # Entry points (index/README/QUICKSTART/AGENTS/CLAUDE) are not REQUIRED
+    # to have a frontmatter, but if they have one, it must be VALID
+    # (a real trap: an unquoted ":" in QUICKSTART broke the Obsidian rendering).
     fully_out = (basename.endswith(".template.md") or basename == "SKILL.md"
                  or is_lintignored(path))
     parts = os.path.normpath(path).split(os.sep)
@@ -633,18 +634,18 @@ def check_frontmatter(path, lines, basename):
     block, start, end = parse_frontmatter_block(lines)
 
     if block is None:
-        # Piège d'éditeur : le délimiteur --- devient un tiret cadratin (—).
+        # Editor trap: the --- delimiter turns into an em dash (—).
         if lines and DASH_LINE_RE.match(lines[0]) and lines[0].strip() != "---":
-            report(path, 1, "tiret-cadratin",
-                   "délimiteur de frontmatter en tiret cadratin/demi-cadratin au lieu de '---'")
+            report(path, 1, "em-dash-delimiter",
+                   "frontmatter delimiter written as an em/en dash instead of '---'")
             return
         if is_log or exempt:
-            return  # frontmatter toléré mais pas exigé
-        report(path, 1, "frontmatter-manquant",
-               "pas de frontmatter YAML (--- ... ---) en tête de fichier")
+            return  # frontmatter tolerated but not required
+        report(path, 1, "missing-frontmatter",
+               "no YAML frontmatter (--- ... ---) at the top of the file")
         return
 
-    # Piège : ":" non quoté dans title/description (casse le YAML)
+    # Trap: unquoted ":" in title/description (breaks the YAML)
     for offset, raw in enumerate(block):
         m = FM_KEY_RE.match(raw)
         if not m:
@@ -654,20 +655,20 @@ def check_frontmatter(path, lines, basename):
             continue
         quoted = value.startswith('"') or value.startswith("'")
         if not quoted and re.search(r'\S : \S|\S :\s*$', value):
-            report(path, offset + 2, "yaml-deux-points-non-quote",
-                   f"'{key}:' contient un ':' non quoté, quoter la valeur : {value}")
+            report(path, offset + 2, "yaml-unquoted-colon",
+                   f"'{key}:' contains an unquoted ':', quote the value: {value}")
 
-    # Validité structurelle (stdlib, déterministe)
+    # Structural validity (stdlib, deterministic)
     err = frontmatter_structural_error(block)
     if err:
         off, msg = err
-        report(path, off + 2, "frontmatter-invalide", msg)
+        report(path, off + 2, "invalid-frontmatter", msg)
         return
 
     kv, line_of = top_level_kv(block)
 
-    # review_when: daté et échu → constat doux (0.4.x). Non daté = déclencheur
-    # événement, ignoré en silence.
+    # review_when: dated and past due → soft finding (0.4.x). Undated = event
+    # trigger, silently ignored.
     if "review_when" in kv:
         val = kv["review_when"].strip().strip('"').strip("'").strip()
         dm = re.match(r'(\d{4})-(\d{2})-(\d{2})', val)
@@ -675,22 +676,22 @@ def check_frontmatter(path, lines, basename):
             try:
                 due = date(int(dm.group(1)), int(dm.group(2)), int(dm.group(3)))
                 if due < TODAY:
-                    report(path, line_of["review_when"] + 2, "review_when-echu",
-                           f"review_when échu : {dm.group(0)} (échéance passée ; la fiche "
-                           f"cesse de faire foi seule, reconfirmer ou mettre à jour)")
+                    report(path, line_of["review_when"] + 2, "review_when-due",
+                           f"review_when past due: {dm.group(0)} (deadline passed; the page "
+                           f"no longer stands on its own, reconfirm or update it)")
             except ValueError:
-                pass  # date malformée : pas notre affaire ici
+                pass  # malformed date: not our business here
 
-    # awaiting: structure seulement, sur les chantiers et si la clé est présente.
+    # awaiting: structure only, on workstreams and if the key is present.
     if kv.get("type", "").strip() == "work" and "awaiting" in kv:
         check_awaiting(path, block, kv, line_of)
 
-    # Présence de type:
+    # Presence of type:
     if not kv.get("type"):
         if is_log or exempt:
-            return  # type: toléré mais pas exigé sur les logs et points d'entrée
-        report(path, start + 1, "type-manquant",
-               "frontmatter présent mais champ 'type:' absent ou vide")
+            return  # type: tolerated but not required on logs and entry points
+        report(path, start + 1, "missing-type",
+               "frontmatter present but the 'type:' field is missing or empty")
 
 
 def lint_file(path):
@@ -698,11 +699,11 @@ def lint_file(path):
         with open(path, "r", encoding="utf-8") as fh:
             content = fh.read()
     except (OSError, UnicodeDecodeError) as exc:
-        report(path, 1, "lecture-impossible", str(exc))
+        report(path, 1, "unreadable", str(exc))
         return
     basename = os.path.basename(path)
     if is_lintignored(path):
-        return  # zone déclarée hors périmètre par le .lintignore du repo
+        return  # area declared out of scope by the repo's .lintignore
     check_links(path, content)
     if not is_loose_production(path):
         check_frontmatter(path, content.splitlines(), basename)
@@ -714,8 +715,8 @@ def main():
         lint_file(path)
     for line in findings:
         print(line)
-    print(f"--- lint.sh : {len(findings)} constat(s) sur {len(paths)} fichier(s) "
-          f"— parsing Markdown complet (fences/inline/ancres), frontmatter déterministe (stdlib) ---")
+    print(f"--- lint.sh: {len(findings)} finding(s) in {len(paths)} file(s) "
+          f"— full Markdown parsing (fences/inline/anchors), deterministic frontmatter (stdlib) ---")
     sys.exit(1 if findings else 0)
 
 
@@ -733,7 +734,7 @@ fi
 echo "$REPORT"
 
 if [ "$HOOK_MODE" -eq 1 ]; then
-  exit 0  # PostToolUse : on rapporte, on ne bloque jamais
+  exit 0  # PostToolUse: we report, we never block
 fi
 
 # --- Structure (0.12), standalone mode on a folder only; bash, no python needed.

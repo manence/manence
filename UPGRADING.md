@@ -74,6 +74,29 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.13.0 — The admin GO, local guard rules, and what moved since the last session
+
+The guardrail can be opened by the user's own words for one session, a MOS's guard rules get a file of their own, and each session opens with what moved since the last one.
+
+**Automatic**
+
+- `guard.sh` is replaced or merged: the admin GO (rule 4 opens for a session that holds a grant, each write traced), rule 4bis, `touch`/`mv`/`chmod` on its files refused, and the call to `.claude/hooks/guard.local.sh` when it exists. If your `guard.sh` carries rules of your own, you get a conflict: see the first manual touch below, do not re-merge.
+- `test-guard.sh` is replaced or merged (132 cases): BLOCK cases now name their rule, cases lifted by your local file are skipped and named, `test-guard.local.sh` is played when it exists.
+- New organs, `created`: `admin-go.sh` (the admin GO, on `UserPromptSubmit` and `SessionStart`), `since-last-session.sh` (`SessionStart`), `verify-go.sh` (the signed-GO check, called by nothing yet).
+- `lint.sh` and `consignes.sh` are replaced or merged: English messages and finding codes, same behavior. A core that kept local edits in `lint.sh` will likely get a conflict, since nearly every comment line changed: take the shipped file and re-apply your edit.
+- The dry run now says whether a local guard exists (`local guard` lines), and hints when `guard.sh` still differs from the shipped organ.
+- A "predates" conflict now lays the shipped organ itself beside your file (it used to be a merge full of markers).
+
+<!-- manual v0.13.0 -->
+- `guard.sh` hand-merged with rules of your own (a CONFLICT here, or the `hint` line): move those rules into `.claude/hooks/guard.local.sh` (refusals in `local_file_rules` / `local_shell_rules`, each setting `REASON` and `RULE`; a shipped rule you override goes in `GUARD_LIFT`, plus a narrower local rule if you keep part of it), their cases into `.claude/hooks/test-guard.local.sh` (`local_cases`, `local_edits`), take the shipped `guard.sh` and `test-guard.sh` as they are, then run `test-guard.sh` until it is green.
+- **For this upgrade itself, every touch under `.claude/` is the user's hand.** The admin GO does not exist yet: the 0.12 guard already refuses the agent in `.claude/hooks/`, the 0.12 deny rules still stand, and the new hooks are only read by a new session once `settings.json` wires them. So the user resolves the conflicts under `.claude/hooks/` (the agent prepares the merged file elsewhere and shows it), makes the `settings.json` touch below, then opens a new session; from there on, an admin GO lets the agent do such touches. Never install a `.upgrade-conflict` file without opening it (a merge full of markers was installed as is on a core, 2026-10-05).
+- `.claude/settings.json` (by the user's hand, one last time): add the `UserPromptSubmit` entry running `admin-go.sh`, and two `SessionStart` commands, `since-last-session.sh` and `admin-go.sh --session-start` (copy them from the shipped `settings.json`); remove `Edit(./.claude/hooks/**)`, `Edit(./.claude/settings.json)` and `Edit(./.claude/settings.local.json)` from `permissions.deny`: a deny outranks every hook, and under Claude Code it would keep these files shut even after an admin GO.
+- `.gitignore`: add `.claude/hooks/grants/` (the session grants stay local).
+- Codex: in `.codex/config.toml`, add a `[[hooks.UserPromptSubmit]]` running `admin-go.sh` and a `[[hooks.SessionStart]]` running the two start hooks, in the same form as your `PreToolUse` entry. Not observed under Codex yet: until it is, treat the admin GO there as absent (the guard simply stays shut). Grok reads `.claude/settings.json`; same status.
+- `AGENTS.md`: replace the line on the guardrail's own files with the shipped one (it names the admin GO and `guard.local.sh`).
+- Every harness you use: `bash .claude/hooks/test-guard.sh` green, then, in a real session, ask for a write to `.claude/hooks/lint.sh` without the words (refused, and the refusal tells the agent how to ask), then with "admin GO" (passes, a `guard-files-granted` line in `.claude/guard-refusals.log`), then in a new session again (refused). Under Claude Code in bypass mode no harness prompt appears on these writes (observed 2026-10-05); in another permission mode the harness may still ask its own question for a file under `.claude/`: that one is the harness's, not the framework's.
+<!-- /manual -->
+
 ## 0.12.0 — The guardrail guards itself, and the journal rotates
 
 The guardrail refuses to rewrite its own files and leaves a trace of every refusal; the journal gets its direction written down and a script to rotate it; the base skills take the fixes of their first month in use.

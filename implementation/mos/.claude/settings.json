@@ -1,11 +1,20 @@
 {
-  "//": "The core's .claude/settings.json (layer 5). Two hard paths (Spec §12): the hooks (deterministic guardrails before/after an action) and permissions.deny (a blocklist evaluated by the permission engine itself). Structure per the Claude Code documentation. Hooks are invoked through bash explicitly: under Windows/PowerShell, a .sh called directly runs NOTHING, without an error, and the guard would fail open in silence (real install, 2026-08-06). This file and .claude/hooks/ change through upgrade.sh or by the user's hand, never through the agent's file tools (the deny below, and guard.sh rule 4).",
+  "//": "The core's .claude/settings.json (layer 5). Two hard paths (Spec §12): the hooks (deterministic guardrails before/after an action) and permissions.deny (a blocklist evaluated by the permission engine itself). Structure per the Claude Code documentation. Hooks are invoked through bash explicitly: under Windows/PowerShell, a .sh called directly runs NOTHING, without an error, and the guard would fail open in silence (real install, 2026-08-06). This file and .claude/hooks/ change through upgrade.sh or by the user's hand, never through the agent's file tools (guard.sh rule 4), except in a session where the user said \"admin GO\" (admin-go.sh, on UserPromptSubmit): then they are open for that session, every write traced.",
 
   "hooks": {
     "SessionStart": [
       {
         "hooks": [
-          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/consignes.sh\"" }
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/consignes.sh\"" },
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/since-last-session.sh\"" },
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/admin-go.sh\" --session-start" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/admin-go.sh\"" }
         ]
       }
     ],
@@ -34,16 +43,13 @@
   },
 
   "permissions": {
-    "//": "Second hard path (Spec §12): a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are denied so that the agent cannot rewrite what constrains it.",
+    "//": "Second hard path (Spec §12): a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are NOT listed here since 0.13: a deny rule outranks every hook, and Claude Code applies Edit(...) rules to shell redirections too, so a deny would keep them shut even after the user's admin GO (observed 2026-10-05). guard.sh rule 4 holds them instead, for the file tools and the shell, and a hook deny holds in every permission mode, bypass included.",
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Read(./.env)",
-      "Read(./.env.*)",
-      "Edit(./.claude/hooks/**)",
-      "Edit(./.claude/settings.json)",
-      "Edit(./.claude/settings.local.json)"
+      "Read(./.env.*)"
     ]
   }
 }

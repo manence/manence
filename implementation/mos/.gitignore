@@ -22,3 +22,6 @@ carte-*.html
 
 # The guardrail's refusal trace (guard.sh): local, append-only, never committed
 .claude/guard-refusals.log
+
+# The admin GO grants (admin-go.sh): one file per session, local, never committed
+.claude/hooks/grants/
