@@ -21,7 +21,10 @@
 #      and no shell segment writes there either (a redirection, sed/perl -i, tee,
 #      truncate, touch, rm/trash/unlink, ln, mv naming one of them anywhere,
 #      cp/install/rsync whose last argument is one of them, or a chmod that takes
-#      the owner's read bit away). Reading them, and running them, stays free. These files
+#      the owner's read bit away; since 0.13.1 the path is read through a variable,
+#      ~/, $HOME, $PWD, $(pwd), "//", "/./" and "dir/../", and a cd into the
+#      folder, a guarded path put in a variable, or an interpreter one-liner that
+#      names one of them count when the command writes). Reading them, and running them, stays free. These files
 #      change through upgrade.sh (run by the user or by the agent as a script) or
 #      by the user's hand: a guardrail the agent can rewrite protects nothing.
 #      Since 0.13 this hook is the only layer for these files: permissions.deny
@@ -295,19 +298,55 @@ chmod_drops_read() {
   } END { exit hit ? 0 : 1 }'
 }
 
-# 4. a shell write to the guardrail's own files. The project's absolute path is
-# folded to "./" first, then a guarded path is one that starts the word:
-# ".claude/hooks/…" or "./.claude/settings.json" — not "implementation/mos/.claude/…",
-# which is someone else's copy (the framework's own source tree, for one).
-if [ -z "$REASON" ]; then
-  FOLDED=$SEGMENTS; FOLDED_LINE=$JOINED
+# 4. a shell write to the guardrail's own files. The path is folded first: the
+# home and working-directory forms (~/, $HOME/, $PWD/, $(pwd)/…) become the real
+# directories, "//", "/./" and "dir/../" collapse, and the project's absolute path
+# becomes "./". A guarded path is then one that starts the word, a variable
+# allowed in front ($R/.claude/hooks/…, "${R}"/.claude/settings.json: a variable
+# there is presumed to name the project): ".claude/hooks/…" or
+# "./.claude/settings.json" — not "implementation/mos/.claude/…", which is
+# someone else's copy (the framework's own source tree, for one).
+# 0.13.1: three more shapes of the same mistake, seen on a core on 2026-10-06. A
+# command that changes into the guarded folder (cd .claude/hooks) or puts a
+# guarded path in a variable (H=.claude/hooks) and then writes anything; and an
+# interpreter one-liner (python3 -c, node -e…) that names a guarded file and
+# writes. Still an anti-mistake barrier: a path the shell builds at run time, a
+# glob (.clau*/hooks) or a script that writes from a file of its own is not seen.
+fold_paths() {  # stdin -> stdout: the text with its paths folded as above
+  local t h
+  t=$(cat)
+  for h in '${HOME}/' '"${HOME}"/' '"$HOME"/' '$HOME/' '~/'; do t=${t//"$h"/$HOME/}; done
+  for h in '"$(pwd -P)"/' '"$(pwd)"/' '$(pwd -P)/' '$(pwd)/' '`pwd`/' '"${PWD}"/' '"$PWD"/' '${PWD}/' '$PWD/'; do
+    t=${t//"$h"/$CWD/}
+  done
+  t=$(printf '%s' "$t" | sed -E -e ':a' -e 's#//+#/#g; s#/\./#/#g' \
+    -e 's#(^|[[:space:]"'\''=/])([^./[:space:]"'\''=][^/[:space:]"'\''=]*|\.[^./[:space:]"'\''=][^/[:space:]"'\''=]*)/\.\./#\1#g' -e 'ta')
   for root in "$PROJ_REAL" "$PROJ"; do
     [ -n "$root" ] || continue
-    FOLDED=${FOLDED//"$root"\//./}; FOLDED_LINE=${FOLDED_LINE//"$root"\//./}
+    t=${t//"$root"\//./}
   done
-  GP='(\./)?\.claude/(hooks(/|[[:space:]"'\'']|$)|settings(\.local)?\.json)'
+  printf '%s\n' "$t" | sed -E 's#(^|[[:space:]"'\''=])(\./)+#\1./#g'
+}
+if [ -z "$REASON" ]; then
+  FOLDED=$(printf '%s' "$SEGMENTS" | fold_paths); FOLDED_LINE=$(printf '%s' "$JOINED" | fold_paths)
+  VP='(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?"?/)?'
+  GP="${VP}"'(\./)?\.claude/(hooks(/|[[:space:]"'\'']|$)|settings(\.local)?\.json)'
   W='(^|[[:space:]"'\''=])'
+  # Any write at all in the command: a redirection (to a file, not a descriptor or
+  # /dev/null), or a segment that begins with a writing command. Used for the cd,
+  # variable and interpreter shapes, where the written path itself is not readable.
+  any_write() {
+    printf '%s\n' "$FOLDED_LINE" | sed -E 's#[0-9]*>{1,2}[|]?[[:space:]]*(&[0-9-]*|/dev/(null|stdout|stderr|tty|fd/[0-9]+))##g' | grep -q '>' \
+      || echo "$FOLDED" | grep -qE "${PREFIX}((sed|perl)[[:space:]](.*[[:space:]])?-[A-Za-z]*i|(tee|truncate|touch|rm|trash|unlink|shred|ln|mv|cp|install|rsync|dd)([[:space:]]|$)|git([[:space:]]+-[^[:space:]]+([[:space:]]+[^[:space:]]+)?)*[[:space:]]+(checkout|restore|apply|am|mv|rm)([[:space:]]|$))"
+  }
+  GUARDED_DIR="${VP}"'(\./)?\.claude(/hooks)?/?'
+  MENTION=$(printf '%s\n' "$FOLDED_LINE" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
   if echo "$FOLDED_LINE" | grep -qE ">[|]?[[:space:]]*[\"']?${GP}" \
+    || { echo "$FOLDED" | grep -qE "${PREFIX}(cd|pushd)[[:space:]]+[\"']?${GUARDED_DIR}[\"']?[[:space:]]*$" && any_write; } \
+    || { echo "$MENTION" | grep -qE "${W}[A-Za-z_][A-Za-z0-9_]*=[\"']?(${GUARDED_DIR}|${GP}[^[:space:]\"';]*)([[:space:]\"';]|$)" && any_write; } \
+    || { echo "$FOLDED" | grep -qE "${PREFIX}(python3?|node|ruby|php|deno|bun|perl)[[:space:]]" \
+         && echo "$MENTION" | grep -qE '\.claude/(hooks|settings)' \
+         && echo "$MENTION" | grep -qE "open\([^)]*[\"'][wax+]|write|unlink|remove|rename|truncate|chmod|rmtree|copyfile|move\(|rmSync|[^0-9&]>{1,2}[[:space:]]*[^&[:space:]]"; } \
     || echo "$FOLDED" | grep -E "${PREFIX}(sed|perl)[[:space:]](.*[[:space:]])?-[A-Za-z]*i" | grep -qE "${W}${GP}" \
     || echo "$FOLDED" | grep -E "${PREFIX}(tee|truncate|touch|rm|trash|unlink|shred|ln|mv)([[:space:]]|$)" | grep -qE "${W}${GP}" \
     || echo "$FOLDED" | grep -E "${PREFIX}(cp|install|rsync)[[:space:]]" | grep -qE "${W}${GP}[^[:space:]]*[[:space:]]*$" \

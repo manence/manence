@@ -27,6 +27,7 @@ SANDBOX=$(cd "$SANDBOX" && pwd -P)
 PROJ="$SANDBOX/proj"
 export CLAUDE_PROJECT_DIR="$PROJ"
 export MANENCE_GUARD_LOG="$SANDBOX/refusals.log"
+export HOME="$SANDBOX"   # so that ~/proj/.claude/… names the sandbox (0.13.1 cases)
 
 check() {  # expected label payload
   local output got
@@ -90,6 +91,25 @@ cases=(
   'BLOCK:guard-files|git restore .claude/hooks/guard.sh'
   'BLOCK:guard-files|dd if=/dev/null of=.claude/hooks/guard.sh'
   'BLOCK:guard-files|chmod 0 .claude/hooks/guard.sh'
+  # 0.13.1: the same writes by a path the old anchor did not read (a core, 2026-10-06)
+  'BLOCK:guard-files|R='"$PROJ"'; echo "# test" >> $R/.claude/hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> "${R}/.claude/settings.json"'
+  'BLOCK:guard-files|echo x >> "$R"/.claude/settings.local.json'
+  'BLOCK:guard-files|cp /tmp/x $R/.claude/hooks/guard.sh'
+  'BLOCK:guard-files|H=.claude/hooks; echo x > $H/lint.sh'
+  'BLOCK:guard-files|export S='"$PROJ"'/.claude/settings.json && printf "{}" > "$S"'
+  'BLOCK:guard-files|cd .claude/hooks && echo x > lint.sh'
+  'BLOCK:guard-files|cd .claude && echo {} > settings.json'
+  'BLOCK:guard-files|pushd .claude/hooks; sed -i "" s/a/b/ guard.sh'
+  'BLOCK:guard-files|echo x >> ~/proj/.claude/hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> $HOME/proj/.claude/hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> $PWD/.claude/hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> "$(pwd)/.claude/hooks/lint.sh"'
+  'BLOCK:guard-files|echo x >> ./.claude//hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> .claude/./hooks/lint.sh'
+  'BLOCK:guard-files|echo x >> .claude/../.claude/hooks/lint.sh'
+  'BLOCK:guard-files|python3 -c "open(\".claude/hooks/lint.sh\",\"a\").write(\"x\")"'
+  'BLOCK:guard-files|node -e "require(\"fs\").writeFileSync(\".claude/settings.json\",\"{}\")"'
   # --- must PASS (the lived false positives, and their neighbours) ---
   'PASS|git push origin publish/my-article && gh pr create --base main'
   'PASS|git commit -m "inbox: the guard blocks on the word main in a message"'
@@ -122,6 +142,16 @@ EOF'
   'PASS|chmod go-r .claude/hooks/lint.sh'
   'PASS|touch implementation/mos/.claude/hooks/guard.sh'
   'PASS|mv /tmp/a.md /tmp/b.md && cat .claude/hooks/guard.sh'
+  # 0.13.1: reading through the new shapes stays free
+  'PASS|cd .claude/hooks && bash test-guard.sh 2>&1 | tail -3'
+  'PASS|cd .claude && cat settings.json > /dev/null'
+  'PASS|R='"$PROJ"'; cat $R/.claude/settings.json'
+  'PASS|cp $R/.claude/hooks/guard.sh /tmp/guard-backup.sh'
+  'PASS|H=.claude/hooks; ls $H'
+  'PASS|python3 -c "print(open(\".claude/settings.json\").read())"'
+  'PASS|echo x > $R/implementation/mos/.claude/hooks/guard.sh'
+  'PASS|cd implementation/mos/.claude/hooks && echo x > guard.sh'
+  'PASS|echo x >> ~/notes/claude-hooks.md'
 )
 
 # The local file: what it lifts, and its own cases.

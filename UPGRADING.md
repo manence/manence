@@ -74,6 +74,19 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.13.1 — Rule 4 reads the paths an agent actually writes
+
+A fix to the guard: a write to its own files through a variable, `~/`, `$HOME`, `$PWD`, a `cd` into `.claude/hooks`, or a `python3 -c` one-liner used to pass unseen.
+
+**Automatic**
+
+- `guard.sh` and `test-guard.sh` are replaced or merged (159 cases). Nothing else changes: no new organ, no new wiring, nothing under `.claude/settings.json`.
+
+<!-- manual v0.13.1 -->
+- `guard.sh` and `test-guard.sh` live in `.claude/hooks/`: on a core in 0.13.0, the upgrade writes there through `upgrade.sh` (a script) or, if a conflict needs resolving by the agent, under an admin GO.
+- `bash .claude/hooks/test-guard.sh` green (with your `test-guard.local.sh` if you have one). A local rule that relied on the old reading of paths is worth a look: none is known.
+<!-- /manual -->
+
 ## 0.13.0 — The admin GO, local guard rules, and what moved since the last session
 
 The guardrail can be opened by the user's own words for one session, a MOS's guard rules get a file of their own, and each session opens with what moved since the last one.
