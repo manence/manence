@@ -25,3 +25,7 @@ carte-*.html
 
 # The admin GO grants (admin-go.sh): one file per session, local, never committed
 .claude/hooks/grants/
+
+# Who is at the screen on this machine (whoami.sh, 0.14): one line, the handle
+# from PEOPLE.md; each machine has its own, never committed
+.claude/operator

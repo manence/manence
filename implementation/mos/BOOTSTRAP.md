@@ -20,9 +20,9 @@ Before anything else, check that this core still has all its organs. A copy made
 Every one of these must exist, here, at the root:
 
 ```
-.claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/hooks/consignes.sh   .claude/hooks/since-last-session.sh   .claude/hooks/admin-go.sh   .claude/skills/
+.claude/settings.json   .claude/hooks/guard.sh   .claude/hooks/lint.sh   .claude/hooks/consignes.sh   .claude/hooks/since-last-session.sh   .claude/hooks/admin-go.sh   .claude/hooks/whoami.sh   .claude/skills/
 .claude/manence-version   .claude/mos.json   .env.example   .gitattributes   .gitignore
-.mcp.json.example   CLAUDE.local.md.example   AGENTS.md   CLAUDE.md   SOUL.md   STRATEGY.md
+.mcp.json.example   CLAUDE.local.md.example   AGENTS.md   CLAUDE.md   PEOPLE.md   SOUL.md   STRATEGY.md
 log.md   knowledge-base/   templates/   inbox/
 ```
 
@@ -50,7 +50,7 @@ One question at a time, and use every answer — they become the system's identi
 
 1. **The name** of the project or activity. It replaces every `<project name>` / `<nom du projet>` gap, and derives the env prefix (uppercase, non-alphanumeric → `_`) that replaces `<PROJECT>` / `<PROJET>`.
 2. **What this activity does**, in 2-3 sentences (→ AGENTS.md, "What this project does").
-3. **Who works here** — names, roles, constraints worth knowing (→ AGENTS.md, Identity).
+3. **Who works here** (→ `PEOPLE.md`). First the person in front of you: a handle (lowercase, `a-z0-9-`, short: it signs their decisions), their name, their role, constraints worth knowing; they are the owner, so `authority: *` and `admin: yes`. Replace the placeholder section with theirs, and write their handle, one line, into `.claude/operator` (gitignored: it says who is at the screen on this machine). Anyone else who works here gets a section too, with the authority the owner gives them (the perimeters their GO covers, `admin: yes` or `no`); someone who joins later goes through "Add a person" below.
 4. **The voice** — how should the assistant sound (a few words), and is there anything it should never say or promise (→ SOUL.md).
 5. **The direction** — one to three goals at 12 months (measurable when possible), and 2-3 operational guardrails the human wants respected (→ STRATEGY.md, Goals and Guardrails).
 
@@ -64,14 +64,15 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 ## 4. Configuration
 
 - **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
-- **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
+- **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `PEOPLE.md`, `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
 - **The system's declaration.** Open `.claude/mos.json` — the machine-readable declaration of this MOS: what is plugged into it (shipped with the two pillars: production and the knowledge base) and what runs on its own (the routines, each with the proof that says it ran). Make it this system's: rewrite the two one-line summaries in the system's language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand. If this system works in French, point each routine's `proof_glob` at the French folders (`knowledge-base/veille/*.md` for the watch): a proof is looked for where this system really writes it.
 
 ## 5. Verify — run the checks, don't assume
 
 - `bash .claude/hooks/lint.sh .` → must report **0 findings**.
 - `grep -rn '<project name>\|<PROJECT>\|<nom du projet>\|<PROJET>\|<YYYY-MM-DD>' --exclude=BOOTSTRAP.md *.md knowledge-base/ .env.example` → must return **nothing** (this file quotes those tokens, hence the exclude).
-- In `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `AGENTS.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
+- `bash .claude/hooks/whoami.sh` names the person you set up as the one at the screen, and `bash .claude/hooks/test-whoami.sh` ends with 0 deviating cases.
+- In `PEOPLE.md`, `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `AGENTS.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
 - `AGENTS.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup), and `CLAUDE.md` still opens with its `@AGENTS.md` import.
 
 If a check fails, fix and re-run. Do not proceed on red.
@@ -83,3 +84,60 @@ If a check fails, fix and re-run. Do not proceed on red.
 - **Show the system as it stands.** Open `AGENTS.md` and `log.md` with the human and read them back: their newborn MOS is a filled-in identity, two pillars (a knowledge base about to fill, a production waiting for its first workstream) and a journal of one entry. That is what the system *is* — plain files they own, legible without any tool.
 - **End on the first real gesture, not on a description of it.** Ask the human, in their language, for *one thing they are actually working on this week* — then run `open-work` with them, right now: the production root resolved, the domain created on first need, the folder `<domain>/in-progress/YYYYMMDD-<slug>/` born with its date, the `About.md` written in front of them (goal in one sentence, `awaiting: []`, next step), the `work-open` entry in the log. Open the `About.md` and show it: their system is no longer empty, and everything they just saw happen is a file they can read.
 - Tell them what to say next time (*"open a workstream for…"*, *"close it"*, *"where are we?"* → the weekly review), and, once, without insisting, that a separate reader exists: **Manence UI**, its own program in its own repository, which opens a MOS and shows what is in progress, what is done and what is waiting on someone, without ever writing to it. It is optional — a MOS is complete without one. The setup ends where the work has already begun.
+
+## Add a person (replayable, any time after the setup)
+
+This section outlives the ritual: once `BOOTSTRAP.md` is deleted from the core, read it in the framework's repository (`implementation/mos/BOOTSTRAP.md`). The owner (the person with `authority: *`) decides; the agent carries it out.
+
+1. **Their section in `PEOPLE.md`**, written with the owner: a handle (`a-z0-9-`, not taken), name, role, `authority` (the perimeters their GO covers, named like the routing table or the connectors, or `*`), `admin: yes` or `no`, notes. Commit the core and push it: from now on this MOS has several people, and each session starts with a `git pull` and ends each commit of the core with a `git push` (`AGENTS.md`).
+2. **On their machine**: clone the core next to a production folder of its own (`../production/`, or the root their `.env` names), wire their agent if it is Codex ("Codex wiring" below: the skills link, and `.codex/config.toml` if the core does not already carry it), write their handle into `.claude/operator`, and run `bash .claude/hooks/test-guard.sh` (green before any risky gesture) and `bash .claude/hooks/whoami.sh` (it names them).
+3. **Production stays outside git.** Each machine has its own: the core and the knowledge base travel through git, the workstreams do not. Sharing production between machines (a synced folder, a network share) is outside the framework's scope; if this MOS does it, say how in its own `AGENTS.md`.
+
+## Codex wiring (when Codex drives this MOS)
+
+Claude Code and Grok Build need nothing: they read `.claude/settings.json`. Codex reads `AGENTS.md` natively but needs two things at the core's root, on each machine that runs it:
+
+- **The skills bridge**: a `skills` link to `.claude/skills` (`ln -s .claude/skills skills` on macOS and Linux; `mklink /J skills .claude\skills` on Windows, a junction, no admin rights). Gitignored (`/skills`), never committed: each machine poses its own.
+- **The hooks**: `.codex/config.toml`, which Codex loads once the project is *trusted*. It holds no secret: commit it with the core, and every clone driven by Codex carries the same boundary. It is the guard's wiring: after the first setup, it changes under an admin GO or by the user's hand.
+
+```toml
+# The MOS hard boundary and session hooks, wired for Codex: the same hooks Claude Code runs.
+[[hooks.PreToolUse]]
+matcher = "^(Bash|Edit|Write|apply_patch)$"
+
+[[hooks.PreToolUse.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/guard.sh"'
+timeout = 30
+
+[[hooks.UserPromptSubmit]]
+
+[[hooks.UserPromptSubmit.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/admin-go.sh"'
+timeout = 30
+
+[[hooks.SessionStart]]
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/consignes.sh"'
+timeout = 30
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/whoami.sh"'
+timeout = 30
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/since-last-session.sh"'
+timeout = 30
+
+[[hooks.SessionStart.hooks]]
+type = "command"
+command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/admin-go.sh" --session-start'
+timeout = 30
+```
+
+Then, in a real Codex session, observe one guard refusal end to end (ask for a forced recursive delete of a scratch folder: refused, reason shown, files intact) before any risky gesture. The admin GO under Codex is not observed yet: until it is, treat it as absent there (the guard simply stays shut).

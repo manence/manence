@@ -7,6 +7,7 @@ tags: [workstream]
 timestamp: <YYYY-MM-DD>
 status: proposal   # proposal | validated | canon | rejected (decided by close-work)
 awaiting: []   # who / what / kind (decision | action) / since — what waits for a human; empty = nothing to settle
+owner: <handle>   # who carries the workstream (a handle from PEOPLE.md; default: the operator at opening; left empty when the MOS has no PEOPLE.md)
 ---
 
 # <Workstream title>
@@ -20,7 +21,7 @@ awaiting: []   # who / what / kind (decision | action) / since — what waits fo
 - Precedent: <a link to the closed workstream of the same kind (done/), if one exists>
 
 ## Decisions
-<The workstream's structural choices: who chose, what, what was ruled out, why. Major decisions also go in the project's `log.md` (L8).>
+<The workstream's structural choices, one per line: `**YYYY-MM-DD, <handle>**: what was chosen, what was ruled out, why`. Major decisions also go in the project's `log.md` (L8).>
 <When a wait is settled, you remove its entry from `awaiting:` and write the decision here.>
 
 ## Workstream contents

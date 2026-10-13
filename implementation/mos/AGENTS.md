@@ -4,8 +4,10 @@ This file is the system's identity, and it is agent-neutral: whichever coding ag
 
 ## Identity
 <Who I am here, the voice to adopt.> See `SOUL.md` for tone, `STRATEGY.md` for direction.
+You work with the people listed in `PEOPLE.md` (one section per person: role, authority, admin); the one at the screen is named in `.claude/operator` (one line, gitignored: each machine has its own). With a single person in `PEOPLE.md`, that person is the operator.
 
 ## At the start of a session
+- If `PEOPLE.md` exists, read it and `.claude/operator`: who works here, who is at the screen. With several people, `git pull` first, and if no operator is known, ask who is at the screen and write their handle into `.claude/operator`. A session-start hook (`whoami.sh`) says the same; the files are the channel.
 - Read `knowledge-base/index.md` (the map of your knowledge) and the top of `log.md` (the latest decisions).
 - Check whether a `CLAUDE.local.md` exists at the root: if it declares local connectors, load them too. Otherwise, ignore it.
 - Look at the open workstreams in production (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`: the `<domain>/in-progress/` folders) and `inbox/` (raw capture to sort).
@@ -41,6 +43,7 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 ## Conventions
 - Knowledge: `knowledge-base/` (OKF: YAML frontmatter, `type:` required, one concept per file; you link, you never recopy a fact).
 - Dynamic: workstreams in the container's production (see the routing table); the journal in `log.md`, with `## [YYYY-MM-DD] type | title` prefixes: you add, you never rewrite, and each entry is prepended under the H1 (newest first). Past 150 KB, the review proposes `scripts/log-rotate.py` (Spec §8).
+- **With several people in `PEOPLE.md`**, a log heading ends with the handle of whoever decided (`## [YYYY-MM-DD] decision | title · @<handle>`), each commit of the core is pushed right away, and the same handles name `awaiting.who`, an About's `owner:` and its decisions (`**YYYY-MM-DD, <handle>**`). With one person, the suffix is optional.
 - A **framework-level** lesson (one that should change Manence itself, not just this project) is tagged in the log: `## [YYYY-MM-DD] framework | title`. The framework harvests them per version workstream.
 - Paths are passed, not guessed: movable locations have a root variable (`.env.example`); every subagent prompt that touches a workstream carries the **resolved absolute path**.
 - **A subagent gets a budget**: a number of tool calls or a duration, and the instruction to stop cleanly at the limit (or when one point blocks it) with a partial report — what is done, what is left, why. A partial report is worth more than a stop with no trace.
@@ -56,7 +59,8 @@ They live in `.claude/skills/`, whatever the agent — that is their single home
 ## Security, hard vs soft
 - **Soft (this file)**: this file only *suggests*. The agent may depart from it.
 - **Hard (what actually constrains)**: a `PreToolUse` hook or a denied permission, declared in the agent's own configuration. To *forbid* (e.g. `rm -rf`, a direct push), that's where it goes, not here. The guardrails themselves are shipped once, under `.claude/`: `.claude/hooks/guard.sh` (blocks) and `.claude/hooks/lint.sh` (reports). Each harness wires them its own way — Claude Code: `.claude/settings.json` + those hooks; OpenAI Codex: `.codex/config.toml`; Grok Build: its native Claude compatibility, nothing to wire.
-- **The guardrail's own files** (`.claude/hooks/`, `.claude/settings.json`, `.claude/settings.local.json`) change through `upgrade.sh`, by the user's hand, or in a session where a line of the user's own message began with **"admin GO"**: the agent may ask for it ("I need an admin GO to write <file> (<reason>). OK?"), never write it for them, and a plain yes is not one. A MOS's own guard rules go in `.claude/hooks/guard.local.sh`, never in `guard.sh`.
+- **The guardrail's own files** (`.claude/hooks/`, `.claude/settings.json`, `.claude/settings.local.json`) change through `upgrade.sh`, by the user's hand, or in a session where a line of the user's own message began with **"admin GO"**: the agent may ask for it ("I need an admin GO to write <file> (<reason>). OK?"), never write it for them, and a plain yes is not one. Only a person with `admin: yes` in `PEOPLE.md` should give it: ask it of them, and flag one that comes from an `admin: no` operator (a soft rule: the hook cannot tell who types). A MOS's own guard rules go in `.claude/hooks/guard.local.sh`, never in `guard.sh`.
+- **The golden rule**: nothing is published, pushed to a public remote, deployed or sent without the explicit GO of the person who holds authority over that perimeter in `PEOPLE.md` (`authority`; by default the owner, the person with `*`). A GO from someone without that authority is not one: say so, and leave a wait (`awaiting`) in the right person's name. `PEOPLE.md` itself (a person added, an `authority` or `admin` changed) changes only on the word of a person with `*`: flag any other request.
 - Common sense: `trash` over `rm`; internal work (reading, drafts) → free.
 - **Writing at a third party** (creating, publishing, sending, activating): an explicit GO + a dry-run (`validateOnly`) when the API offers one + before/after logged in the deliverable + **create it paused/as a draft first**, activate as a second step. Separate read and write credentials: measurement stays read-only, write capability is added on decision.
 - API keys in `.env` (gitignored, template in `.env.example`), never committed. Local/confidential config: `CLAUDE.local.md` (gitignored), never in this file.

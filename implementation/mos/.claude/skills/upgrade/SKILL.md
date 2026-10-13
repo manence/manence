@@ -12,6 +12,7 @@ That a core moves to the version the framework ships **without losing what the M
 - `.claude/manence-version` (the version you have) and the framework's `CHANGELOG.md` and `UPGRADING.md` for the versions between it and the target.
 - `AGENTS.md` of the MOS: its Skills line (which base skills point to a MOS page for their local content) and whether it reserves the push of the core to the user.
 - The workstreams in progress, so that an organ replaced mid-gesture does not surprise the session.
+- `PEOPLE.md` (from 0.14): it is identity, so `upgrade.sh` never creates it. A core without one keeps working as before; propose to write it with the user (one section for them, `authority: *`, `admin: yes`; `UPGRADING.md`, 0.14.0), and `.claude/operator` on each machine.
 
 ## Procedure
 1. **Dry run first, nothing written**: `bash <framework>/upgrade.sh <absolute path of the core>` (add `--source <local clone>` when the public repository is out of reach). Read the plan line by line; the verdicts are defined in `UPGRADING.md` "Three classes of organ".

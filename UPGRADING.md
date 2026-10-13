@@ -24,7 +24,7 @@ bash upgrade.sh ~/my-activity/core --source ../manence --to HEAD     # from a lo
 
 An upgrade is not one gesture but three, and the script is explicit about which one it is playing on each file.
 
-**Mechanical** — the framework's machinery: `.claude/hooks/guard.sh`, `test-guard.sh`, `lint.sh` and `consignes.sh`, `scripts/log-rotate.py`, `templates/**`, and the eleven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`, `upgrade`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
+**Mechanical** — the framework's machinery: the hooks it ships in `.claude/hooks/` (`guard.sh`, `test-guard.sh`, `lint.sh`, `consignes.sh`, `since-last-session.sh`, `admin-go.sh`, `verify-go.sh`, `whoami.sh`, `test-whoami.sh`), `scripts/log-rotate.py`, `templates/**`, and the eleven base skills (`open-work`, `close-work`, `weekly-review`, `kb-ingest`, `kb-lint`, `connect-adapter`, `outward-watch`, `checkpoint`, `consignes`, `skill-craft`, `upgrade`). These are **merged three ways**, exactly as git merges a branch: your file, the version you had, the version you are moving to. Your local edits survive; the framework's edits arrive; where both changed the same lines, the script stops. The verdicts read:
 
 | Verdict | What happened |
 |---|---|
@@ -40,7 +40,7 @@ An upgrade is not one gesture but three, and the script is explicit about which 
 
 Skills you wrote yourself are never touched, and never counted — the script names them and leaves them alone.
 
-**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`. **Never touched, ever.** These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
+**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `PEOPLE.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`. **Never touched, ever.** These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
 
 **Declared migrations** — the gestures a version needs on your data, played in version order, each idempotent, each announced before it runs. They are listed below, per version, under *Automatic*.
 
@@ -73,6 +73,29 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.14.0 — Several people in one MOS
+
+A MOS can now be shared: the people who work in it are listed in `PEOPLE.md`, the one at the screen is named per machine in `.claude/operator`, every decision carries its author, the golden rule asks for the GO of whoever holds authority over the perimeter, and the journal merges without conflict when two clones wrote in parallel. A single-person MOS keeps working exactly as before, with nothing new to fill in.
+
+**Automatic**
+
+- New organs, `created`: `whoami.sh` (`SessionStart`: who is at the screen, the others and their authority, the pull/push reminder when there are several people; silent without `PEOPLE.md`) and its bench `test-whoami.sh` (21 cases).
+- `test-guard.sh` is replaced or merged (161 cases: writing `.claude/operator` passes).
+- Declared migration: `.gitattributes` gains `/log.md merge=union` and `/knowledge-base/log.md merge=union`, `.gitignore` gains `.claude/operator`, each appended when absent, never rewritten (the two files are yours: only the missing line is added). A merge rule of your own for a `log.md` is left as it is and named (`yours`).
+- `scripts/log-rotate.py` is replaced or merged: it refuses a journal holding the same entry twice (what a union merge of a rotation against a parallel prepend can leave).
+- `open-work`, `close-work`, `consignes`, `kb-ingest`, `upgrade` and `weekly-review` are replaced or merged; `templates/workstream/About.template.md` (an `owner:` field, decisions written `**YYYY-MM-DD, <handle>**`) and `templates/frontmatter.md` (`owner`, `decided_by`) too.
+- `PEOPLE.md` is identity: the script never creates it, and says so (`read it` line) when it is missing.
+
+<!-- manual v0.14.0 -->
+- `.claude/settings.json`, under an admin GO or by your hand: add the `SessionStart` command running `whoami.sh`, next to the others (copy it from the shipped `settings.json`).
+- Codex: in `.codex/config.toml`, add to your `[[hooks.SessionStart]]` a `[[hooks.SessionStart.hooks]]` with `type = "command"` and `command = 'bash "$(git rev-parse --show-toplevel)/.claude/hooks/whoami.sh"'`, in the same form as the other start hooks (same admin GO, the file is the guard's). The complete file is in the framework's `BOOTSTRAP.md`, "Codex wiring". Grok reads `.claude/settings.json`: nothing to do.
+- With several people: never bump the journal's frontmatter `timestamp:`, and rotate it only after everyone has pushed and you have pulled (Spec §4).
+- `AGENTS.md`: take the shipped lines on people (Identity), the start-of-session line on `PEOPLE.md` and `git pull`, the Conventions line on the ` · @<handle>` suffix, the golden rule bullet and the admin GO sentence (Security). If your `AGENTS.md` writes who works here in prose, move it into `PEOPLE.md` and leave the pointer.
+- `PEOPLE.md`, when the MOS gains a second person (or now, if you want the authorities written down): copy the shipped file to the core's root and write one section per person; the owner gets `authority: *` and `admin: yes`. The agent can do it with you (the `upgrade` skill proposes it); `BOOTSTRAP.md` "Add a person" in the framework's repository is the procedure for each newcomer.
+- On each machine: write the operator's handle, one line, into `.claude/operator` (not needed while `PEOPLE.md` has one person).
+- `bash .claude/hooks/test-whoami.sh` and `bash .claude/hooks/test-guard.sh` green; `bash .claude/hooks/whoami.sh` names the right person.
+<!-- /manual -->
 
 ## 0.13.1 — Rule 4 reads the paths an agent actually writes
 

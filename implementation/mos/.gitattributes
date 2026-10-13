@@ -3,3 +3,15 @@
 # rule at its root, but a copied core with a fresh `git init` would lose it —
 # so the core ships its own.
 *.sh text eol=lf
+
+# The journal, when several people share this core (0.14): each one prepends
+# entries under the H1 of log.md, so two clones that both wrote since the last
+# pull would conflict on every merge. The built-in union driver keeps both
+# sides' added lines, with no conflict marker: exactly the semantics of a
+# journal you only add to. Only the two journals, anchored: a knowledge page
+# is rewritten in place, and union there would keep both versions side by
+# side, a silent duplicate. The same holds inside the journal for any line
+# edited rather than prepended: with several people, its frontmatter timestamp
+# is never bumped, and a rotation waits until everyone has pushed (Spec §4).
+/log.md merge=union
+/knowledge-base/log.md merge=union

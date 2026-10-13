@@ -90,7 +90,7 @@ Ton système ne dépend pas d'un fournisseur d'IA. Tout ce qui compte — savoir
 
 - **Claude Code** — le chemin natif. Rien à ajouter.
 - **Grok Build (xAI)** — lit nativement `AGENTS.md` et le câblage `.claude/` livré. Rien à ajouter.
-- **OpenAI Codex** — lit nativement `AGENTS.md` ; le rituel pose un lien `skills` à la racine et un `.codex/config.toml` pour que les skills et le garde-fou suivent.
+- **OpenAI Codex** — lit nativement `AGENTS.md` ; tu poses un lien `skills` à la racine et un `.codex/config.toml` d'après le bloc de `BOOTSTRAP.md` (« Codex wiring »), pour que les skills et le garde-fou suivent.
 
 Une règle : un seul agent à la fois sur un conteneur. Rien n'est annoncé comme supporté avant d'avoir été testé pour de vrai — l'état exact des tests, couche par couche, est dans **[PORTABILITY.md](PORTABILITY.md)** *(en anglais)*.
 

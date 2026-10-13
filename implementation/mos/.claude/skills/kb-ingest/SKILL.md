@@ -13,11 +13,11 @@ A source: a file (often in `inbox/`), a URL, or whatever the user provides.
 
 ## Procedure
 1. **Choose what to keep with the user**, and wait for their agreement before you write: you don't keep everything (law L1: high signal), and what matters to this MOS is something they know.
-2. **Write or update the concept page** in `knowledge-base/`, following the file contract (Spec §1, `AGENTS.md` "Conventions"; template `templates/concept.template.md`), with the source in `resource:`.
+2. **Write or update the concept page** in `knowledge-base/`, following the file contract (Spec §1, `AGENTS.md` "Conventions"; template `templates/concept.template.md`), with the source in `resource:`. A page that records a decision may carry `decided_by:` (the handle, `PEOPLE.md`).
 3. **Update `knowledge-base/index.md`**: the page's line (a link + one sentence).
 4. **Update the linked pages**: connect to the entities and concepts involved; one source often touches several.
 5. **Contradictions**: if the source contradicts an existing fact, **don't overwrite it**; tell the user, and where appropriate set `superseded_by:` / `status:` on the old page (Spec §6).
-6. **Log**: `## [YYYY-MM-DD] ingest | <source title>`, at the top of `log.md`, under its H1 (Spec §4), if the ingestion passes the sieve (Spec §11), for instance when it invalidates an established fact.
+6. **Log**: `## [YYYY-MM-DD] ingest | <source title>`, at the top of `log.md`, under its H1 (Spec §4), naming who ingested (with several people in `PEOPLE.md`, the heading ends with ` · @<handle>`), if the ingestion passes the sieve (Spec §11), for instance when it invalidates an established fact.
 
 ## Done
 - Success condition: the concept page exists with its `resource:`, `index.md` lists it, `lint.sh` is clean on the files touched, **every contradiction found is named** in the reply and, where set, in `superseded_by:` / `status:` on the old page.

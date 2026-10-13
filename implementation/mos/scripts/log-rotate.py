@@ -16,7 +16,8 @@ The journal reads one way: entries are prepended under the H1, newest first.
 Each entry (from a "## [YYYY-MM-DD]" heading to the next one) is kept as it
 is; only the blank lines between entries are normalized (one). Nothing is
 summarized and nothing is deleted. Before anything is written, the outputs
-are read back and checked: same number of entries, same hash for every
+are read back and checked (a journal holding the same entry twice, as a
+union merge can leave it, is refused before anything else): same number of entries, same hash for every
 entry, newest first everywhere, the preamble (frontmatter and H1) unchanged.
 A failed check writes nothing.
 
@@ -141,6 +142,12 @@ def main():
     if not blocks:
         print(f"{log_path}: no '## [YYYY-MM-DD]' entry; nothing to do")
         return
+    # The same entry twice: a union merge of a rotation against a parallel
+    # prepend can leave it (Spec §4). Never rotated over: removed by hand first.
+    seen = collections.Counter(digest(b) for _, b in blocks)
+    dups = sorted({d for d, b in blocks if seen[digest(b)] > 1}, reverse=True)
+    if dups:
+        fail(f"the same entry appears more than once ({', '.join(dups)}): keep one copy of each by hand, then rerun")
     title = h1_of(pre)
     if title is None:
         fail("no H1 above the first entry (entries are prepended under the H1)")

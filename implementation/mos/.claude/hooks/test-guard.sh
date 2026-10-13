@@ -118,6 +118,7 @@ cases=(
   'PASS|tail -f /var/log/x && git push origin ops/week'
   'PASS|gh pr merge 98 --repo org/repo --squash'
   'PASS|echo "the default branch is called main" > note.md'
+  'PASS|printf "sam\n" > .claude/operator'
   'PASS|echo "never git push --force here" > note.md'
   'PASS|cat >> note.md <<EOF
 A note about the guard: it used to read git push and --force on the same line.
@@ -210,6 +211,7 @@ edits=(
   'PASS|claude|Edit|log.md'
   'PASS|claude|Write|.claude/skills/my-skill/SKILL.md'
   'PASS|claude|Edit|.claude/mos.json'
+  'PASS|claude|Write|.claude/operator'
   'PASS|claude|Edit|implementation/mos/.claude/hooks/guard.sh'
   'PASS|grok|search_replace|knowledge-base/index.md'
   'PASS|claude|apply_patch|PATCH:inbox/note.md'

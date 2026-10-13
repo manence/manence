@@ -6,6 +6,7 @@
       {
         "hooks": [
           { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/consignes.sh\"" },
+          { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/whoami.sh\"" },
           { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/since-last-session.sh\"" },
           { "type": "command", "command": "bash \"${CLAUDE_PROJECT_DIR}/.claude/hooks/admin-go.sh\" --session-start" }
         ]

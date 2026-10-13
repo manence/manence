@@ -90,7 +90,7 @@ Your system doesn't depend on one AI vendor. Everything that matters — knowled
 
 - **Claude Code** — the native path. Nothing to add.
 - **Grok Build (xAI)** — reads `AGENTS.md` and the shipped `.claude/` wiring natively. Nothing to add.
-- **OpenAI Codex** — reads `AGENTS.md` natively; the ritual poses a root `skills` link and a `.codex/config.toml` so the skills and the guardrail carry over.
+- **OpenAI Codex** — reads `AGENTS.md` natively; you pose a root `skills` link and a `.codex/config.toml` from the block in `BOOTSTRAP.md` ("Codex wiring"), so the skills and the guardrail carry over.
 
 One rule: one agent at a time on a container. Nothing is claimed as supported before it has been tested for real — the exact test status, layer by layer, is in **[PORTABILITY.md](PORTABILITY.md)**.
 

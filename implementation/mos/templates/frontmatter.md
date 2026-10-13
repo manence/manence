@@ -44,7 +44,7 @@ For a workstream (`type: work`) only, what is waiting on a human:
 
 ```yaml
 awaiting:
-  - who: alexandre          # short stable handle within the MOS, no email, no full name
+  - who: sam                # a handle from PEOPLE.md (short, stable, a-z0-9-), no email, no full name
     what: authorize client quotes in ads
     kind: decision          # decision = a choice only this person can make | action = a gesture only this person can perform (click, pay, call)
     since: 2026-09-08       # the day the wait was born, not the last reminder
@@ -54,6 +54,13 @@ awaiting:
 - `who`, `what`, `kind` and `since` are required on every entry; `blocks` is optional.
 - `kind` takes exactly two values: `decision` or `action`.
 - An absent field or an empty list (`awaiting: []`) means nothing is waiting; a settled wait is **removed** from the list (it is a present state, not a history) and its resolution is written in the About's Decisions section, and in the log if it changes a status.
+
+For a workstream (`type: work`), who carries it, and for a knowledge page that records a decision, who took it (both optional; a handle from `PEOPLE.md`):
+
+```yaml
+owner: sam         # About.md: who carries the workstream; set by open-work to the operator
+decided_by: sam    # a KB page that records a decision: who decided it
+```
 
 ## Reserved OKF files
 

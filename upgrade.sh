@@ -47,7 +47,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -382,6 +382,8 @@ add_organ ".claude/hooks/test-guard.sh" "$MOS/.claude/hooks/test-guard.sh"
 add_organ ".claude/hooks/since-last-session.sh" "$MOS/.claude/hooks/since-last-session.sh"
 add_organ ".claude/hooks/admin-go.sh" "$MOS/.claude/hooks/admin-go.sh"
 add_organ ".claude/hooks/verify-go.sh" "$MOS/.claude/hooks/verify-go.sh"
+add_organ ".claude/hooks/whoami.sh" "$MOS/.claude/hooks/whoami.sh"
+add_organ ".claude/hooks/test-whoami.sh" "$MOS/.claude/hooks/test-whoami.sh"
 # The framework's own script in the core's scripts/ (0.12): the log rotation.
 add_organ "scripts/log-rotate.py" "$MOS/scripts/log-rotate.py"
 
@@ -601,7 +603,7 @@ fi
 # ---------------------------------------------------------------------------
 echo
 echo "Identity organs — never touched by this script"
-for f in AGENTS.md CLAUDE.md CLAUDE.local.md SOUL.md STRATEGY.md .claude/settings.json \
+for f in AGENTS.md CLAUDE.md CLAUDE.local.md PEOPLE.md SOUL.md STRATEGY.md .claude/settings.json \
          .env .env.example log.md knowledge-base inbox; do
   [ -e "$CORE/$f" ] && report "yours" "$f"
 done
@@ -827,6 +829,48 @@ migrate_0_7_0() { :; }
 # Kept for the version after this one: declared, never called until it exists.
 migrate_0_9() { :; }
 
+# 0.14: a line each for two dotfiles of the core. They are the core's own (a MOS
+# adds lines of its own), so they are never merged or rewritten: the missing line
+# is appended with its comment, and a line already there is left alone.
+append_line() {  # core-relative file, exact line, comment ("" = none)
+  local f="$CORE/$1"
+  if [ -f "$f" ] && tr -d '\r' < "$f" | grep -qxF -- "$2"; then
+    report "nothing" "v0.14.0  $1 already carries '$2'"
+    return 0
+  fi
+  if [ "$APPLY" -eq 1 ]; then
+    { if [ -s "$f" ] && [ -n "$(tail -c 1 "$f")" ]; then echo; fi
+      if [ -n "$3" ]; then printf '\n# %s\n' "$3"; fi
+      printf '%s\n' "$2"; } >> "$f"
+    report "migrated" "v0.14.0  $1 += '$2'"
+  else
+    report "would do" "v0.14.0  $1 += '$2'"
+  fi
+  N_MIGRATED=$((N_MIGRATED + 1))
+}
+migrate_0_14() {
+  # A merge rule of the core's own for a log.md is the core's choice: kept, named.
+  _ours=$(printf '/log.md merge=union\n/knowledge-base/log.md merge=union')
+  _theirs=""
+  [ -f "$CORE/.gitattributes" ] && _theirs=$(tr -d '\r' < "$CORE/.gitattributes" \
+    | grep -vE '^[[:space:]]*(#|$)' | grep -E '(^|/)log\.md[[:space:]].*merge' | grep -vxF "$_ours" || true)
+  if [ -n "$_theirs" ]; then
+    report "yours" "v0.14.0  .gitattributes already sets a merge rule for a log.md ($(printf '%s' "$_theirs" | head -1)): left as it is"
+  else
+    append_line .gitattributes "/log.md merge=union" \
+      "The journals with several people (0.14): at a merge, union keeps the entries both sides prepended, with no conflict marker. Only the two journals: a page rewritten in place would keep both versions."
+    append_line .gitattributes "/knowledge-base/log.md merge=union" ""
+  fi
+  append_line .gitignore ".claude/operator" \
+    "Who is at the screen on this machine (whoami.sh, 0.14): one line, a handle from PEOPLE.md; never committed"
+  # PEOPLE.md is identity: named, never written.
+  if [ -f "$CORE/PEOPLE.md" ]; then
+    report "nothing" "v0.14.0  PEOPLE.md exists — yours, untouched"
+  else
+    report "read it" "v0.14.0  no PEOPLE.md: identity, never created by this script; with one person the core runs as before — to write it, UPGRADING.md 0.14.0"
+  fi
+}
+
 echo
 echo "Declared migrations"
 if [ -z "$VERSIONS" ]; then
@@ -836,6 +880,7 @@ else
   for v in $VERSIONS; do
     case $v in
       0.8.0) MIG_DECLARED=1; migrate_0_8 ;;
+      0.14.0) MIG_DECLARED=1; migrate_0_14 ;;
       *) : ;;
     esac
   done
