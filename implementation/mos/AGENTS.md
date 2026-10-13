@@ -7,7 +7,7 @@ This file is the system's identity, and it is agent-neutral: whichever coding ag
 You work with the people listed in `PEOPLE.md` (one section per person: role, authority, admin); the one at the screen is named in `.claude/operator` (one line, gitignored: each machine has its own). With a single person in `PEOPLE.md`, that person is the operator.
 
 ## At the start of a session
-- If `PEOPLE.md` exists, read it and `.claude/operator`: who works here, who is at the screen. With several people, `git pull` first, and if no operator is known, ask who is at the screen and write their handle into `.claude/operator`. A session-start hook (`whoami.sh`) says the same; the files are the channel.
+- If `PEOPLE.md` exists, read it and `.claude/operator`: who works here, who is at the screen. With several people, `git pull` first, and if no operator is known, ask who is at the screen and write their handle into `.claude/operator`. A session-start hook (`whoami.sh`) says the same when several people share the core, and stays silent for a single person; the files are the channel.
 - Read `knowledge-base/index.md` (the map of your knowledge) and the top of `log.md` (the latest decisions).
 - Check whether a `CLAUDE.local.md` exists at the root: if it declares local connectors, load them too. Otherwise, ignore it.
 - Look at the open workstreams in production (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`: the `<domain>/in-progress/` folders) and `inbox/` (raw capture to sort).

@@ -66,7 +66,7 @@ fi
 
 # 2. Inbox items new or changed since then.
 if [ -d inbox ]; then
-  items=$(find inbox -maxdepth 1 -type f -name '*.md' -newer "$MARK" 2>/dev/null | sort)
+  items=$(find -H inbox -maxdepth 1 -type f -name '*.md' -newer "$MARK" 2>/dev/null | sort)
   if [ -n "$items" ]; then
     n=$(printf '%s\n' "$items" | wc -l | tr -d ' ')
     add "- $n inbox item(s) new or changed:"
@@ -94,7 +94,7 @@ fi
 [ -n "$PROD" ] || PROD="../production"
 case "$PROD" in /*) ;; "~/"*) PROD="$HOME/${PROD#\~/}" ;; *) PROD="$ROOT/$PROD" ;; esac
 if [ -d "$PROD" ]; then
-  moved=$(find "$PROD" -mindepth 4 -maxdepth 4 -path '*/in-progress/*/About.md' -newer "$MARK" 2>/dev/null \
+  moved=$(find -H "$PROD" -mindepth 4 -maxdepth 4 -path '*/in-progress/*/About.md' -newer "$MARK" 2>/dev/null \
     | sed -E 's|.*/([^/]+)/in-progress/([^/]+)/About\.md$|\1/\2|' | sort)
   if [ -n "$moved" ]; then
     n=$(printf '%s\n' "$moved" | wc -l | tr -d ' ')

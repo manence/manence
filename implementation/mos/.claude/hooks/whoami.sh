@@ -3,9 +3,11 @@
 # It reads PEOPLE.md (one "## <handle>" section per person) and resolves the
 # operator, in this order: the MANENCE_OPERATOR variable, then .claude/operator
 # (one line, the handle; gitignored, each machine has its own), then the only
-# person when PEOPLE.md has one, else unknown. It prints the operator's section,
-# one line per other person with their authority, and, when several people share
-# the core, the pull/push discipline. Unknown operator among several people: it
+# person when PEOPLE.md has one, else unknown. Among several people it prints the
+# operator's section, one line per other person with their authority, and the
+# pull/push discipline. A single person (a solo): silence, as without PEOPLE.md,
+# except one note line when MANENCE_OPERATOR or .claude/operator names a handle
+# that is not that person (0.14.1). Unknown operator among several people: it
 # says so and tells the agent to ask "who are you?" once, then write the handle
 # into .claude/operator — an identity question, never a permission.
 #
@@ -98,6 +100,15 @@ awk -v op="$OP" -v src="$SRC" '
     shown = op; gsub(/[^a-z0-9._@ -]/, "?", shown)
     if (op != "") { if (op in seen) oi = seen[op]; else if (n == 1) { oi = 1; note = src " names \"" shown "\", who is not in PEOPLE.md; with a single person, that person is the operator."; src = "" } else named = 1 }
     else if (n == 1) oi = 1
+
+    # A solo: nothing to tell them about themselves (0.14.1). Only the mismatch
+    # note and what the file could not read are said.
+    if (n == 1) {
+      if (note != "") print "Note: " note " (@" hd[1] ")"
+      if (dup != "") print "PEOPLE.md: duplicate section(s) ignored, the first one counts: " dup "."
+      if (bad != "") print "PEOPLE.md: heading(s) that are not a handle (a-z, 0-9, -) ignored: " bad "."
+      exit 0
+    }
 
     print "People of this MOS (PEOPLE.md, " n " " (n == 1 ? "person" : "people") "):"
     if (oi) {

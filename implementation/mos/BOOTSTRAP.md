@@ -71,7 +71,7 @@ Some placeholders fill from the setup itself, not the interview: the connectors 
 
 - `bash .claude/hooks/lint.sh .` → must report **0 findings**.
 - `grep -rn '<project name>\|<PROJECT>\|<nom du projet>\|<PROJET>\|<YYYY-MM-DD>' --exclude=BOOTSTRAP.md *.md knowledge-base/ .env.example` → must return **nothing** (this file quotes those tokens, hence the exclude).
-- `bash .claude/hooks/whoami.sh` names the person you set up as the one at the screen, and `bash .claude/hooks/test-whoami.sh` ends with 0 deviating cases.
+- `bash .claude/hooks/whoami.sh` names the person you set up as the one at the screen when `PEOPLE.md` holds several people, and prints nothing when it holds one (a solo is not told who they are); in both cases `bash .claude/hooks/test-whoami.sh` ends with 0 deviating cases.
 - In `PEOPLE.md`, `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `AGENTS.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
 - `AGENTS.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup), and `CLAUDE.md` still opens with its `@AGENTS.md` import.
 

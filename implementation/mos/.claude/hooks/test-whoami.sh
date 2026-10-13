@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Checks that whoami.sh resolves the operator as the Spec says and degrades
-# gracefully: silent without PEOPLE.md, the only person when there is one, the
+# gracefully: silent without PEOPLE.md, silent with a single person (0.14.1:
+# a solo is not told who they are) unless the operator names someone else, the
 # variable before the file, unknown named as such, a malformed file read as far
 # as it can be. Run it after any change to whoami.sh or to the format of PEOPLE.md.
 # Usage: bash .claude/hooks/test-whoami.sh   (exit 0 when every case conforms)
@@ -75,7 +76,7 @@ fresh; printf -- '---\ntype: reference\n---\n\n# People\n\nEach person is a sect
 run
 expect "shipped placeholder: silent" empty x
 
-# 3. One person, no operator: that person, and nothing about pulling.
+# 3. One person, no operator: silence (0.14.1), as without PEOPLE.md.
 fresh; people <<'EOF'
 # People
 
@@ -85,7 +86,11 @@ fresh; people <<'EOF'
 - admin: yes
 EOF
 run
-expect "one person, no operator: the only person" has '^At the screen: @sam \(from the only person' has '- authority: \*' lacks 'unknown' lacks 'git pull' lacks 'who are you'
+expect "one person, no operator: silent" empty x
+printf 'Sam\n' > "$PROJ/.claude/operator"; run
+expect "one person, operator file names them: silent" empty x
+OUT=$(MANENCE_OPERATOR=sam CLAUDE_PROJECT_DIR="$PROJ" bash "$WHOAMI" < /dev/null 2>"$SANDBOX/err"); RC=$?
+expect "one person, MANENCE_OPERATOR names them: silent" empty x
 
 # 4. Two people, the operator in .claude/operator (CRLF, @, uppercase tolerated).
 fresh; two_people; printf '@Lee\r\n' > "$PROJ/.claude/operator"; run
@@ -105,15 +110,17 @@ fresh; two_people; printf 'bob\n' > "$PROJ/.claude/operator"; run
 expect "operator absent from PEOPLE.md: named, unknown" has 'names "bob", who is not in PEOPLE\.md' has '^- @sam ' has '^- @lee ' lacks '^At the screen: @'
 
 # 8. A single person and an operator that does not match (MANENCE_OPERATOR is
-#    global to the machine): that person, with a note.
+#    global to the machine): that person, said in one note line, nothing else.
 fresh; people <<'EOF'
 ## sam
 - name: Sam Rivera
 EOF
 printf 'lee\n' > "$PROJ/.claude/operator"; run
-expect "one person, operator file names someone else: that person, noted" has '^At the screen: @sam \(from the only person' has '^Note: \.claude/operator names "lee"'
+expect "one person, operator file names someone else: one note line" has '^Note: \.claude/operator names "lee".*\(@sam\)$' lacks '^At the screen' lacks 'People of this MOS'
+[ "$(printf '%s\n' "$OUT" | wc -l | tr -d ' ')" -eq 1 ]; RC=$?; OUT=x
+expect "one person, mismatch: exactly one line" has x
 OUT=$(MANENCE_OPERATOR=other CLAUDE_PROJECT_DIR="$PROJ" bash "$WHOAMI" < /dev/null 2>"$SANDBOX/err"); RC=$?
-expect "one person, MANENCE_OPERATOR from another MOS: that person, noted" has '^At the screen: @sam ' has '^Note: MANENCE_OPERATOR names "other"'
+expect "one person, MANENCE_OPERATOR from another MOS: one note line" has '^Note: MANENCE_OPERATOR names "other"' lacks '^At the screen'
 
 # 8b. Only the first line of MANENCE_OPERATOR counts.
 fresh; two_people
@@ -128,13 +135,18 @@ expect "caps: lines cut at 300, people listed up to 50" has '^- \.\.\. and 10 mo
 [ "$long" -le 320 ]; RC=$?; OUT=x
 expect "caps: no printed line over 320 characters" has x
 
-# 9. An empty operator file counts as none.
+# 9. An empty operator file counts as none: a solo, silence.
 fresh; people <<'EOF'
 ## sam
 - name: Sam Rivera
 EOF
 : > "$PROJ/.claude/operator"; run
-expect "empty .claude/operator: the only person" has '^At the screen: @sam '
+expect "empty .claude/operator, one person: silent" empty x
+
+# 9b. One person and a heading that is not a handle: the solo is silent, the
+#     unreadable heading is still named.
+fresh; printf '## sam\n- name: Sam\n\n## Ada Lovelace\n- name: x\n' > "$PROJ/PEOPLE.md"; run
+expect "one person, bad heading: only the notice line" has 'not a handle.*"Ada Lovelace"' lacks '^At the screen' lacks 'People of this MOS'
 
 # 10. Malformed: broken frontmatter, CRLF, a fenced example, a bad heading,
 #     a duplicate, a section with no keys, keys missing. Read what can be read.

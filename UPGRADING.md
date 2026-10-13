@@ -74,6 +74,20 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.14.1 — A production behind a link, and a quiet start for a solo
+
+Two fixes: `lint.sh` and `since-last-session.sh` now see through a production (or core) folder that is a symbolic link, where they used to see nothing, silently; `whoami.sh` no longer prints anything at session start when `PEOPLE.md` holds a single person.
+
+**Automatic**
+
+- `lint.sh`, `since-last-session.sh`, `whoami.sh` and `test-whoami.sh` are replaced or merged (`test-whoami.sh`: 25 cases). No new organ, no new wiring, nothing under `.claude/settings.json`.
+
+<!-- manual v0.14.1 -->
+- None required. The four files live in `.claude/hooks/`: the upgrade writes there through `upgrade.sh` (a script) or, if a conflict needs resolving by the agent, under an admin GO.
+- Optional, wording only: in `AGENTS.md`, the start-of-session sentence on `whoami.sh` now says the hook speaks when several people share the core and stays silent for a single person (take it from the shipped `AGENTS.md` if you like).
+- `bash .claude/hooks/test-whoami.sh` green; if your production is a symbolic link, `bash .claude/hooks/lint.sh <production>` now reports its findings.
+<!-- /manual -->
+
 ## 0.14.0 — Several people in one MOS
 
 A MOS can now be shared: the people who work in it are listed in `PEOPLE.md`, the one at the screen is named per machine in `.claude/operator`, every decision carries its author, the golden rule asks for the GO of whoever holds authority over the perimeter, and the journal merges without conflict when two clones wrote in parallel. A single-person MOS keeps working exactly as before, with nothing new to fill in.

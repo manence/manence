@@ -11,6 +11,13 @@ Log of Manence's public releases. Format based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.14.1] - 2026-10-13
+
+Two fixes to 0.14.0, both seen on real cores the day it came out.
+
+- **A production behind a symbolic link is linted again.** A core whose production folder is a link (to a synced drive, for instance) got no finding at all from `lint.sh`, and no warning either: `find` does not descend into a link given as its starting point, so the lint saw no file and reported nothing. The same blindness hid the workstreams whose `About.md` moved from `since-last-session.sh`. Every `find` whose starting point can be a production or a core root now runs as `find -H`: the link given is followed, the links inside the tree are not (no loop, no walk into another disk through a stray link). Touched: `lint.sh` (the file walk and the structure check) and `since-last-session.sh` (the inbox and the production). Audited and left as they were, because they already follow the link: `consignes.sh` and `upgrade.sh` (a shell or Python glob, or a `cd` first), `whoami.sh` and `scripts/log-rotate.py` (they walk nothing). `find -H` is POSIX: BSD find (macOS) and GNU find both take it. Proven by `scripts/test-lint-symlink.sh` (atelier only, 7 checks): the same findings through the link as on the real folder, a dangling link inside the tree neither followed nor fatal, and the moved `About.md` seen through the link; on 0.14.0's scripts, 5 of the 7 fail.
+- **`whoami.sh` is silent for a solo.** With one person in `PEOPLE.md` it printed some seven lines at every session start to tell a solopreneur who they are, which they know. One person now gets the same silence as no `PEOPLE.md`, except a single note line when `MANENCE_OPERATOR` or `.claude/operator` names a handle that is not that person (the variable is global to the machine, so another MOS's handle can leak in). A heading the file could not read is still named. Two people or more: unchanged. `test-whoami.sh`: 25 cases.
+
 ## [0.14.0] - 2026-10-13
 
 A MOS can be shared by several people. Until now the framework assumed one: the user was described in prose in `AGENTS.md`, the golden rule spoke of "the user", and two clones writing the journal in parallel conflicted at every merge. The need came from a real core where a partner joins on his own machine, on a clone of the same repository (2026-10-13). A core upgraded without `PEOPLE.md` behaves exactly as before: no new question, no new required file. A new install writes `PEOPLE.md` at setup, and each session then opens with a short who-is-who.

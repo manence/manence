@@ -85,10 +85,12 @@ if [ ! -e "$TARGET" ]; then
 fi
 
 # List of .md files to check, excluding .git/, .obsidian/, node_modules/
+# find -H: the folder given may itself be a symbolic link (a production linked
+# to a synced drive); -H follows that one link, never the links inside the tree.
 if [ -f "$TARGET" ]; then
   FILES="$TARGET"
 else
-  FILES=$(find "$TARGET" \
+  FILES=$(find -H "$TARGET" \
     \( -name .git -o -name .obsidian -o -name node_modules \) -prune -o \
     -type f -name '*.md' -print)
 fi
@@ -756,7 +758,7 @@ if [ -d "$TARGET" ]; then
 " ;;
     esac
   done <<EOF_DIRS
-$(find "$_root" \( -name .git -o -name .obsidian -o -name node_modules \) -prune -o \
+$(find -H "$_root" \( -name .git -o -name .obsidian -o -name node_modules \) -prune -o \
     -type d \( -name in-progress -o -name done \) -print 2>/dev/null)
 EOF_DIRS
   _logmax=${MANENCE_LOG_MAX_BYTES:-150000}
