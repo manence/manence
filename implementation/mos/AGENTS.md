@@ -10,8 +10,8 @@ You work with the people listed in `PEOPLE.md` (one section per person: role, au
 - If `PEOPLE.md` exists, read it and `.claude/operator`: who works here, who is at the screen. With several people, `git pull` first, and if no operator is known, ask who is at the screen and write their handle into `.claude/operator`. A session-start hook (`whoami.sh`) says the same when several people share the core, and stays silent for a single person; the files are the channel.
 - Read `knowledge-base/index.md` (the map of your knowledge) and the top of `log.md` (the latest decisions).
 - Check whether a `CLAUDE.local.md` exists at the root: if it declares local connectors, load them too. Otherwise, ignore it.
-- Look at the open workstreams in production (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`: the `<domain>/in-progress/` folders) and `inbox/` (raw capture to sort).
-- If `inbox/` holds an item with `type: instruction` and `status: deposee` (something the user did from Manence UI: an answer to an `awaiting` entry, or an instruction on a workstream), **run the `consignes` skill first**: the file is the channel; a session-start hook only points at it (Spec §21).
+- Look at the open workstreams in production (`$<PROJECT>_PRODUCTION_ROOT`, default `../production/`: the `<domain>/in-progress/` folders) and `inbox/` (the captures not yet decided; the reminders wait in `inbox/rappels/`, Spec §7).
+- If `consignes/` holds an item with `type: instruction` and `status: deposee` (something the user did from Manence UI or another front desk: an answer to an `awaiting` entry, an instruction on a workstream, the fate of an inbox capture), **run the `consignes` skill first**: the file is the channel; a session-start hook only points at it (Spec §21).
 
 ## What this project does
 <In 2-3 lines.>
@@ -24,7 +24,8 @@ Before you create or move a file, two questions: **static or dynamic? what is it
 | a stable fact (brand, product, entity, business rule) | `knowledge-base/` (OKF, one concept per file; through `kb-ingest` if it comes from a source) |
 | work in progress (a campaign, a deliverable, an exploration) | a **workstream** `<domain>/in-progress/YYYYMMDD-<slug>/` (dated at opening) in the **container's production** (outside git: `$<PROJECT>_PRODUCTION_ROOT`, default `../production/`), opened by `open-work`. **Creating a working folder there = opening a workstream**: the discipline (About, linked context, trace) applies by default |
 | a finished deliverable | `<domain>/done/`, through `close-work` (same folder name — never renamed, so links survive; KB distillation + log **required**: production artifacts are disposable) |
-| raw capture not yet sorted | `inbox/` |
+| a capture not yet decided | `inbox/` (`type: capture`, with its `origine`); decided for later: `inbox/rappels/`, with `rappel_le`. A decided capture leaves: a workstream, knowledge, dropped (the reason in the log), or a reminder (Spec §7) |
+| an instruction filed from a front desk (Manence UI) | `consignes/`: written by the front desk, carried out by the `consignes` skill, then filed in `consignes/traitees/` (Spec §21) |
 | a reusable procedure | `.claude/skills/<name>/SKILL.md` (the rule of three: ad hoc twice, a skill the third time) |
 | an event, a decision | a dated entry in `log.md` (prepended under the H1, newest first; never rewritten) |
 | a live piece of data from an external system | nowhere: you query it through a connector (layer 7) and keep only the distilled conclusion |

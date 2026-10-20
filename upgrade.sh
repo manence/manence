@@ -47,7 +47,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1 0.15.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -604,7 +604,7 @@ fi
 echo
 echo "Identity organs — never touched by this script"
 for f in AGENTS.md CLAUDE.md CLAUDE.local.md PEOPLE.md SOUL.md STRATEGY.md .claude/settings.json \
-         .env .env.example log.md knowledge-base inbox; do
+         .env .env.example log.md knowledge-base inbox consignes; do
   [ -e "$CORE/$f" ] && report "yours" "$f"
 done
 report "yours" "everything else the core holds (brand/, scripts/, your own skills…)"
@@ -871,6 +871,115 @@ migrate_0_14() {
   fi
 }
 
+# 0.15: the inbox is an inbox again (Spec §7), and the instructions of a front desk
+# live in consignes/ (Spec §21). The folders are created; every `type: instruction`
+# item leaves inbox/ (deposee -> consignes/, traitee | rejetee -> consignes/traitees/,
+# git mv when tracked); the captures that do not meet the new contract are only
+# listed: their origine is read in their content, and sorting is a judgment, the
+# agent's (the upgrade skill), never this script's.
+fm_block() {  # file -> its frontmatter lines (CR stripped), nothing without one
+  tr -d '\r' < "$1" 2>/dev/null | awk 'NR == 1 { if ($0 != "---") exit; next } $0 == "---" { exit } { print }'
+}
+fm_value() {  # file key -> the scalar value of a top-level key, unquoted
+  fm_block "$1" | sed -nE "s/^$2:[[:space:]]*//p" | head -n 1 \
+    | sed -E 's/[[:space:]]+#.*$//; s/^"(.*)"$/\1/; s/^'\''(.*)'\''$/\1/; s/[[:space:]]+$//'
+}
+move_item() {  # core-relative src, core-relative dest dir
+  local src=$1 dir=$2 name
+  name=$(basename -- "$src")
+  if [ -e "$CORE/$dir/$name" ]; then
+    report "MANUAL" "v0.15.0  $src — $dir/$name already exists: move it by hand"
+    N_MANUAL=$((N_MANUAL + 1)); return 0
+  fi
+  if [ "$APPLY" -eq 1 ]; then
+    mkdir -p "$CORE/$dir"
+    if git -C "$CORE" rev-parse --git-dir >/dev/null 2>&1 \
+       && git -C "$CORE" ls-files --error-unmatch "$src" >/dev/null 2>&1; then
+      git -C "$CORE" mv "$src" "$dir/$name"
+      report "migrated" "v0.15.0  $src -> $dir/ (git mv)"
+    else
+      mv "$CORE/$src" "$CORE/$dir/$name"
+      report "migrated" "v0.15.0  $src -> $dir/ (mv)"
+    fi
+  else
+    report "would do" "v0.15.0  $src -> $dir/"
+  fi
+  N_MIGRATED=$((N_MIGRATED + 1))
+}
+migrate_0_15() {
+  # 1. The folders: consignes/ (its README), consignes/traitees/, inbox/rappels/.
+  local d f rel typ st o why n_bad=0
+  for d in consignes consignes/traitees inbox/rappels; do
+    case $d in
+      consignes) f=README.md ;;
+      *)         f=.gitkeep ;;
+    esac
+    if [ -e "$CORE/$d/$f" ] || { [ "$f" = .gitkeep ] && [ -d "$CORE/$d" ] && [ -n "$(ls -A "$CORE/$d" 2>/dev/null)" ]; }; then
+      report "nothing" "v0.15.0  $d/ already there"
+      continue
+    fi
+    if [ "$APPLY" -eq 1 ]; then
+      mkdir -p "$CORE/$d"
+      if [ "$f" = README.md ] && [ -f "$TO_DIR/$MOS/consignes/README.md" ]; then
+        cp "$TO_DIR/$MOS/consignes/README.md" "$CORE/$d/$f"
+      else
+        : > "$CORE/$d/$f"
+      fi
+      report "migrated" "v0.15.0  $d/$f created"
+    else
+      report "would do" "v0.15.0  $d/$f created"
+    fi
+    N_MIGRATED=$((N_MIGRATED + 1))
+  done
+
+  # 2. The instruction items leave the inbox. 3. The captures out of contract are listed.
+  if [ ! -d "$CORE/inbox" ]; then
+    report "nothing" "v0.15.0  no inbox/ to sort out"
+    return 0
+  fi
+  for f in "$CORE"/inbox/*.md "$CORE"/inbox/rappels/*.md; do
+    [ -f "$f" ] || continue
+    rel=${f#"$CORE"/}
+    case $(basename -- "$f") in README.md|index.md) continue ;; esac
+    typ=$(fm_value "$f" type)
+    if [ "$typ" = instruction ]; then
+      st=$(fm_value "$f" status)
+      case $st in
+        deposee)         move_item "$rel" consignes ;;
+        traitee|rejetee) move_item "$rel" consignes/traitees ;;
+        *) report "MANUAL" "v0.15.0  $rel — an instruction item with status '${st:-(none)}': file it in consignes/ by hand"
+           N_MANUAL=$((N_MANUAL + 1)) ;;
+      esac
+      continue
+    fi
+    why=""
+    [ "$typ" = capture ] || why="type: ${typ:-(none)}"
+    o=$(fm_value "$f" origine)
+    case $o in
+      main|checkpoint|watch|close-work|review|front-desk) : ;;
+      "")      why="${why:+$why, }no origine" ;;
+      veille)  why="${why:+$why, }origine: veille (now watch)" ;;
+      revue)   why="${why:+$why, }origine: revue (now review)" ;;
+      guichet) why="${why:+$why, }origine: guichet (now front-desk)" ;;
+      *)       why="${why:+$why, }origine: $o (off the list)" ;;
+    esac
+    [ -n "$(fm_value "$f" status)" ] && why="${why:+$why, }a status"
+    case $rel in
+      inbox/rappels/*) [ -n "$(fm_value "$f" rappel_le)" ] || why="${why:+$why, }no rappel_le" ;;
+    esac
+    if [ -n "$why" ]; then
+      report "to sort" "v0.15.0  $rel — $why"
+      n_bad=$((n_bad + 1))
+    fi
+  done
+  if [ "$n_bad" -gt 0 ]; then
+    report "MANUAL" "v0.15.0  $n_bad inbox file(s) out of the capture contract (Spec §7): left as they are — give each its type, origine and source, or its exit (UPGRADING.md 0.15.0)"
+    N_MANUAL=$((N_MANUAL + 1))
+  else
+    report "nothing" "v0.15.0  every inbox file is a capture in contract"
+  fi
+}
+
 echo
 echo "Declared migrations"
 if [ -z "$VERSIONS" ]; then
@@ -881,6 +990,7 @@ else
     case $v in
       0.8.0) MIG_DECLARED=1; migrate_0_8 ;;
       0.14.0) MIG_DECLARED=1; migrate_0_14 ;;
+      0.15.0) MIG_DECLARED=1; migrate_0_15 ;;
       *) : ;;
     esac
   done

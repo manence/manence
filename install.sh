@@ -13,6 +13,9 @@
 #
 # Portable: bash 3.2+ (macOS default), Linux, Git Bash on Windows.
 # Requires: git (only when the script is not run from a clone).
+# Checks, and names with the command to install them, what the MOS needs to run:
+# jq (the guard fails closed without it) and python3 (the full lint). It installs
+# nothing itself, and the copy goes ahead either way.
 #
 set -eu
 
@@ -119,7 +122,7 @@ for organ in \
   .claude/settings.json .claude/hooks/guard.sh .claude/hooks/lint.sh .claude/skills \
   .claude/manence-version .claude/mos.json .env.example .gitattributes .gitignore \
   .mcp.json.example CLAUDE.local.md.example \
-  AGENTS.md CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox BOOTSTRAP.md
+  AGENTS.md CLAUDE.md SOUL.md STRATEGY.md log.md knowledge-base templates inbox consignes BOOTSTRAP.md
 do
   if [ ! -e "$TARGET/core/$organ" ]; then
     echo "install.sh: MISSING $organ" >&2
@@ -138,6 +141,29 @@ if [ "$missing" -ne 0 ]; then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# Prerequisites — what the hooks need. Checked here, before the agent opens:
+# without jq, guard.sh blocks every tool action of the agent, so the agent
+# cannot install jq for you; it has to be there first.
+# ---------------------------------------------------------------------------
+OS=$(uname -s 2>/dev/null || echo unknown)
+has_jq() { command -v jq >/dev/null 2>&1 && jq --version >/dev/null 2>&1; }
+has_python3() {
+  command -v python3 >/dev/null 2>&1 || return 1
+  # macOS: /usr/bin/python3 is a stub until Apple's command line tools are
+  # installed (running it would open the installer dialog): ask first.
+  if [ "$OS" = Darwin ] && [ "$(command -v python3)" = /usr/bin/python3 ] \
+     && ! xcode-select -p >/dev/null 2>&1; then
+    return 1
+  fi
+  # Windows: a python3 that opens the Microsoft Store is a stub, not an interpreter.
+  python3 -c 'import sys' >/dev/null 2>&1
+}
+MISSING=""
+has_jq || MISSING="$MISSING jq"
+has_python3 || MISSING="$MISSING python3"
+MISSING=${MISSING# }
+
 cat <<EOF
 
 Manence OS is on disk.
@@ -145,6 +171,37 @@ Manence OS is on disk.
   container  $TARGET
   core       $TARGET/core
 
+EOF
+
+if [ -n "$MISSING" ]; then
+  echo "Before you open the agent, install: $MISSING"
+  echo
+  case "$MISSING" in *jq*)
+    echo "  jq       the guard (guard.sh) needs it: without it, every tool action of the"
+    echo "           agent is blocked, so the agent cannot install it for you."
+    case "$OS" in
+      Darwin) echo "           macOS: brew install jq (with Homebrew); otherwise the macOS binary"
+              echo "           from https://github.com/jqlang/jq/releases, made executable, on your PATH" ;;
+      Linux)  echo "           Linux: sudo apt install jq (or your distribution's package manager)" ;;
+      *)      echo "           Windows: winget install jqlang.jq, then reopen Git Bash" ;;
+    esac ;;
+  esac
+  case "$MISSING" in *python3*)
+    echo "  python3  the lint (lint.sh) needs it for a full check: without it, it falls back"
+    echo "           to links only (frontmatter, inbox and waits unchecked) and says so."
+    case "$OS" in
+      Darwin) echo "           macOS: xcode-select --install (Apple's command line tools bring python3, and git)" ;;
+      Linux)  echo "           Linux: sudo apt install python3 (or your distribution's package manager)" ;;
+      *)      echo "           Windows: winget install Python.Python.3.13 (the python.org installer makes"
+              echo "           no python3 command: see QUICKSTART, the Windows note)" ;;
+    esac ;;
+  esac
+  echo
+  echo "Then check:  jq --version  and  python3 --version"
+  echo
+fi
+
+cat <<EOF
 Next:
 
   cd $TARGET/core

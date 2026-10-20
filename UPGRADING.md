@@ -40,7 +40,7 @@ An upgrade is not one gesture but three, and the script is explicit about which 
 
 Skills you wrote yourself are never touched, and never counted — the script names them and leaves them alone.
 
-**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `PEOPLE.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`. **Never touched, ever.** These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
+**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `PEOPLE.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`, `consignes/**`. **Never touched, ever**, with one declared exception: the 0.15 migration moves the instruction items out of `inbox/` into `consignes/` (a move, never a rewrite). These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
 
 **Declared migrations** — the gestures a version needs on your data, played in version order, each idempotent, each announced before it runs. They are listed below, per version, under *Automatic*.
 
@@ -48,7 +48,7 @@ The version stamp, `.claude/manence-version`, is written **last**, and only when
 
 ## What the script never does
 
-- It never writes to your identity files, and never to `knowledge-base/` or `inbox/`.
+- It never writes to your identity files, and never to `knowledge-base/` or `inbox/` (the 0.15 migration moves instruction items out of `inbox/`, and rewrites none).
 - It never deletes anything. A retired organ moves to `<core>/.upgrade-removed/`, keeping its path; you delete it when you are satisfied, or you don't.
 - It never commits and never pushes. Reading the diff is your gesture; so is the commit message.
 - It never touches another system: everything it writes is under the core you named (and under the production root that core declares).
@@ -73,6 +73,26 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.15.0 — The inbox is an inbox again, and the instructions have their place
+
+The inbox holds what has not been decided yet, and nothing else (GTD, Spec §7): every file in it is a capture (`type: capture`, `title`, `timestamp`, `origine`, an optional `source`, no `status`), the reminders wait in `inbox/rappels/` with `rappel_le`, and a decided capture leaves through one of four exits. The instructions a front desk files (Spec §21) move to their own folder, `consignes/`, and once handled to `consignes/traitees/`, which the weekly review purges after 30 days. A new gesture, `tri`, lets a person decide a capture from a front desk.
+
+**Automatic**
+
+- `lint.sh` and `consignes.sh` are replaced or merged. The lint now holds the core's top-level `inbox/` to the capture contract and `consignes/` to the instruction contract; the session-start hook counts the items of `consignes/` (and, for this version, those still in `inbox/`) and the due reminders.
+- `consignes`, `checkpoint`, `outward-watch`, `close-work`, `weekly-review`, `open-work` and `kb-lint` are replaced or merged: every writer of the inbox writes a capture with its `origine`.
+- Declared migration: `consignes/` (with its README), `consignes/traitees/` and `inbox/rappels/` are created when absent; every `type: instruction` item of `inbox/` is moved (`git mv` when tracked): `deposee` to `consignes/`, `traitee` or `rejetee` to `consignes/traitees/`. An item whose name already exists at the destination, or with another status, is left and named (`MANUAL`).
+- The same migration **lists** every inbox file out of the capture contract (`to sort`: no `type: capture`, no `origine`, an `origine` off the list, a `status`, a reminder without `rappel_le`) and leaves it byte for byte: its `origine` is read in its content, and sorting is a judgment. A core that played the prototype of this version with French values of `origine` sees them named with their English word: `veille` is `watch`, `revue` is `review`, `guichet` is `front-desk` (`main`, `checkpoint` and `close-work` are unchanged). The folder and field names stay as they are (`consignes`, `traitees`, `rappels`, `rappel_le`, `origine`): they are identifiers of the contract, like `awaiting`.
+
+<!-- manual v0.15.0 -->
+- Sort the inbox files the migration listed (`to sort`): give each `type: capture`, `title`, `timestamp`, an `origine` from the list and its `source`, or its exit (a workstream, knowledge, dropped with the reason in the log, a reminder). A handover that asks questions: the questions go into the workstream's `awaiting`. A measure: into its series in the knowledge base. The agent does it with you (the `upgrade` skill); the lint is clean when it is done.
+- `AGENTS.md`: take the shipped start-of-session line (`consignes/`, the reminders) and the two rows of the routing table (a capture not yet decided, `inbox/` and `inbox/rappels/`; an instruction filed from a front desk, `consignes/`). Every top-level folder has its row (Spec §17): `consignes/` needs one.
+- `CLAUDE.md`: the sentence on the session-start hook now says it counts the items of `consignes/` and the due reminders (take it from the shipped `CLAUDE.md`).
+- A front desk you run (Manence UI) writes into `consignes/` and aims a `tri` at `inbox/` or `inbox/rappels/`: check its version. For this version, the `consignes` skill and the hook still read an instruction item found in `inbox/`.
+- If the merge of `lint.sh` conflicts (a core that played the prototype already carries the function, with its own values): take the shipped file, under an admin GO.
+- `bash .claude/hooks/lint.sh .` clean on the inbox and `consignes/`.
+<!-- /manual -->
 
 ## 0.14.1 — A production behind a link, and a quiet start for a solo
 

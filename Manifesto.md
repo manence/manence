@@ -136,7 +136,8 @@ A complete install of the framework, dedicated to one activity, is called a **MO
     scripts/ + .env               LAYER 7: direct API calls (keys in .env, gitignored)
     knowledge-base/               LAYER 2: OKF bundle (index.md · <concept>.md · log.md)
     templates/chantier/           workstream template (copied by open-work)
-    inbox/                        raw capture to sort
+    inbox/                        captures not yet decided (rappels/: the reminders)
+    consignes/                    instructions from a front desk, for the agent to carry out
     log.md                        LAYER 6: episodic, never rewritten
   production/                    ← LAYER 6, OUTSIDE git ($<PROJECT>_PRODUCTION_ROOT, default ../production)
     <domain>/                     one domain per line of work, created on first need

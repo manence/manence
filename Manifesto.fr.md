@@ -136,7 +136,8 @@ Une installation complète du cadre, dédiée à une activité, s'appelle un **M
     scripts/ + .env               COUCHE 7 : appels API directs (clés en .env, gitignored)
     knowledge-base/               COUCHE 2 : bundle OKF (index.md · <concept>.md · log.md)
     templates/chantier/           gabarit de chantier (copié par open-work)
-    inbox/                        capture brute à trier
+    inbox/                        captures pas encore arbitrées (rappels/ : les rappels)
+    consignes/                    consignes d'un guichet, que l'agent exécute
     log.md                        COUCHE 6 : épisodique, jamais réécrit
   production/                    ← COUCHE 6, HORS git ($<PROJET>_PRODUCTION_ROOT, défaut ../production)
     <domaine>/                    un domaine par métier, créé au premier besoin

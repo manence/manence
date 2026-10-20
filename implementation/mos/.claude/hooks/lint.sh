@@ -696,6 +696,62 @@ def check_frontmatter(path, lines, basename):
                "frontmatter present but the 'type:' field is missing or empty")
 
 
+INBOX_ORIGINES = {"main", "checkpoint", "watch", "close-work", "review", "front-desk"}
+CONSIGNE_STATUS = {"deposee", "traitee", "rejetee"}
+
+
+def check_inbox_and_consignes(path, lines, basename):
+    """Inbox (GTD, Spec §7, 0.15): one nature, `type: capture` + `origine`; no status;
+    instructions live in consignes/. consignes/: the instruction contract (Spec §21)."""
+    # only the core's top-level inbox/ and consignes/ (a skill folder may be named consignes/ too)
+    root = _repo_root(os.path.dirname(os.path.abspath(path)) or ".")
+    if root is None:
+        return
+    parts = os.path.relpath(os.path.abspath(path), root).split(os.sep)
+    in_inbox = parts[:1] == ["inbox"]
+    in_consignes = parts[:1] == ["consignes"]
+    if not (in_inbox or in_consignes) or basename in EXEMPT_BASENAMES:
+        return
+    block, _, _ = parse_frontmatter_block(lines)
+    if block is None:
+        report(path, 1, "inbox-type" if in_inbox else "consigne-type",
+               "no frontmatter: an inbox item is `type: capture` (title, timestamp, origine)"
+               if in_inbox else "no frontmatter: a consigne is `type: instruction` (Spec §21)")
+        return
+    kv, line_of = top_level_kv(block)
+    line = lambda k: (line_of.get(k, -1) + 2) if k in line_of else 1
+    typ = _scalar(_strip_comment(kv.get("type", "")))
+    if in_inbox:
+        if typ == "instruction":
+            report(path, line("type"), "inbox-instruction",
+                   "an instruction item belongs in consignes/, not in the inbox")
+            return
+        if typ != "capture":
+            report(path, line("type"), "inbox-type",
+                   f"type: {typ or '(missing)'}; an inbox item is `type: capture`")
+        for k in ("title", "timestamp", "origine"):
+            if not _scalar(kv.get(k, "")):
+                report(path, 1, "inbox-field", f"missing `{k}:`")
+        o = _scalar(_strip_comment(kv.get("origine", "")))
+        if o and o not in INBOX_ORIGINES:
+            report(path, line("origine"), "inbox-origine",
+                   f"origine: {o}; expected one of {', '.join(sorted(INBOX_ORIGINES))}")
+        if "status" in kv:
+            report(path, line("status"), "inbox-status",
+                   "an inbox item has no status: it is to sort, or a reminder (inbox/rappels/)")
+        if "rappels" in parts and not _scalar(kv.get("rappel_le", "")):
+            report(path, 1, "inbox-rappel", "a reminder in inbox/rappels/ needs `rappel_le: YYYY-MM-DD`")
+    else:
+        if typ != "instruction":
+            report(path, line("type"), "consigne-type", f"type: {typ or '(missing)'}; expected `instruction`")
+            return
+        st = _scalar(_strip_comment(kv.get("status", "")))
+        if st not in CONSIGNE_STATUS:
+            report(path, line("status"), "consigne-status", f"status: {st or '(missing)'}; expected deposee | traitee | rejetee")
+        elif st != "deposee" and "traitees" not in parts:
+            report(path, line("status"), "consigne-unfiled", f"status: {st} but not in consignes/traitees/ (the consignes skill files it)")
+
+
 def lint_file(path):
     try:
         with open(path, "r", encoding="utf-8") as fh:
@@ -709,6 +765,7 @@ def lint_file(path):
     check_links(path, content)
     if not is_loose_production(path):
         check_frontmatter(path, content.splitlines(), basename)
+        check_inbox_and_consignes(path, content.splitlines(), basename)
 
 
 def main():

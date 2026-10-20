@@ -46,7 +46,8 @@ my-project/             ← THE CONTAINER = THE MOS (not a repository: it just h
     scripts/   sources/  direct API calls; immutable raw sources (wiki method)
     knowledge-base/      the wiki (layer 2), see §3
       index.md  log.md   skeletons, stamped by the first setup; ready for kb-ingest
-    inbox/               raw capture to be sorted
+    inbox/               captures not yet decided; inbox/rappels/ holds the reminders (Spec §7)
+    consignes/           instructions filed from a front desk, carried out by the consignes skill (Spec §21)
     log.md               the project journal (added to, never rewritten; newest first)
 
   production/           ← OUTSIDE git (default ../production/ from the core, created by the first setup)
