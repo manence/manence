@@ -74,6 +74,24 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.16.0 — Each person sorts their own share of the inbox
+
+A capture may name the person it is for (`pour: <handle>`, a handle of `PEOPLE.md`, Spec §7); a capture without one is the owner's to sort. A MOS run by one person writes no `pour` and sees no difference. A front desk may file captures (`origine: front-desk`). The guard's rule 4 refuses writes to its own files, no longer mere mentions of them.
+
+**Automatic**
+
+- `guard.sh`, `test-guard.sh` and `lint.sh` are replaced or merged: rule 4 aims at write targets; the lint checks `pour` (optional; a handle of `PEOPLE.md`; flagged in a MOS without `PEOPLE.md`).
+- `checkpoint`, `consignes`, `weekly-review`, `outward-watch`, `close-work` and `kb-lint` are replaced or merged: `checkpoint` writes `pour` with several people, `consignes` rewrites it on instruction, the review names who decides.
+- No capture is rewritten: existing captures carry no `pour`, so they are the owner's, which is what they already were.
+- Declared migration, for Codex: the `.agents/skills` link to `../.claude/skills` is laid when missing (Codex 0.163 and later read the skills there, no longer through the root `skills` link), and `/.agents/skills` is gitignored when `/skills` is. A real folder or a link aimed elsewhere is left and named (`MANUAL`); where no symbolic link can be made (Git Bash on Windows), make the junction by hand (`BOOTSTRAP.md`, "Codex wiring").
+
+<!-- manual v0.16.0 -->
+- `AGENTS.md`: in the routing table, the row "a capture not yet decided" gains "with several people, `pour` names who sorts it; without one, the owner"; the subagent line becomes "a brief of invariants and a budget"; under Skills, the bridge sentence names `.agents/skills` (take all three from the shipped `AGENTS.md`).
+- `PEOPLE.md`, if the MOS has one: nothing to change; `pour` uses the handles already there.
+- A front desk you run (Manence UI): check that its version reads `pour` and files `front-desk` captures before relying on it.
+- `bash .claude/hooks/lint.sh .` clean.
+<!-- /manual -->
+
 ## 0.15.0 — The inbox is an inbox again, and the instructions have their place
 
 The inbox holds what has not been decided yet, and nothing else (GTD, Spec §7): every file in it is a capture (`type: capture`, `title`, `timestamp`, `origine`, an optional `source`, no `status`), the reminders wait in `inbox/rappels/` with `rappel_le`, and a decided capture leaves through one of four exits. The instructions a front desk files (Spec §21) move to their own folder, `consignes/`, and once handled to `consignes/traitees/`, which the weekly review purges after 30 days. A new gesture, `tri`, lets a person decide a capture from a front desk.

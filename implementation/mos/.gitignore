@@ -15,6 +15,9 @@ CLAUDE.local.md
 # Bridge to .claude/skills/ set up by the first setup for some agents:
 # a link is never committed (git breaks it on a Windows checkout)
 /skills
+# Codex 0.163 and later read .agents/skills (a link to ../.claude/skills, laid by
+# install.sh or upgrade.sh 0.16): the same rule
+/.agents/skills
 
 # Obsidian
 .obsidian/workspace*

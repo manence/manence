@@ -97,7 +97,7 @@ This section outlives the ritual: once `BOOTSTRAP.md` is deleted from the core, 
 
 Claude Code and Grok Build need nothing: they read `.claude/settings.json`. Codex reads `AGENTS.md` natively but needs two things at the core's root, on each machine that runs it:
 
-- **The skills bridge**: a `skills` link to `.claude/skills` (`ln -s .claude/skills skills` on macOS and Linux; `mklink /J skills .claude\skills` on Windows, a junction, no admin rights). Gitignored (`/skills`), never committed: each machine poses its own.
+- **The skills bridge**: a `.agents/skills` link to `../.claude/skills`, where Codex looks for skills since 0.163 (`install.sh` lays it in the core it creates; otherwise `mkdir -p .agents && ln -s ../.claude/skills .agents/skills` on macOS and Linux; `mkdir .agents` then `mklink /J .agents\skills .claude\skills` on Windows, a junction, no admin rights), and, for older versions, a `skills` link to `.claude/skills` (`ln -s .claude/skills skills`; `mklink /J skills .claude\skills`). Both links are gitignored (`/skills`, `/.agents/skills`), never committed: each machine poses its own.
 - **The hooks**: `.codex/config.toml`, which Codex loads once the project is *trusted*. It holds no secret: commit it with the core, and every clone driven by Codex carries the same boundary. It is the guard's wiring: after the first setup, it changes under an admin GO or by the user's hand.
 
 ```toml

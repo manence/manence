@@ -113,6 +113,23 @@ cp -R "$MOS_SRC"/. "$TARGET/core/"
 # but keep the bit when the filesystem honors it (no-op on NTFS).
 chmod +x "$TARGET/core/.claude/hooks/"*.sh 2>/dev/null || true
 
+# The skills bridge for Codex (0.16): Codex 0.163 and later look for skills in
+# .agents/skills, from the working directory up to the repository root; a root
+# skills/ link is no longer read. A relative link, gitignored like /skills. Where
+# ln -s makes a copy instead of a link (Git Bash on Windows without the right),
+# the copy is removed and the wiring is left to BOOTSTRAP ("Codex wiring",
+# a junction): a copy of the skills would drift from .claude/skills.
+AGENTS_LINK_NOTE=""
+if [ ! -e "$TARGET/core/.agents/skills" ] && [ ! -L "$TARGET/core/.agents/skills" ]; then
+  mkdir -p "$TARGET/core/.agents"
+  ln -s ../.claude/skills "$TARGET/core/.agents/skills" 2>/dev/null || true
+  if [ ! -L "$TARGET/core/.agents/skills" ]; then
+    rm -rf "$TARGET/core/.agents/skills"
+    rmdir "$TARGET/core/.agents" 2>/dev/null || true
+    AGENTS_LINK_NOTE="Codex: the .agents/skills link could not be made here; the first setup wires it (BOOTSTRAP, \"Codex wiring\")."
+  fi
+fi
+
 # ---------------------------------------------------------------------------
 # Integrity — the same organs BOOTSTRAP step 0 checks. Fail here, not after
 # the interview.
@@ -172,6 +189,11 @@ Manence OS is on disk.
   core       $TARGET/core
 
 EOF
+
+if [ -n "$AGENTS_LINK_NOTE" ]; then
+  echo "$AGENTS_LINK_NOTE"
+  echo
+fi
 
 if [ -n "$MISSING" ]; then
   echo "Before you open the agent, install: $MISSING"

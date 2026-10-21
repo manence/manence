@@ -18,13 +18,19 @@
 #      --git-dir, --work-tree…)
 #   4. the guardrail's own files (0.12): no file tool writes to
 #      <project>/.claude/hooks/, .claude/settings.json or .claude/settings.local.json,
-#      and no shell segment writes there either (a redirection, sed/perl -i, tee,
-#      truncate, touch, rm/trash/unlink, ln, mv naming one of them anywhere,
-#      cp/install/rsync whose last argument is one of them, or a chmod that takes
-#      the owner's read bit away; since 0.13.1 the path is read through a variable,
-#      ~/, $HOME, $PWD, $(pwd), "//", "/./" and "dir/../", and a cd into the
-#      folder, a guarded path put in a variable, or an interpreter one-liner that
-#      names one of them count when the command writes). Reading them, and running them, stays free. These files
+#      and no shell command WRITES there either (0.16: the rule reads the targets
+#      of a write, not the mentions): a redirection to one of them, a command
+#      that writes, moves, deletes or changes the rights of one of them (tee,
+#      touch, truncate, rm, trash, ln, mv, chmod, chown, sed/perl -i, cp/install/
+#      rsync to one of them, git checkout/restore/mv/rm on one of them…), a cd
+#      into the folder followed by such a write, a heredoc whose target is one
+#      of them or whose body a shell or an interpreter runs and writes there, and,
+#      in doubt, a command the guard does not know given one of them as argument,
+#      bash -c/eval/source/xargs naming one of them, interpreter code that names
+#      one and writes. The path is read through a variable, ~/, $HOME, $PWD,
+#      $(pwd), "//", "/./" and "dir/../". Reading them (cat, grep, ls, diff…),
+#      running them (bash test-guard.sh), and naming them in a log entry or a
+#      capture written through a heredoc, stay free. Detail at rule 4 below. These files
 #      change through upgrade.sh (run by the user or by the agent as a script) or
 #      by the user's hand: a guardrail the agent can rewrite protects nothing.
 #      Since 0.13 this hook is the only layer for these files: permissions.deny
@@ -32,7 +38,8 @@
 #      them shut after an admin GO (Claude Code applies Edit(...) rules to shell
 #      redirections too, observed 2026-10-05). A hook deny holds in every
 #      permission mode, bypass included; if this hook cannot run at all, rule 4
-#      cannot either, which is why rule 4 also refuses mv, rm and chmod on it.
+#      cannot either, which is why rule 4 also refuses mv, rm and chmod on it
+#      (any chmod since 0.16: until 0.15 only one that took the read bit away).
 #      THE ADMIN GO (0.13): a line of the user's own message that begins with
 #      "admin GO" (or "GO admin") opens these files for the session (admin-go.sh writes the grant
 #      from the prompt, this hook reads it, every write through it is traced as
@@ -45,8 +52,8 @@
 # a rare false positive beats a real negative; write such texts through the
 # file-editing tools, or paraphrase). Rules 1bis, 3 and 4 read the command by
 # SEGMENT (split on ; | & and newlines, backslash-newline continuations joined
-# first), and rules 3 and 4 only look at segments that BEGIN with the command
-# they check: a branch name in a commit message, a `--base main` on a chained
+# first; for rule 4, the body of a data heredoc dropped first, since 0.16), and
+# rules 3 and 4 only look at segments that BEGIN with the command they check: a branch name in a commit message, a `--base main` on a chained
 # `gh pr create`, or a note that mentions a push no longer block the push next to
 # them (three false positives in ten days, lived on 2026-09-15/22/23; fix and
 # test suite from the Déclic installation, 2026-09-26). The price: a command
@@ -279,39 +286,45 @@ if [ -z "$REASON" ]; then
   fi
 fi
 
-# Reads chmod segments on stdin; true when one takes the owner's read bit away
-# (a hook that bash cannot read fails, and a failing hook lets the call through).
-# Numeric modes: owner digit below 4. Symbolic: u, a or no "who" with -r, or = without r.
-chmod_drops_read() {
-  awk '{
-    i = 1; while (i <= NF && $i !~ /(^|[({])chmod$/) i++
-    for (i++; i <= NF && $i ~ /^-[RfvhHLP]+$/; i++) ;
-    m = $i
-    if (m ~ /^[0-7]+$/) { while (length(m) < 3) m = "0" m; if (substr(m, length(m) - 2, 1) + 0 < 4) hit = 1; next }
-    n = split(m, cl, ",")
-    for (k = 1; k <= n; k++) {
-      c = cl[k]; who = c; sub(/[-+=].*$/, "", who); rest = substr(c, length(who) + 1)
-      if (who != "" && who !~ /[ua]/) continue
-      op = substr(rest, 1, 1); perms = substr(rest, 2)
-      if ((op == "-" && perms ~ /r/) || (op == "=" && perms !~ /r/)) hit = 1
-    }
-  } END { exit hit ? 0 : 1 }'
-}
-
-# 4. a shell write to the guardrail's own files. The path is folded first: the
-# home and working-directory forms (~/, $HOME/, $PWD/, $(pwd)/…) become the real
-# directories, "//", "/./" and "dir/../" collapse, and the project's absolute path
-# becomes "./". A guarded path is then one that starts the word, a variable
-# allowed in front ($R/.claude/hooks/…, "${R}"/.claude/settings.json: a variable
-# there is presumed to name the project): ".claude/hooks/…" or
-# "./.claude/settings.json" — not "implementation/mos/.claude/…", which is
-# someone else's copy (the framework's own source tree, for one).
-# 0.13.1: three more shapes of the same mistake, seen on a core on 2026-10-06. A
-# command that changes into the guarded folder (cd .claude/hooks) or puts a
-# guarded path in a variable (H=.claude/hooks) and then writes anything; and an
-# interpreter one-liner (python3 -c, node -e…) that names a guarded file and
-# writes. Still an anti-mistake barrier: a path the shell builds at run time, a
-# glob (.clau*/hooks) or a script that writes from a file of its own is not seen.
+# 4. a shell WRITE to the guardrail's own files (0.16: the targets, not the
+# mentions). Until 0.15 a mention was enough in several shapes (a heredoc body
+# read as commands, a variable naming the folder followed by any write, an
+# interpreter line naming a hook and writing anything): two cores worked around
+# it by writing from a script outside the core, worse than the risk. Since 0.16
+# the rule looks for what the command WRITES:
+#   - the text is cut first: a heredoc body read by a data command (cat, tee,
+#     git commit -F -, grep…) is data and is dropped, unless something on the
+#     same line runs a script; a body read by a shell is read as commands; a body
+#     read by an interpreter (python3 -, node…) is read as code; a body read by
+#     anything else (git apply, patch, an unknown command) refuses as soon as it
+#     names a guarded file;
+#   - the paths are folded (below), and a variable that names a guarded path or
+#     folder (H=.claude/hooks, for f in .claude/hooks/*) is replaced by its value;
+#   - each segment is then classified by its command word: a redirection to a
+#     guarded path refuses; a writing command (tee, touch, truncate, rm, trash,
+#     unlink, shred, ln, mv, chmod, chown, chgrp, chflags, xattr, mkdir, rmdir,
+#     sed/perl -i, awk -i inplace, sort -o) refuses when one of its arguments is a
+#     guarded path; cp/install/rsync/ditto/scp when the destination is (the last
+#     argument, or -t); dd when of= is; git when a guarded path is an argument of
+#     anything but a read (add, diff, log, show, status, blame, grep, ls-files,
+#     commit…); find with -delete or an -exec that is not a read; a reading
+#     command (cat, grep, ls, head, diff, jq, echo, test…) never refuses by its
+#     arguments; running a guarded script (bash .claude/hooks/test-guard.sh, or
+#     the path as the command) stays free; ANY OTHER command that takes a guarded
+#     path as an argument refuses (in doubt, refuse: a rare false positive beats
+#     a real negative);
+#   - after a cd/pushd into .claude or .claude/hooks, relative paths are read as
+#     inside it;
+#   - bash/sh -c, eval, source/., and xargs running anything but a read refuse
+#     when the command names a guarded file anywhere;
+#   - interpreter code (python3 -c, node -e, a heredoc read by an interpreter),
+#     triple-quoted strings dropped, refuses when a line names a guarded file and
+#     writes, or when a guarded path is assigned (p = ".claude/hooks/x") and the
+#     code writes anything.
+# A mention in a reading command, in a data heredoc whose target is another file
+# (a log entry, an inbox capture), or in a comment no longer refuses. Still an
+# anti-mistake barrier: a path the shell builds at run time, a glob
+# (.clau*/hooks) or a script that writes from a file of its own is not seen.
 fold_paths() {  # stdin -> stdout: the text with its paths folded as above
   local t h
   t=$(cat)
@@ -327,37 +340,239 @@ fold_paths() {  # stdin -> stdout: the text with its paths folded as above
   done
   printf '%s\n' "$t" | sed -E 's#(^|[[:space:]"'\''=])(\./)+#\1./#g'
 }
-if [ -z "$REASON" ]; then
-  FOLDED=$(printf '%s' "$SEGMENTS" | fold_paths); FOLDED_LINE=$(printf '%s' "$JOINED" | fold_paths)
-  VP='(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?"?/)?'
-  GP="${VP}"'(\./)?\.claude/(hooks(/|[[:space:]"'\'']|$)|settings(\.local)?\.json)'
-  W='(^|[[:space:]"'\''=])'
-  # Any write at all in the command: a redirection (to a file, not a descriptor or
-  # /dev/null), or a segment that begins with a writing command. Used for the cd,
-  # variable and interpreter shapes, where the written path itself is not readable.
-  any_write() {
-    printf '%s\n' "$FOLDED_LINE" | sed -E 's#[0-9]*>{1,2}[|]?[[:space:]]*(&[0-9-]*|/dev/(null|stdout|stderr|tty|fd/[0-9]+))##g' | grep -q '>' \
-      || echo "$FOLDED" | grep -qE "${PREFIX}((sed|perl)[[:space:]](.*[[:space:]])?-[A-Za-z]*i|(tee|truncate|touch|rm|trash|unlink|shred|ln|mv|cp|install|rsync|dd)([[:space:]]|$)|git([[:space:]]+-[^[:space:]]+([[:space:]]+[^[:space:]]+)?)*[[:space:]]+(checkout|restore|apply|am|mv|rm)([[:space:]]|$))"
+
+# Heredocs: tags each line C (command), D (body of a data heredoc), I (body read
+# by an interpreter) or U (body read by anything else). A shell-read body is C.
+split_heredocs() {
+  awk '
+  function base(w) { sub(/^.*\//, "", w); gsub(/["\047]/, "", w); return w }
+  function cls(w, rest,   c) {
+    c = base(w)
+    if (c == "git") return (rest ~ /(^|[[:space:]])(apply|am)([[:space:]]|$)/) ? 3 : 0
+    if (c ~ /^(cat|tee|echo|printf|grep|egrep|fgrep|rg|sed|awk|gawk|jq|wc|sort|uniq|head|tail|cut|tr|column|pbcopy|less|more|diff|cmp|base64|read|fold|fmt|nl|gh|true)$/) return 0
+    if (c ~ /^(ba|z|da|k)?sh$/) return 1
+    if (c ~ /^(python[0-9.]*|node|ruby|perl|php|deno|bun|osascript|lua|Rscript)$/) return 2
+    return 3
   }
-  GUARDED_DIR="${VP}"'(\./)?\.claude(/hooks)?/?'
-  MENTION=$(printf '%s\n' "$FOLDED_LINE" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
-  if echo "$FOLDED_LINE" | grep -qE ">[|]?[[:space:]]*[\"']?${GP}" \
-    || { echo "$FOLDED" | grep -qE "${PREFIX}(cd|pushd)[[:space:]]+[\"']?${GUARDED_DIR}[\"']?[[:space:]]*$" && any_write; } \
-    || { echo "$MENTION" | grep -qE "${W}[A-Za-z_][A-Za-z0-9_]*=[\"']?(${GUARDED_DIR}|${GP}[^[:space:]\"';]*)([[:space:]\"';]|$)" && any_write; } \
-    || { echo "$FOLDED" | grep -qE "${PREFIX}(python3?|node|ruby|php|deno|bun|perl)[[:space:]]" \
-         && echo "$MENTION" | grep -qE '\.claude/(hooks|settings)' \
-         && echo "$MENTION" | grep -qE "open\([^)]*[\"'][wax+]|write|unlink|remove|rename|truncate|chmod|rmtree|copyfile|move\(|rmSync|[^0-9&]>{1,2}[[:space:]]*[^&[:space:]]"; } \
-    || echo "$FOLDED" | grep -E "${PREFIX}(sed|perl)[[:space:]](.*[[:space:]])?-[A-Za-z]*i" | grep -qE "${W}${GP}" \
-    || echo "$FOLDED" | grep -E "${PREFIX}(tee|truncate|touch|rm|trash|unlink|shred|ln|mv)([[:space:]]|$)" | grep -qE "${W}${GP}" \
-    || echo "$FOLDED" | grep -E "${PREFIX}(cp|install|rsync)[[:space:]]" | grep -qE "${W}${GP}[^[:space:]]*[[:space:]]*$" \
-    || echo "$FOLDED" | grep -E "${PREFIX}git([[:space:]]+-[^[:space:]]+([[:space:]]+[^[:space:]]+)?)*[[:space:]]+(checkout|restore|apply|am|mv|rm)([[:space:]]|$)" | grep -qE "${W}${GP}" \
-    || echo "$FOLDED" | grep -E "${PREFIX}dd[[:space:]]" | grep -qE "(^|[[:space:]])of=[\"']?${GP}" \
-    || echo "$FOLDED" | grep -E "${PREFIX}chmod[[:space:]]" | grep -E "${W}${GP}" | chmod_drops_read; then
-    if granted; then
-      trace_line "guard-files-granted" "$COMMAND"
-    else
-      REASON=$GUARD_FILES_REASON; RULE="guard-files"
-    fi
+  function word(s,   n, w, i, j) {  # the command word of a simple command; sets REST
+    n = split(s, w, /[[:space:]]+/); REST = ""
+    for (i = 1; i <= n; i++) {
+      if (w[i] == "" || w[i] ~ /^(sudo|command|exec|time|nohup|env|then|do|else|if|elif|while|until|!|[{(]+)$/ || w[i] ~ /^[A-Za-z_][A-Za-z0-9_]*=/) continue
+      if (w[i] ~ /^[0-9&]*[<>]/) { if (w[i] ~ /^[0-9&]*[<>]+[|&]?$/) i++; continue }
+      for (j = i + 1; j <= n; j++) REST = REST " " w[j]
+      return w[i]
+    }
+    return ""
+  }
+  function consumer(pre, post,   n, p, c, best, x, m, pc, k) {
+    n = split(pre, p, /[;|&(`]/)
+    c = word(p[n]); best = (c == "") ? 0 : cls(c, REST)
+    m = split(post, pc, /\|/)
+    for (k = 2; k <= m; k++) { c = word(pc[k]); if (c != "") { x = cls(c, REST); if (x > best) best = x } }
+    return best
+  }
+  BEGIN { nq = 0; qh = 1 }
+  {
+    if (nq > 0) {
+      t = $0; if (strip[qh]) sub(/^\t+/, "", t)
+      if (t == delim[qh]) { qh++; if (qh > nq) { nq = 0; qh = 1 }; next }
+      k = kind[qh]
+      tg = (k == 0) ? "D" : (k == 1) ? "C" : (k == 2) ? "I" : "U"; print tg "\t" $0
+      next
+    }
+    print "C\t" $0
+    rest = $0; pre = ""
+    while (match(rest, /<<-?[[:space:]]*[\\"\047]?[A-Za-z_][A-Za-z0-9_.-]*["\047]?/)) {
+      if (RSTART > 1 && substr(rest, RSTART - 1, 1) == "<") { pre = pre substr(rest, 1, RSTART + 1); rest = substr(rest, RSTART + 2); continue }
+      tok = substr(rest, RSTART, RLENGTH); before = pre substr(rest, 1, RSTART - 1)
+      rest = substr(rest, RSTART + RLENGTH); pre = before tok
+      d = tok; sub(/^<<-?[[:space:]]*/, "", d); gsub(/[\\"\047]/, "", d)
+      nq++; delim[nq] = d; strip[nq] = (tok ~ /^<<-/); kind[nq] = consumer(before, rest)
+    }
+  }'
+}
+
+# A variable that names a guarded path or folder is replaced by its value.
+GV='^(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/)?\.claude(/hooks(/[^[:space:]]*)?|/settings(\.local)?\.json)?/?$'
+subst_vars() {
+  G4_GV=$GV awk '
+  function clean(v) { gsub(/["\047]/, "", v); sub(/^(\.\/)+/, "", v); return v }
+  { L[NR] = $0 }
+  END {
+    GV = ENVIRON["G4_GV"]
+    for (r = 1; r <= NR; r++) {
+      n = split(L[r], w, /[[:space:];&|()]+/)
+      for (k = 1; k <= n; k++) {
+        if (match(w[k], /^[A-Za-z_][A-Za-z0-9_]*=/)) {
+          nm = substr(w[k], 1, RLENGTH - 1); v = clean(substr(w[k], RLENGTH + 1))
+          if (v != "" && v ~ GV) V[nm] = v
+        }
+        if (w[k] == "for" && k + 2 <= n && w[k + 2] == "in")
+          for (j = k + 3; j <= n && w[j] != "do"; j++) { v = clean(w[j]); if (v ~ GV) { V[w[k + 1]] = v; break } }
+      }
+    }
+    for (r = 1; r <= NR; r++) {
+      s = L[r]
+      for (nm in V) {
+        val = V[nm]; gsub(/&/, "\\\\&", val)
+        gsub("\\$\\{" nm "\\}", val, s)
+        out = ""
+        while (match(s, "\\$" nm "([^A-Za-z0-9_]|$)")) { out = out substr(s, 1, RSTART - 1) V[nm]; s = substr(s, RSTART + 1 + length(nm)) }
+        s = out s
+      }
+      print s
+    }
+  }'
+}
+
+# Classifies each segment (stdin, one per line) by its command word, as listed
+# above. Prints HIT (a guarded path written), and the flags RISKY (sh -c, eval,
+# source, xargs), INTERP (inline interpreter code) and RUNS (a script is run).
+GPW='^(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/)?\.claude/(hooks(/.*)?|settings(\.local)?\.json)$'
+GDW='^(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/)?\.claude(/hooks)?/?$'
+READS='^(cat|less|more|head|tail|grep|egrep|fgrep|rg|ag|ack|ls|stat|file|wc|diff|diff3|cmp|comm|jq|yq|uniq|cut|tr|nl|od|xxd|hexdump|strings|md5|md5sum|shasum|sha1sum|sha256sum|cksum|readlink|realpath|basename|dirname|test|\[|\[\[|echo|printf|bat|column|tree|du|shellcheck|pbcopy|true|false|type|which|whence|for|case|in|select|esac|done|fi|export|local|declare|readonly|typeset|unset|set|shift|return|exit|wait|sleep|date|pwd|gh|popd|read|fold|fmt|base64)$'
+GITREADS='^(add|diff|log|show|status|blame|annotate|grep|ls-files|ls-tree|cat-file|rev-parse|check-ignore|check-attr|commit|shortlog|whatchanged|diff-files|diff-index|diff-tree|describe)$'
+classify_segments() {
+  G4_GPW=$GPW G4_GDW=$GDW G4_READS=$READS G4_GITREADS=$GITREADS awk '
+  BEGIN { GPW = ENVIRON["G4_GPW"]; GDW = ENVIRON["G4_GDW"]; READS = ENVIRON["G4_READS"]; GITREADS = ENVIRON["G4_GITREADS"]; cddir = "" }
+  function path(w,   e) {  # the word as a path: unquoted, after =, inside the cd folder
+    e = w; gsub(/["\047]/, "", e)
+    if (e ~ /^-/ && e !~ /=/) return ""
+    if (e ~ /=/) sub(/^[^=]*=/, "", e)
+    if (e == "") return ""
+    if (cddir != "" && e !~ /^[\/~$]/) e = cddir "/" e
+    sub(/^(\.\/)+/, "", e)
+    while (e ~ /(^|\/)[^\/.][^\/]*\/\.\.(\/|$)/) sub(/[^\/.][^\/]*\/\.\.(\/|$)/, "", e)
+    return e
+  }
+  function isgp(w,   e) { e = path(w); return (e != "" && e ~ GPW) }
+  function anygp(from,   k) { for (k = from; k <= na; k++) if (isgp(a[k])) return 1; return 0 }
+  function isgpd(w,   e) { e = path(w); return (e != "" && (e ~ GPW || e ~ GDW)) }   # the folder itself too
+  function anygpd(from,   k) { for (k = from; k <= na; k++) if (isgpd(a[k])) return 1; return 0 }
+  function hit() { HIT = 1 }
+  {
+    n = split($0, w, /[[:space:]]+/); na = 0
+    # redirections out of the word list (a write to a guarded target is a hit)
+    for (k = 1; k <= n; k++) {
+      t = w[k]; if (t == "") continue
+      if (t ~ /^[0-9&]*(>>?|<<?<?)[|]?/) {
+        tg = t; sub(/^[0-9&]*(>>?|<<?<?)[|]?/, "", tg)
+        if (tg == "" && k < n) { k++; tg = w[k] }
+        if (t ~ /^[0-9&]*>/ && tg !~ /^&/ && isgp(tg)) hit()
+        continue
+      }
+      a[++na] = t
+    }
+    i = 1
+    while (i <= na && (a[i] ~ /^(sudo|command|exec|time|nohup|env|if|elif|while|until|do|then|else|!|[({]+)$/ || a[i] ~ /^[A-Za-z_][A-Za-z0-9_]*=/)) i++
+    if (i > na) next
+    cmd = a[i]; sub(/^[({]+/, "", cmd); c = cmd; sub(/^.*\//, "", c); gsub(/["\047]/, "", c)
+    if (c == "cd" || c == "pushd") {
+      e = path(a[i + 1]); cddir = (e != "" && e ~ GDW) ? e : ""; sub(/\/$/, "", cddir); next
+    }
+    if (cmd ~ /\// && isgp(cmd)) { RUNS = 1; next }                       # running a guarded script
+    if (c ~ /^(ba|z|da|k)?sh$/) {
+      for (k = i + 1; k <= na && a[k] ~ /^-/; k++) { if (a[k] ~ /^-[A-Za-z]*c/) { RISKY = 1; next }; if (a[k] == "-n") next }
+      if (k <= na) { RUNS = 1; if (!isgp(a[k]) && anygp(k + 1)) hit() }
+      next
+    }
+    if (c ~ /^(python[0-9.]*|node|ruby|php|deno|bun|osascript|lua|Rscript|perl)$/) {
+      if (c == "perl") for (k = i + 1; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i/) { if (anygp(i + 1)) hit(); next }
+      for (k = i + 1; k <= na && a[k] ~ /^-/; k++) {
+        if (a[k] ~ /^-([A-Za-z]*[ceEr]|-eval|-print)?$/) { INTERP = 1; next }
+        if (a[k] == "-m") { if (anygp(k + 1)) hit(); next }
+      }
+      if (k > na) { INTERP = 1; next }
+      RUNS = 1; if (!isgp(a[k]) && anygp(k + 1)) hit()
+      next
+    }
+    if (c == "eval" || c == "source" || c == ".") { RISKY = 1; next }
+    if (c == "xargs") {
+      for (k = i + 1; k <= na && a[k] ~ /^-/; k++) if (a[k] ~ /^-[nIPLdEsa]$/) k++
+      s = a[k]; sub(/^.*\//, "", s)
+      if (k > na || !(s ~ READS || (s == "sed" && !anyinplace(k)))) RISKY = 1
+      next
+    }
+    if (c == "sed") { for (k = i + 1; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i|^--in-place/) { if (anygp(i + 1)) hit(); break } next }
+    if (c == "awk" || c == "gawk") { for (k = i + 1; k <= na; k++) if (a[k] ~ /^-i(nplace)?$/ && (a[k] != "-i" || a[k + 1] == "inplace")) { if (anygp(i + 1)) hit(); break } next }
+    if (c == "sort") { for (k = i + 1; k <= na; k++) if (a[k] ~ /^-o|^--output/) { if (anygp(i + 1)) hit(); break } next }
+    if (c == "find") {
+      if (!anygp(i + 1)) next
+      for (k = i + 1; k <= na; k++) {
+        if (a[k] ~ /^-(delete|fprint|fprint0|fprintf|fls)$/) { hit(); break }
+        if (a[k] ~ /^-(exec|execdir|ok|okdir)$/) { s = a[k + 1]; sub(/^.*\//, "", s); if (!(s ~ READS) || (s == "sed")) { hit(); break } }
+      }
+      next
+    }
+    if (c == "git") {
+      for (k = i + 1; k <= na && a[k] ~ /^-/; k++) if (a[k] == "-C" || a[k] == "-c") k++
+      if (k <= na && a[k] !~ GITREADS && anygp(k + 1)) hit()
+      next
+    }
+    if (c ~ /^(cp|install|rsync|ditto|scp)$/) {
+      for (k = i + 1; k <= na; k++) if ((a[k] == "-t" || a[k] == "--target-directory") && isgpd(a[k + 1])) hit(); else if (a[k] ~ /^--target-directory=/ && isgpd(a[k])) hit()
+      if (na > i && isgpd(a[na])) hit()
+      next
+    }
+    if (c == "dd") { for (k = i + 1; k <= na; k++) if (a[k] ~ /^of=/ && isgp(a[k])) hit(); next }
+    if (c ~ READS) next
+    # a writing command, or one the guard does not know: a guarded argument refuses
+    if (anygpd(i + 1)) hit()
+  }
+  function anyinplace(from,   k) { for (k = from; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i/) return 1; return 0 }
+  END { print "DONE"; if (HIT) print "HIT"; if (RISKY) print "RISKY"; if (INTERP) print "INTERP"; if (RUNS) print "RUNS" }'
+}
+
+# Interpreter code (stdin): triple-quoted strings dropped, then a line that names
+# a guarded file and writes, or a guarded path assigned and a write anywhere.
+# A shell redirection on the same line is the shell's (read above), not the
+# code's: only a quoted mode (">x", "+<x": Perl, Ruby) counts here.
+INTERP_WRITE="open\([^)]*[\"'][wax+]|write|unlink|remove|rename|replace\(|truncate|chmod|chown|rmtree|copy|move\(|symlink|link\(|touch|mkdir|rmSync|system|subprocess|popen|spawn|exec|[\"']\+?[<>]{1,2}[^&[:space:]=]"
+INTERP_GP='\.claude/(hooks|settings)|["'\'']\.claude["'\''].*["'\''](hooks|settings(\.local)?\.json)["'\'']'
+interp_writes() {
+  local code
+  code=$(awk '{ s = $0; out = ""
+      while (s != "") {
+        if (inq) { p = index(s, q); if (!p) { s = ""; break } s = substr(s, p + 3); inq = 0; continue }
+        p1 = index(s, "\"\"\""); p2 = index(s, "\047\047\047")
+        if (!p1 && !p2) { out = out s; break }
+        if (!p1 || (p2 && p2 < p1)) { p = p2; q = "\047\047\047" } else { p = p1; q = "\"\"\"" }
+        out = out substr(s, 1, p - 1); s = substr(s, p + 3); inq = 1
+      }
+      print out }' | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
+  printf '%s\n' "$code" | grep -E "$INTERP_GP" | grep -qE "$INTERP_WRITE" && return 0
+  printf '%s\n' "$code" | grep -E "$INTERP_GP" | grep -qE "[A-Za-z_][A-Za-z0-9_.]*[[:space:]]*=[^=]|chdir|cwd=" \
+    && printf '%s\n' "$code" | grep -qE "$INTERP_WRITE" && return 0
+  return 1
+}
+
+guard_files_write() {  # true when the command writes one of the guardrail's files
+  local tagged cmdtext text flags mention_re full TAB
+  TAB=$(printf '\t')
+  tagged=$(printf '%s\n' "$JOINED" | split_heredocs) && [ -n "$tagged" ] || return 0
+  cmdtext=$(printf '%s\n' "$tagged" | sed -n "s/^C${TAB}//p")
+  text=$(printf '%s\n' "$cmdtext" | sed '/^[[:space:]]*#/d' | fold_paths | subst_vars)   # a comment line is not a command
+  GP='(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?"?/)?(\./)?\.claude/(hooks(/|[[:space:]"'\'']|$)|settings(\.local)?\.json)'
+  # a redirection glued to its target, quoted, or inside a string (>x, >"x")
+  printf '%s\n' "$text" | grep -qE ">[|]?[[:space:]]*[\"']?${GP}" && return 0
+  flags=$(printf '%s\n' "$text" | tr ';|&' '\n' | classify_segments)
+  case "$flags" in *HIT*|"") return 0 ;; esac   # an awk that fails refuses (fail-closed)
+  case "$flags" in *DONE*) : ;; *) return 0 ;; esac
+  mention_re='\.claude/(hooks|settings)'
+  full=$(printf '%s\n' "$JOINED" | fold_paths | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
+  case "$flags" in *RISKY*) printf '%s\n' "$full" | grep -qE "$mention_re" && return 0 ;; esac
+  { case "$flags" in *INTERP*) printf '%s\n' "$cmdtext" ;; esac; printf '%s\n' "$tagged" | sed -n "s/^I${TAB}//p"; } | interp_writes && return 0
+  printf '%s\n' "$tagged" | sed -n "s/^U${TAB}//p" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -qE "$mention_re" && return 0
+  case "$flags" in *RUNS*)
+    printf '%s\n' "$tagged" | sed -n "s/^D${TAB}//p" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -qE "$mention_re" && return 0 ;;
+  esac
+  return 1
+}
+if [ -z "$REASON" ] && guard_files_write; then
+  if granted; then
+    trace_line "guard-files-granted" "$COMMAND"
+  else
+    REASON=$GUARD_FILES_REASON; RULE="guard-files"
   fi
 fi
 

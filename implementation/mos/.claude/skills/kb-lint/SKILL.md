@@ -25,7 +25,7 @@ First run `.claude/hooks/lint.sh knowledge-base/` and take its findings as they 
 If the wiki is large: sample by folder **and say so** (no silent cap).
 
 ## Done
-- Success condition: a dated report exists, `inbox/YYYY-MM-DD-kb-lint.md` (its findings are candidate actions, so it goes to the inbox, not to the knowledge base like a periodic report; or the synthesis of the `weekly-review` that called it), written as a capture (Spec §7: `type: capture`, `title`, `timestamp`, `origine: review` when the review called it, `main` otherwise); it names the commit it audited (Spec §11), groups its findings by category, and each finding cites its file with the proposed action; `git status knowledge-base/` shows no change.
+- Success condition: a dated report exists, `inbox/YYYY-MM-DD-kb-lint.md` (its findings are candidate actions, so it goes to the inbox, not to the knowledge base like a periodic report; or the synthesis of the `weekly-review` that called it), written as a capture (Spec §7: `type: capture`, `title`, `timestamp`, `origine: review` when the review called it, `main` otherwise; no `pour`: it is the MOS's capture, so the owner's to sort); it names the commit it audited (Spec §11), groups its findings by category, and each finding cites its file with the proposed action; `git status knowledge-base/` shows no change.
 - Reading criterion: every contradiction is cited with both sentences and their files.
 - Trace: the report itself; nothing in the log unless the user acts on it.
 - Stop: no fix without the user's agreement.

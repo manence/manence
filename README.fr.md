@@ -54,7 +54,7 @@ claude
 
 Dis-lui : **« fais mon premier démarrage »**. L'agent t'interviewe, remplit le système, vérifie les garde-fous, supprime le rituel. Installer, c'est déjà s'en servir. Détail : [QUICKSTART.fr.md](QUICKSTART.fr.md).
 
-**Voir son MOS : Manence UI, un lecteur à part.** Un MOS, ce sont des fichiers qui s'ouvrent à la main ; Manence UI est un logiciel distinct, avec son propre rythme de sortie, qui en lit un — ce qui est en cours, ce qui est fait, ce qui attend quelqu'un — sans jamais y écrire. Un MOS est complet sans lui.
+**Voir son MOS : Manence UI, un lecteur à part.** Un MOS, ce sont des fichiers qui s'ouvrent à la main ; Manence UI est un logiciel distinct, avec son propre rythme de sortie, qui en lit un — ce qui est en cours, ce qui est fait, ce qui attend quelqu'un — et n'y écrit que par son guichet : des items d'instruction dans `consignes/`, des captures dans `inbox/`, jamais un chantier ni le journal. Un MOS est complet sans lui.
 
 ## La preuve : il tourne déjà sur du vrai travail
 
@@ -90,7 +90,7 @@ Ton système ne dépend pas d'un fournisseur d'IA. Tout ce qui compte — savoir
 
 - **Claude Code** — le chemin natif. Rien à ajouter.
 - **Grok Build (xAI)** — lit nativement `AGENTS.md` et le câblage `.claude/` livré. Rien à ajouter.
-- **OpenAI Codex** — lit nativement `AGENTS.md` ; tu poses un lien `skills` à la racine et un `.codex/config.toml` d'après le bloc de `BOOTSTRAP.md` (« Codex wiring »), pour que les skills et le garde-fou suivent.
+- **OpenAI Codex** — lit nativement `AGENTS.md` et trouve les skills par le lien `.agents/skills` que pose `install.sh` ; tu ajoutes un `.codex/config.toml` d'après le bloc de `BOOTSTRAP.md` (« Codex wiring »), pour que le garde-fou suive aussi.
 
 Une règle : un seul agent à la fois sur un conteneur. Rien n'est annoncé comme supporté avant d'avoir été testé pour de vrai — l'état exact des tests, couche par couche, est dans **[PORTABILITY.md](PORTABILITY.md)** *(en anglais)*.
 

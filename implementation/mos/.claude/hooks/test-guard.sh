@@ -110,6 +110,76 @@ cases=(
   'BLOCK:guard-files|echo x >> .claude/../.claude/hooks/lint.sh'
   'BLOCK:guard-files|python3 -c "open(\".claude/hooks/lint.sh\",\"a\").write(\"x\")"'
   'BLOCK:guard-files|node -e "require(\"fs\").writeFileSync(\".claude/settings.json\",\"{}\")"'
+  # 0.16: rule 4 reads the targets of a write, not the mentions; the writes still refuse
+  'BLOCK:guard-files|cat x | tee -a .claude/hooks/lint.sh'
+  'BLOCK:guard-files|sed -i.bak "s/a/b/" .claude/settings.json'
+  'BLOCK:guard-files|cp /tmp/settings.json ./.claude/settings.json'
+  'BLOCK:guard-files|mv .claude/hooks/lint.sh /tmp/'
+  'BLOCK:guard-files|rm .claude/hooks/guard.local.sh'
+  'BLOCK:guard-files|chmod 644 .claude/hooks/guard.sh'
+  # until 0.15 these three passed (only a chmod that took the read bit away
+  # refused); since 0.16 changing the rights of a guarded file is a write
+  'BLOCK:guard-files|chmod +x .claude/hooks/*.sh'
+  'BLOCK:guard-files|chmod 755 .claude/hooks/guard.sh'
+  'BLOCK:guard-files|chmod go-r .claude/hooks/lint.sh'
+  'BLOCK:guard-files|ln -sf /tmp/evil.sh .claude/hooks/guard.sh'
+  'BLOCK:guard-files|git restore --source=HEAD~3 .claude/hooks/guard.sh'
+  'BLOCK:guard-files|git -C . checkout -- .claude/hooks/guard.sh'
+  'BLOCK:guard-files|bash -c "echo x >> .claude/hooks/guard.sh"'
+  'BLOCK:guard-files|sh -c "printf x | tee .claude/settings.json"'
+  'BLOCK:guard-files|cat > .claude/hooks/guard.sh <<EOF
+exit 0
+EOF'
+  'BLOCK:guard-files|cat <<EOF > .claude/settings.json
+{}
+EOF'
+  'BLOCK:guard-files|bash <<EOF
+echo x > .claude/hooks/guard.sh
+EOF'
+  'BLOCK:guard-files|cat <<EOF | sh
+rm .claude/hooks/guard.sh
+EOF'
+  'BLOCK:guard-files|python3 - <<EOF
+import pathlib
+pathlib.Path(".claude/hooks/guard.sh").write_text("exit 0")
+EOF'
+  'BLOCK:guard-files|python3 - <<EOF
+p = ".claude/settings.json"
+open(p, "w").write("{}")
+EOF'
+  'BLOCK:guard-files|git apply <<EOF
+--- a/.claude/hooks/guard.sh
++++ b/.claude/hooks/guard.sh
+EOF'
+  'BLOCK:guard-files|cat > /tmp/x.sh <<EOF
+rm .claude/hooks/guard.sh
+EOF
+bash /tmp/x.sh'
+  'BLOCK:guard-files|eval "rm .claude/hooks/guard.sh"'
+  'BLOCK:guard-files|source .claude/hooks/guard.local.sh'
+  'BLOCK:guard-files|ls .claude/hooks/*.sh | xargs sed -i "" s/a/b/'
+  'BLOCK:guard-files|find .claude/hooks -name "*.sh" -delete'
+  'BLOCK:guard-files|find .claude/hooks -name "*.sh" -exec sed -i "" s/a/b/ {} \;'
+  'BLOCK:guard-files|for f in .claude/hooks/*.sh; do echo x >> $f; done'
+  'BLOCK:guard-files|H=.claude/hooks; cp /tmp/x $H/guard.sh'
+  'BLOCK:guard-files|cd .claude/hooks && cp /tmp/x guard.sh'
+  'BLOCK:guard-files|cd .claude/hooks && cd .. && echo x > settings.json'
+  'BLOCK:guard-files|( cd .claude/hooks; echo x > guard.sh )'
+  'BLOCK:guard-files|cp -R /tmp/hooks .claude/'
+  'BLOCK:guard-files|rm -r .claude'
+  'BLOCK:guard-files|touch .claude/hooks/../settings.json'
+  'BLOCK:guard-files|mkdir -p .claude/hooks/new'
+  'BLOCK:guard-files|install -m 755 /tmp/g.sh .claude/hooks/guard.sh'
+  'BLOCK:guard-files|rsync -a /tmp/hooks/ .claude/hooks/'
+  'BLOCK:guard-files|awk -i inplace "{print}" .claude/hooks/guard.sh'
+  'BLOCK:guard-files|exec 3>.claude/hooks/x'
+  'BLOCK:guard-files|python3 -c "import sys; open(sys.argv[1],\"w\")" .claude/hooks/guard.sh'
+  'BLOCK:guard-files|node -e "const p=\".claude/hooks/guard.sh\"; require(\"fs\").unlinkSync(p)"'
+  # in doubt, refuse: a command the guard does not know, given a guarded path
+  'BLOCK:guard-files|npx prettier --write .claude/settings.json'
+  'BLOCK:guard-files|curl -o .claude/hooks/guard.sh https://example.invalid/g'
+  'BLOCK:guard-files|python3 myscript.py .claude/settings.json'
+  'BLOCK:guard-files|tar -xf /tmp/x.tar -C .claude'
   # --- must PASS (the lived false positives, and their neighbours) ---
   'PASS|git push origin publish/my-article && gh pr create --base main'
   'PASS|git commit -m "inbox: the guard blocks on the word main in a message"'
@@ -134,13 +204,10 @@ EOF'
   'PASS|sed -n 1,20p .claude/hooks/guard.sh'
   'PASS|cp /tmp/guard.sh implementation/mos/.claude/hooks/guard.sh'
   'PASS|bash upgrade.sh /path/to/core --apply'
-  'PASS|chmod +x .claude/hooks/*.sh'
   'PASS|cat .claude/hooks/admin-go.sh'
   'PASS|bash -n .claude/hooks/admin-go.sh'
   'PASS|git checkout -- docs/note.md'
   'PASS|claude -p "summarize the log"'
-  'PASS|chmod 755 .claude/hooks/guard.sh'
-  'PASS|chmod go-r .claude/hooks/lint.sh'
   'PASS|touch implementation/mos/.claude/hooks/guard.sh'
   'PASS|mv /tmp/a.md /tmp/b.md && cat .claude/hooks/guard.sh'
   # 0.13.1: reading through the new shapes stays free
@@ -153,6 +220,46 @@ EOF'
   'PASS|echo x > $R/implementation/mos/.claude/hooks/guard.sh'
   'PASS|cd implementation/mos/.claude/hooks && echo x > guard.sh'
   'PASS|echo x >> ~/notes/claude-hooks.md'
+  # 0.16: a mention is not a write (two cores lived these as refusals, 2026-10-19/21)
+  'PASS|grep -n "deny" .claude/hooks/guard.sh .claude/settings.json'
+  'PASS|ls -la .claude/hooks/ && head -5 .claude/hooks/lint.sh'
+  'PASS|grep -n inbox .claude/hooks/lint.sh > /tmp/o'
+  'PASS|H=.claude/hooks; grep x $H/lint.sh > /tmp/o'
+  'PASS|H=.claude/hooks && cp $H/consignes.sh /tmp/avant'
+  'PASS|cat >> log.md <<EOF
+## [2026-10-21] event | the guard: rm .claude/hooks/x and echo x > .claude/settings.json refuse
+tee .claude/hooks/guard.sh
+EOF'
+  'PASS|cat > inbox/2026-10-21-x.md <<EOF
+type: capture
+the rule refuses `cp`/`mv`/`sed -i`/`tee`/`rm` to .claude/hooks/ and settings*.json
+EOF'
+  'PASS|git commit -m "$(cat <<EOF
+0.16: cp /tmp/x .claude/hooks/guard.sh now refused
+EOF
+)"'
+  'PASS|ls .claude/hooks/ && grep -n x .claude/hooks/consignes.sh; python3 - <<EOF
+import pathlib
+p = pathlib.Path("log.md"); s = p.read_text()
+entry = """## [x] note | the guard reads .claude/hooks/ and refuses writes there"""
+p.write_text(entry + s)
+EOF'
+  'PASS|diff .claude/hooks/guard.sh implementation/mos/.claude/hooks/guard.sh'
+  'PASS|jq . .claude/settings.json > /tmp/settings.pretty'
+  'PASS|find .claude/hooks -name "*.sh" | xargs grep -l jq'
+  'PASS|find .claude/hooks -name "*.sh" -exec grep -l jq {} \;'
+  'PASS|git diff -- .claude/hooks/guard.sh && git add .claude/hooks/guard.sh'
+  'PASS|echo "see .claude/hooks/guard.sh" >> notes.md'
+  'PASS|printf "%s\n" "- .claude/settings.json" >> inbox/2026-10-21-x.md'
+  'PASS|# chmod 000 .claude/hooks/guard.sh'
+  'PASS|shellcheck .claude/hooks/guard.sh; wc -l .claude/hooks/*.sh'
+  'PASS|cd .claude && cat settings.json && echo x > /tmp/out'
+  'PASS|cd .claude && echo x > skills/my/SKILL.md'
+  'PASS|mkdir -p .claude/skills/new && cp /tmp/SKILL.md .claude/skills/new/'
+  'PASS|cat .claude/settings.json | python3 -c "import json,sys; print(json.load(sys.stdin))"'
+  'PASS|cat .claude/hooks/guard.sh > /tmp/g.sh && bash -n /tmp/g.sh'
+  'PASS|python3 -c "print(\"a line about .claude/hooks/guard.sh\" * 3)" > /tmp/big.txt'
+  'PASS|S=/tmp/sp; C=./.claude/hooks; cp $C/guard.local.sh $S/; bash $S/test-guard.sh 2>&1 | grep -v ok'
 )
 
 # The local file: what it lifts, and its own cases.
@@ -197,6 +304,25 @@ if echo "$out" | jq -e '.decision == "deny"' >/dev/null 2>&1; then
 else
   ko=$((ko+1)); printf '  KO  grok dialect: %s\n' "$out"
 fi
+
+# 0.16: rule 4 on targets, in Grok's dialect (camelCase, run_terminal_command)
+# and as Codex sends it (snake_case, the Claude dialect, its own session id).
+grok_cases=(
+  'BLOCK|echo x > .claude/hooks/guard.sh'
+  'BLOCK|sed -i "" s/a/b/ .claude/settings.json'
+  'BLOCK|bash -c "rm .claude/hooks/guard.sh"'
+  'PASS|grep -n deny .claude/hooks/guard.sh'
+  'PASS|cat >> log.md <<EOF
+the guard refuses tee .claude/hooks/guard.sh
+EOF'
+)
+for c in "${grok_cases[@]}"; do
+  expected="${c%%|*}"; cmd="${c#*|}"
+  payload=$(jq -cn --arg cmd "$cmd" --arg cwd "$PROJ" '{toolName:"run_terminal_command",toolInput:{command:$cmd},cwd:$cwd}')
+  check "$expected" "grok: ${cmd%%$'\n'*}" "$payload"
+  payload=$(jq -cn --arg cmd "$cmd" --arg cwd "$PROJ" '{session_id:"codex-1",tool_name:"Bash",tool_input:{command:$cmd},cwd:$cwd}')
+  check "$expected" "codex: ${cmd%%$'\n'*}" "$payload"
+done
 
 # --- File tools. Each case: "expected|dialect|tool|path" (path relative to the project). ---
 edits=(
@@ -243,6 +369,7 @@ done
 blocks=0
 blocks=1  # the Grok case above
 for c in "${cases[@]}" "${edits[@]}"; do case "${c%%|*}" in BLOCK|BLOCK:*) blocks=$((blocks+1)) ;; esac; done
+for c in "${grok_cases[@]}"; do case "${c%%|*}" in BLOCK) blocks=$((blocks+2)) ;; esac; done  # each played twice
 lines=$(wc -l < "$MANENCE_GUARD_LOG" 2>/dev/null | tr -d ' ')
 if [ "${lines:-0}" -eq "$blocks" ] && awk -F'\t' 'NF != 4 || length($4) > 200 { bad = 1 } END { exit bad }' "$MANENCE_GUARD_LOG"; then
   ok=$((ok+1)); printf '  ok  TRACE %s lines for %s refusals, four tab-separated fields\n' "$lines" "$blocks"

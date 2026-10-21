@@ -47,7 +47,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1 0.15.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1 0.15.0 0.16.0"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -980,6 +980,53 @@ migrate_0_15() {
   fi
 }
 
+# 0.16: the skills bridge for Codex. Codex 0.163 and later look for skills in
+# .agents/skills (from the working directory up to the root), no longer in a
+# root skills/ link: a relative link .agents/skills -> ../.claude/skills is laid
+# when missing. A real folder, or a link aimed elsewhere, is the core's: named,
+# left. Where ln -s cannot make a link (Git Bash on Windows without the right),
+# nothing is left behind and the junction is a manual touch. And, when the core
+# ignores its root /skills link, /.agents/skills is ignored the same way.
+# Nothing else to migrate: pour on a capture is optional.
+migrate_0_16() {
+  local l="$CORE/.agents/skills" gi="$CORE/.gitignore"
+  if [ -L "$l" ] && [ "$(readlink "$l")" = ../.claude/skills ]; then
+    report "nothing" "v0.16.0  .agents/skills already links to ../.claude/skills"
+  elif [ -e "$l" ] || [ -L "$l" ]; then
+    report "MANUAL" "v0.16.0  .agents/skills exists and is not the link to ../.claude/skills: yours, left as it is (Codex reads the skills there)"
+    N_MANUAL=$((N_MANUAL + 1))
+  elif [ ! -d "$CORE/.claude/skills" ]; then
+    report "nothing" "v0.16.0  no .claude/skills to link .agents/skills to"
+  elif [ "$APPLY" -eq 1 ]; then
+    mkdir -p "$CORE/.agents"
+    ln -s ../.claude/skills "$l" 2>/dev/null || true
+    if [ -L "$l" ]; then
+      report "migrated" "v0.16.0  .agents/skills -> ../.claude/skills (link for Codex)"
+      N_MIGRATED=$((N_MIGRATED + 1))
+    else
+      rm -rf "$l"; rmdir "$CORE/.agents" 2>/dev/null || true
+      report "MANUAL" "v0.16.0  .agents/skills: no symbolic link possible here; make the junction (BOOTSTRAP, \"Codex wiring\")"
+      N_MANUAL=$((N_MANUAL + 1))
+    fi
+  else
+    report "would do" "v0.16.0  .agents/skills -> ../.claude/skills (link for Codex)"
+    N_MIGRATED=$((N_MIGRATED + 1))
+  fi
+  if [ -f "$gi" ] && tr -d '\r' < "$gi" | grep -qxF '/skills'; then
+    if tr -d '\r' < "$gi" | grep -qxF '/.agents/skills'; then
+      report "nothing" "v0.16.0  .gitignore already carries '/.agents/skills'"
+    elif [ "$APPLY" -eq 1 ]; then
+      { if [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ]; then echo; fi
+        printf '\n# %s\n/.agents/skills\n' "The skills bridge for Codex 0.163 and later (0.16): a link, like /skills"; } >> "$gi"
+      report "migrated" "v0.16.0  .gitignore += '/.agents/skills'"
+      N_MIGRATED=$((N_MIGRATED + 1))
+    else
+      report "would do" "v0.16.0  .gitignore += '/.agents/skills'"
+      N_MIGRATED=$((N_MIGRATED + 1))
+    fi
+  fi
+}
+
 echo
 echo "Declared migrations"
 if [ -z "$VERSIONS" ]; then
@@ -991,6 +1038,7 @@ else
       0.8.0) MIG_DECLARED=1; migrate_0_8 ;;
       0.14.0) MIG_DECLARED=1; migrate_0_14 ;;
       0.15.0) MIG_DECLARED=1; migrate_0_15 ;;
+      0.16.0) MIG_DECLARED=1; migrate_0_16 ;;
       *) : ;;
     esac
   done

@@ -54,7 +54,7 @@ claude
 
 Say: **"run my first setup"** (in French: « fais mon premier démarrage »). The agent interviews you, fills in the system, checks the guardrails, deletes the ritual. Installing is already using it. Details: [QUICKSTART.md](QUICKSTART.md).
 
-**Seeing your MOS: Manence UI, a separate reader.** A MOS is plain files you can open by hand; Manence UI is a separate program, on its own release schedule, that reads one — what is in progress, what is done, what is waiting on someone — and never writes to it. A MOS is complete without it.
+**Seeing your MOS: Manence UI, a separate reader.** A MOS is plain files you can open by hand; Manence UI is a separate program, on its own release schedule, that reads one — what is in progress, what is done, what is waiting on someone — and writes to it only through its front desk: instruction items into `consignes/`, captures into `inbox/`, never a workstream or the journal. A MOS is complete without it.
 
 ## The proof: it already runs on real work
 
@@ -90,7 +90,7 @@ Your system doesn't depend on one AI vendor. Everything that matters — knowled
 
 - **Claude Code** — the native path. Nothing to add.
 - **Grok Build (xAI)** — reads `AGENTS.md` and the shipped `.claude/` wiring natively. Nothing to add.
-- **OpenAI Codex** — reads `AGENTS.md` natively; you pose a root `skills` link and a `.codex/config.toml` from the block in `BOOTSTRAP.md` ("Codex wiring"), so the skills and the guardrail carry over.
+- **OpenAI Codex** — reads `AGENTS.md` natively and finds the skills through the `.agents/skills` link that `install.sh` poses; you add a `.codex/config.toml` from the block in `BOOTSTRAP.md` ("Codex wiring"), so the guardrail carries over too.
 
 One rule: one agent at a time on a container. Nothing is claimed as supported before it has been tested for real — the exact test status, layer by layer, is in **[PORTABILITY.md](PORTABILITY.md)**.
 

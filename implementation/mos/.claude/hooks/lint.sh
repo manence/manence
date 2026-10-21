@@ -697,6 +697,47 @@ def check_frontmatter(path, lines, basename):
 
 
 INBOX_ORIGINES = {"main", "checkpoint", "watch", "close-work", "review", "front-desk"}
+_people_cache = {}
+
+
+def people_handles(root):
+    """The handles of PEOPLE.md at the core's root (0.16), read the way whoami.sh
+    reads them: one `## <handle>` heading per person, the handle in a-z, 0-9 and -;
+    the frontmatter, fenced code, the `<handle>` placeholder and any other heading
+    skipped. None when the core has no PEOPLE.md (a solo)."""
+    if root in _people_cache:
+        return _people_cache[root]
+    f = os.path.join(root, "PEOPLE.md")
+    handles = None
+    if os.path.isfile(f):
+        handles = set()
+        try:
+            with open(f, "r", encoding="utf-8") as fh:
+                lines = fh.read().splitlines()
+        except (OSError, UnicodeDecodeError):
+            lines = []
+        infm = fence = False
+        for i, raw in enumerate(lines):
+            ln = raw.rstrip("\r")
+            if i == 0 and re.match(r"^---[ \t]*$", ln):
+                infm = True
+                continue
+            if infm:
+                if re.match(r"^---[ \t]*$", ln):
+                    infm = False
+                continue
+            if re.match(r"^[ \t]*(```|~~~)", ln):
+                fence = not fence
+                continue
+            if fence or not ln.startswith("## "):
+                continue
+            h = ln[3:].strip()
+            if re.match(r"^[a-z0-9-]+$", h):
+                handles.add(h)
+    _people_cache[root] = handles
+    return handles
+
+
 CONSIGNE_STATUS = {"deposee", "traitee", "rejetee"}
 
 
@@ -741,6 +782,16 @@ def check_inbox_and_consignes(path, lines, basename):
                    "an inbox item has no status: it is to sort, or a reminder (inbox/rappels/)")
         if "rappels" in parts and not _scalar(kv.get("rappel_le", "")):
             report(path, 1, "inbox-rappel", "a reminder in inbox/rappels/ needs `rappel_le: YYYY-MM-DD`")
+        if "pour" in kv:  # 0.16: who sorts this capture, a handle of PEOPLE.md (Spec §7)
+            pour = _scalar(_strip_comment(kv.get("pour", ""))).strip().lstrip("@").lower()
+            handles = people_handles(root)
+            if handles is None:
+                report(path, line("pour"), "inbox-pour",
+                       f"pour: {pour or '(empty)'}; no PEOPLE.md: a solo has no handles (remove `pour:`)")
+            elif pour not in handles:
+                known = ", ".join(sorted(handles)) or "none"
+                report(path, line("pour"), "inbox-pour",
+                       f"pour: {pour or '(empty)'} is not a handle of PEOPLE.md (handles: {known})")
     else:
         if typ != "instruction":
             report(path, line("type"), "consigne-type", f"type: {typ or '(missing)'}; expected `instruction`")
