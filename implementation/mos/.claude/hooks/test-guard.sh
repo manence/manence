@@ -175,6 +175,39 @@ bash /tmp/x.sh'
   'BLOCK:guard-files|exec 3>.claude/hooks/x'
   'BLOCK:guard-files|python3 -c "import sys; open(sys.argv[1],\"w\")" .claude/hooks/guard.sh'
   'BLOCK:guard-files|node -e "const p=\".claude/hooks/guard.sh\"; require(\"fs\").unlinkSync(p)"'
+  # 0.16.1: interpreter code that names a guarded file refuses on any write pattern
+  'BLOCK:guard-files|python3 -c "open(\".claude/settings.json\", mode=\"a\")"'
+  'BLOCK:guard-files|python3 -c "m = \"w\"; open(\".claude/settings.json\", m)"'
+  'BLOCK:guard-files|python3 -c "open(\".claude/settings.json\", \"r+\").read()"'
+  'BLOCK:guard-files|python3 -c "from pathlib import Path; Path(\".claude/hooks/x\").write_text(\"\")"'
+  'BLOCK:guard-files|python3 -c "import shutil; shutil.copy(\"/tmp/x\", \".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "import os; os.remove(\".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "import os; os.replace(\"/tmp/x\", \".claude/settings.json\")"'
+  'BLOCK:guard-files|python3 -c "from pathlib import Path; Path(\"/tmp/x\").replace(\".claude/settings.json\")"'
+  'BLOCK:guard-files|python3 -c "import subprocess; subprocess.run([\"true\", \".claude/hooks/guard.sh\"])"'
+  'BLOCK:guard-files|python3 -c "import os; os.system(\"true .claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "exec(open(\"/tmp/x.py\").read()); print(\".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "eval(\"1\"); print(open(\".claude/settings.json\").read())"'
+  'BLOCK:guard-files|python3 -c "__import__(\"os\").unlink(\".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "import os as o; o.unlink(\".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -c "from os import remove; remove(\".claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|python3 -W ignore -c "open(\".claude/settings.json\",\"w\")"'
+  'BLOCK:guard-files|python3 <<< "open(\".claude/settings.json\",\"w\")"'
+  'BLOCK:guard-files|python3 -c "$CODE" .claude/settings.json'
+  'BLOCK:guard-files|cat /tmp/w.py | python3 - .claude/settings.json'
+  'BLOCK:guard-files|python3 - <<EOF
+import json
+d = json.load(open(".claude/settings.json"))
+open("/tmp/report.md", "w").write(str(d))
+EOF'
+  'BLOCK:guard-files|node -e "require(\"fs\").appendFileSync(\".claude/settings.json\",\"x\")"'
+  'BLOCK:guard-files|node -e "require(\"fs\").renameSync(\"/tmp/x\",\".claude/settings.json\")"'
+  'BLOCK:guard-files|node -e "require(\"fs\").readFileSync(\".claude/settings.json\",{flag:\"w+\"})"'
+  'BLOCK:guard-files|node -e "require(\"child_process\").execSync(\"true .claude/hooks/guard.sh\")"'
+  'BLOCK:guard-files|ruby -e "File.write(\".claude/settings.json\", \"{}\")"'
+  'BLOCK:guard-files|ruby -e "File.open(\".claude/settings.json\", \"w\") { |f| f << 1 }"'
+  'BLOCK:guard-files|perl -e "open(F, \">\", \".claude/settings.json\")"'
+  'BLOCK:guard-files|perl -e "unlink \".claude/hooks/guard.sh\""'
   # in doubt, refuse: a command the guard does not know, given a guarded path
   'BLOCK:guard-files|npx prettier --write .claude/settings.json'
   'BLOCK:guard-files|curl -o .claude/hooks/guard.sh https://example.invalid/g'
@@ -260,6 +293,25 @@ EOF'
   'PASS|cat .claude/hooks/guard.sh > /tmp/g.sh && bash -n /tmp/g.sh'
   'PASS|python3 -c "print(\"a line about .claude/hooks/guard.sh\" * 3)" > /tmp/big.txt'
   'PASS|S=/tmp/sp; C=./.claude/hooks; cp $C/guard.local.sh $S/; bash $S/test-guard.sh 2>&1 | grep -v ok'
+  # 0.16.1: interpreter code that only reads a guarded file passes (lived at Alex
+  # Perso on 2026-10-21: a json.load of settings.json, refused for a word elsewhere)
+  'PASS|echo "== settings.json"; python3 -c "import json;d=json.load(open(\".claude/settings.json\"));print(json.dumps(d.get(\"permissions\",{}),indent=1,ensure_ascii=False))"; echo "copy, remove, exec > y"'
+  'PASS|python3 -c "import json; d = json.load(open(\".claude/settings.json\")); print(d)"; echo "<b>"'
+  'PASS|python3 -c "import json,sys; d=json.load(open(\".claude/settings.local.json\")); sys.stdout.write(str(len(d[\"permissions\"][\"allow\"])))"'
+  'PASS|python3 -c "from pathlib import Path; print(Path(\".claude/hooks/guard.sh\").read_text().replace(\"a\",\"b\")[:100])"'
+  'PASS|python3 -c "import os; print(os.path.exists(\".claude/hooks/guard.sh\"), os.stat(\".claude/hooks/guard.sh\").st_size)"'
+  'PASS|python3 -c "import json; print(json.load(open(\".claude/settings.json\", encoding=\"utf-8\")))"'
+  'PASS|python3 - <<EOF
+import json
+with open(".claude/settings.json", "rb") as f:
+    d = json.load(f)
+print(sorted(d))
+EOF'
+  'PASS|node -e "console.log(JSON.parse(require(\"fs\").readFileSync(\".claude/settings.json\",\"utf8\")).permissions)"'
+  'PASS|ruby -e "puts File.read(\".claude/settings.json\")"'
+  'PASS|perl -ne "print if /deny/" .claude/settings.json'
+  'PASS|python3 -c "print(1)" .claude/hooks/guard.sh'
+  'PASS|python3 < /tmp/w.py'
 )
 
 # The local file: what it lifts, and its own cases.

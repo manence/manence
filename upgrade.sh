@@ -35,7 +35,8 @@
 #                         beside it and it carries no conflict marker
 #
 # It never commits, never pushes, never deletes, and never touches your
-# identity files. See UPGRADING.md for what it leaves to your hands.
+# identity files, but for two declared gestures: the 0.15 move of instruction
+# items out of inbox/, and the 0.16.1 rules appended to permissions.allow. See UPGRADING.md for what it leaves to your hands.
 #
 # Portable: bash 3.2+ (macOS default), Linux, Git Bash on Windows.
 # Requires: git. Uses python3 when present for the JSON and frontmatter
@@ -47,7 +48,7 @@ SELF_DIR=$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" 2>/dev/null && pwd || e
 MOS=implementation/mos
 BASE_SKILLS="checkpoint close-work connect-adapter consignes kb-ingest kb-lint open-work outward-watch skill-craft upgrade weekly-review"
 # Versions this script knows how to walk. Keep in sync with UPGRADING.md.
-KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1 0.15.0 0.16.0"
+KNOWN_VERSIONS="0.5.0 0.5.1 0.6.0 0.6.1 0.6.2 0.7.0 0.8.0 0.8.1 0.8.2 0.8.3 0.9.0 0.10.0 0.11.0 0.12.0 0.13.0 0.13.1 0.14.0 0.14.1 0.15.0 0.16.0 0.16.1"
 DEFAULT_REPO=${MANENCE_REPO:-https://github.com/manence/manence.git}
 
 usage() {
@@ -605,7 +606,12 @@ echo
 echo "Identity organs — never touched by this script"
 for f in AGENTS.md CLAUDE.md CLAUDE.local.md PEOPLE.md SOUL.md STRATEGY.md .claude/settings.json \
          .env .env.example log.md knowledge-base inbox consignes; do
-  [ -e "$CORE/$f" ] && report "yours" "$f"
+  [ -e "$CORE/$f" ] || continue
+  if [ "$f" = .claude/settings.json ]; then
+    report "yours" "$f (one additive gesture since 0.16.1: the shipped permissions.allow rules it lacks, under Declared migrations)"
+  else
+    report "yours" "$f"
+  fi
 done
 report "yours" "everything else the core holds (brand/, scripts/, your own skills…)"
 
@@ -985,8 +991,9 @@ migrate_0_15() {
 # root skills/ link: a relative link .agents/skills -> ../.claude/skills is laid
 # when missing. A real folder, or a link aimed elsewhere, is the core's: named,
 # left. Where ln -s cannot make a link (Git Bash on Windows without the right),
-# nothing is left behind and the junction is a manual touch. And, when the core
-# ignores its root /skills link, /.agents/skills is ignored the same way.
+# nothing is left behind and the junction is a manual touch. And /.agents/skills
+# is ignored (gitignore_agents_skills, below: since 0.16.1 whether or not the
+# core ignores its root /skills link).
 # Nothing else to migrate: pour on a capture is optional.
 migrate_0_16() {
   local l="$CORE/.agents/skills" gi="$CORE/.gitignore"
@@ -1012,19 +1019,141 @@ migrate_0_16() {
     report "would do" "v0.16.0  .agents/skills -> ../.claude/skills (link for Codex)"
     N_MIGRATED=$((N_MIGRATED + 1))
   fi
-  if [ -f "$gi" ] && tr -d '\r' < "$gi" | grep -qxF '/skills'; then
-    if tr -d '\r' < "$gi" | grep -qxF '/.agents/skills'; then
-      report "nothing" "v0.16.0  .gitignore already carries '/.agents/skills'"
-    elif [ "$APPLY" -eq 1 ]; then
-      { if [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ]; then echo; fi
-        printf '\n# %s\n/.agents/skills\n' "The skills bridge for Codex 0.163 and later (0.16): a link, like /skills"; } >> "$gi"
-      report "migrated" "v0.16.0  .gitignore += '/.agents/skills'"
-      N_MIGRATED=$((N_MIGRATED + 1))
-    else
-      report "would do" "v0.16.0  .gitignore += '/.agents/skills'"
-      N_MIGRATED=$((N_MIGRATED + 1))
-    fi
+  gitignore_agents_skills 0.16.0
+}
+
+# The .agents/skills line of .gitignore (0.16, fixed in 0.16.1): added as soon as
+# it is missing, whether or not the core ignores /skills (0.16.0 added it only
+# beside /skills, and three cores out of four wrote it by hand); a core without
+# .gitignore gets one with this line. Said once per run: walked from 0.16.0 and
+# 0.16.1 alike, the second call finds the first one's plan.
+GI_AGENTS_PLANNED=0
+gitignore_agents_skills() {  # version label
+  local gi="$CORE/.gitignore"
+  if [ "$GI_AGENTS_PLANNED" -eq 1 ]; then
+    return 0
+  elif [ -f "$gi" ] && tr -d '\r' < "$gi" | grep -qxF '/.agents/skills'; then
+    report "nothing" "v$1  .gitignore already carries '/.agents/skills'"
+    return 0
   fi
+  GI_AGENTS_PLANNED=1
+  N_MIGRATED=$((N_MIGRATED + 1))
+  if [ "$APPLY" -ne 1 ]; then
+    if [ -f "$gi" ]; then report "would do" "v$1  .gitignore += '/.agents/skills'"
+    else report "would do" "v$1  .gitignore created with '/.agents/skills'"; fi
+    return 0
+  fi
+  if [ -f "$gi" ]; then
+    { if [ -s "$gi" ] && [ -n "$(tail -c 1 "$gi")" ]; then echo; fi
+      printf '\n# %s\n/.agents/skills\n' "The skills bridge for Codex 0.163 and later (0.16): a link, never committed"; } >> "$gi"
+    report "migrated" "v$1  .gitignore += '/.agents/skills'"
+  else
+    printf '# %s\n/.agents/skills\n' "The skills bridge for Codex 0.163 and later (0.16): a link, never committed" > "$gi"
+    report "migrated" "v$1  .gitignore created with '/.agents/skills'"
+  fi
+}
+
+# 0.16.1: the skills' gestures in permissions.allow (Spec §12). .claude/settings.json
+# is identity: the one gesture played on it is additive. The shipped rules the
+# core's allow list lacks are appended, in the shipped order; nothing is removed
+# or reordered, deny and every other key are left as they are. The file is
+# edited in place as text (the new rules before the closing bracket of allow,
+# or an allow list opened at the top of permissions), and the result must parse
+# to the old document plus those rules, else it is rewritten from the parsed
+# document (two-space indent, key order kept). A dated copy is left beside it,
+# the write is atomic. A file that does not parse, or whose permissions or
+# allow is not of the expected shape, is left untouched and named (MANUAL).
+py_settings_allow() {  # core-settings shipped-settings apply -> one verdict line
+  "$PY" - "$1" "$2" "$3" <<'PYEOF'
+import collections, datetime, json, os, re, shutil, sys, tempfile
+path, shipped_path, apply_it = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+OD = collections.OrderedDict
+try:
+    shipped = json.load(open(shipped_path, encoding="utf-8"))["permissions"]["allow"]
+except Exception as exc:
+    print("MANUAL\tthe shipped settings.json carries no permissions.allow to read (%s)" % exc); sys.exit(0)
+if not os.path.exists(path):
+    print("MANUAL\tno .claude/settings.json: take the shipped one (its hooks wire the guard)"); sys.exit(0)
+raw = open(path, encoding="utf-8").read()
+try:
+    doc = json.loads(raw, object_pairs_hook=OD)
+except Exception as exc:
+    print("MANUAL\t.claude/settings.json is not readable JSON (%s): left untouched; add the shipped permissions.allow by hand (UPGRADING.md 0.16.1)" % exc); sys.exit(0)
+if not isinstance(doc, dict):
+    print("MANUAL\t.claude/settings.json is not a JSON object: left untouched"); sys.exit(0)
+perms = doc.get("permissions", OD())
+if not isinstance(perms, dict):
+    print("MANUAL\t.claude/settings.json: permissions is not an object: left untouched"); sys.exit(0)
+allow = perms.get("allow", [])
+if not isinstance(allow, list):
+    print("MANUAL\t.claude/settings.json: permissions.allow is not a list: left untouched"); sys.exit(0)
+missing = [r for r in shipped if r not in allow]
+if not missing:
+    print("nothing\tpermissions.allow already carries the %d shipped rules" % len(shipped)); sys.exit(0)
+what = "permissions.allow += %d rule(s) of the skills (%s%s)" % (
+    len(missing), ", ".join(missing[:3]), ", …" if len(missing) > 3 else "")
+if not apply_it:
+    print("would do\t" + what); sys.exit(0)
+expected = json.loads(raw, object_pairs_hook=OD)
+ep = expected.setdefault("permissions", OD())
+ep.setdefault("allow", [])
+ep["allow"] = list(ep["allow"]) + missing
+def line_indent(pos):
+    line = raw.rfind("\n", 0, pos) + 1
+    return re.match(r"[ \t]*", raw[line:]).group(0)
+new = None
+m = re.search(r'"permissions"\s*:\s*\{', raw)
+if m and "allow" in perms and len(re.findall(r'"allow"\s*:', raw)) == 1:
+    a = re.search(r'"allow"\s*:\s*\[', raw[m.end():])
+    if a:
+        start = m.end() + a.end()
+        end = raw.index("]", start)                # a rule holds no bracket
+        body = raw[start:end]
+        ind_allow = line_indent(m.end() + a.start())
+        first = re.search(r'\n([ \t]*)"', body)
+        ind = first.group(1) if first else ind_allow + "  "
+        lines = ",\n".join(ind + json.dumps(r, ensure_ascii=False) for r in missing)
+        head = body.rstrip() + "," if body.strip() else ""
+        new = raw[:start] + head + "\n" + lines + "\n" + ind_allow + raw[end:]
+elif m and "allow" not in perms:
+    k = re.match(r'\s*\n([ \t]*)"', raw[m.end():])
+    ind = k.group(1) if k else line_indent(m.start()) + "  "
+    lines = ",\n".join(ind + "  " + json.dumps(r, ensure_ascii=False) for r in missing)
+    rest = raw[m.end():]
+    sep = "," if rest.strip()[:1] not in ("}", "") else ""
+    new = raw[:m.end()] + "\n" + ind + '"allow": [\n' + lines + "\n" + ind + "]" + sep + rest
+try:
+    ok = new is not None and json.loads(new) == json.loads(json.dumps(expected))
+except Exception:
+    ok = False
+how = "edited in place"
+if not ok:
+    new = json.dumps(expected, indent=2, ensure_ascii=False) + "\n"; how = "rewritten from the parsed file (two-space indent, key order kept)"
+stamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+backup = path + ".before-0.16.1-" + stamp
+shutil.copy2(path, backup)
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".settings.json.")
+with os.fdopen(fd, "w", encoding="utf-8") as fh:
+    fh.write(new)
+shutil.copymode(path, tmp)
+os.replace(tmp, path)
+print("migrated\t%s; %s; the file as it was: %s" % (what, how, os.path.basename(backup)))
+PYEOF
+}
+
+migrate_0_16_1() {
+  gitignore_agents_skills 0.16.1
+  local out
+  if [ -z "$PY" ]; then
+    report "MANUAL" "v0.16.1  no python3: add the shipped permissions.allow to .claude/settings.json by hand (UPGRADING.md 0.16.1)"
+    N_MANUAL=$((N_MANUAL + 1)); return 0
+  fi
+  out=$(py_settings_allow "$CORE/.claude/settings.json" "$TO_DIR/$MOS/.claude/settings.json" "$APPLY")
+  report "${out%%	*}" "v0.16.1  ${out#*	}"
+  case ${out%%	*} in
+    migrated|"would do") N_MIGRATED=$((N_MIGRATED + 1)) ;;
+    MANUAL) N_MANUAL=$((N_MANUAL + 1)) ;;
+  esac
 }
 
 echo
@@ -1039,6 +1168,7 @@ else
       0.14.0) MIG_DECLARED=1; migrate_0_14 ;;
       0.15.0) MIG_DECLARED=1; migrate_0_15 ;;
       0.16.0) MIG_DECLARED=1; migrate_0_16 ;;
+      0.16.1) MIG_DECLARED=1; migrate_0_16_1 ;;
       *) : ;;
     esac
   done

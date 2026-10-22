@@ -1,5 +1,5 @@
 {
-  "//": "The core's .claude/settings.json (layer 5). Two hard paths (Spec §12): the hooks (deterministic guardrails before/after an action) and permissions.deny (a blocklist evaluated by the permission engine itself). Structure per the Claude Code documentation. Hooks are invoked through bash explicitly: under Windows/PowerShell, a .sh called directly runs NOTHING, without an error, and the guard would fail open in silence (real install, 2026-08-06). This file and .claude/hooks/ change through upgrade.sh or by the user's hand, never through the agent's file tools (guard.sh rule 4), except in a session where the user said \"admin GO\" (admin-go.sh, on UserPromptSubmit): then they are open for that session, every write traced.",
+  "//": "The core's .claude/settings.json (layer 5). Two hard paths (Spec §12): the hooks (deterministic guardrails before/after an action) and permissions.deny (a blocklist evaluated by the permission engine itself). And one declarative list, permissions.allow (0.16.1): the skills' gestures, so that the discipline costs no clicks; a comfort, not a safety path. Structure per the Claude Code documentation. Hooks are invoked through bash explicitly: under Windows/PowerShell, a .sh called directly runs NOTHING, without an error, and the guard would fail open in silence (real install, 2026-08-06). This file and .claude/hooks/ change through upgrade.sh or by the user's hand, never through the agent's file tools (guard.sh rule 4), except in a session where the user said \"admin GO\" (admin-go.sh, on UserPromptSubmit): then they are open for that session, every write traced.",
 
   "hooks": {
     "SessionStart": [
@@ -44,7 +44,44 @@
   },
 
   "permissions": {
-    "//": "Second hard path (Spec §12): a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are NOT listed here since 0.13: a deny rule outranks every hook, and Claude Code applies Edit(...) rules to shell redirections too, so a deny would keep them shut even after the user's admin GO (observed 2026-10-05). guard.sh rule 4 holds them instead, for the file tools and the shell, and a hook deny holds in every permission mode, bypass included.",
+    "//": "allow: A declarative path (Spec §12, since 0.16.1), not a safety one: these gestures are the skills' own (close-work moves a folder and repairs its links, consignes rewrites an item and moves it, the review and the upgrade run the lint and the benches, every skill commits its trace). Without them, outside bypass mode, each variant of a command asks for a permission, and an operator who ends up in bypass mode is worse off than the rule protects. deny outranks allow; the guard (guard.sh) still stands before every command, in every mode. A push is not here: it publishes (the golden rule), so it asks. deny: the second hard path (Spec §12), a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are NOT listed here since 0.13: a deny rule outranks every hook, and Claude Code applies Edit(...) rules to shell redirections too, so a deny would keep them shut even after the user's admin GO (observed 2026-10-05). guard.sh rule 4 holds them instead, for the file tools and the shell, and a hook deny holds in every permission mode, bypass included.",
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(wc:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)",
+      "Bash(diff:*)",
+      "Bash(date:*)",
+      "Bash(jq:*)",
+      "Bash(mkdir:*)",
+      "Bash(touch:*)",
+      "Bash(mv:*)",
+      "Bash(cp:*)",
+      "Bash(sed:*)",
+      "Bash(trash:*)",
+      "Bash(python3:*)",
+      "Bash(git status:*)",
+      "Bash(git log:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git mv:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git ls-remote:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(bash .claude/hooks/lint.sh:*)",
+      "Bash(.claude/hooks/lint.sh:*)",
+      "Bash(bash .claude/hooks/test-guard.sh:*)",
+      "Bash(bash .claude/hooks/test-whoami.sh:*)",
+      "Bash(bash .claude/hooks/consignes.sh:*)",
+      "Bash(bash scripts/*)"
+    ],
     "deny": [
       "Bash(sudo:*)",
       "Bash(rm -rf:*)",

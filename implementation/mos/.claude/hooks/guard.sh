@@ -27,7 +27,7 @@
 #      of them or whose body a shell or an interpreter runs and writes there, and,
 #      in doubt, a command the guard does not know given one of them as argument,
 #      bash -c/eval/source/xargs naming one of them, interpreter code that names
-#      one and writes. The path is read through a variable, ~/, $HOME, $PWD,
+#      one and holds any write pattern (0.16.1: code that only reads passes). The path is read through a variable, ~/, $HOME, $PWD,
 #      $(pwd), "//", "/./" and "dir/../". Reading them (cat, grep, ls, diff…),
 #      running them (bash test-guard.sh), and naming them in a log entry or a
 #      capture written through a heredoc, stay free. Detail at rule 4 below. These files
@@ -318,9 +318,10 @@ fi
 #   - bash/sh -c, eval, source/., and xargs running anything but a read refuse
 #     when the command names a guarded file anywhere;
 #   - interpreter code (python3 -c, node -e, a heredoc read by an interpreter),
-#     triple-quoted strings dropped, refuses when a line names a guarded file and
-#     writes, or when a guarded path is assigned (p = ".claude/hooks/x") and the
-#     code writes anything.
+#     cut out of the command, refuses when it names a guarded file and holds a
+#     write pattern on any line, or when it is not in the command at all and the
+#     command names a guarded file; code that only reads passes (0.16.1, detail at
+#     interp_code below).
 # A mention in a reading command, in a data heredoc whose target is another file
 # (a log entry, an inbox capture), or in a comment no longer refuses. Still an
 # anti-mistake barrier: a path the shell builds at run time, a glob
@@ -523,13 +524,90 @@ classify_segments() {
   END { print "DONE"; if (HIT) print "HIT"; if (RISKY) print "RISKY"; if (INTERP) print "INTERP"; if (RUNS) print "RUNS" }'
 }
 
-# Interpreter code (stdin): triple-quoted strings dropped, then a line that names
-# a guarded file and writes, or a guarded path assigned and a write anywhere.
-# A shell redirection on the same line is the shell's (read above), not the
-# code's: only a quoted mode (">x", "+<x": Perl, Ruby) counts here.
-INTERP_WRITE="open\([^)]*[\"'][wax+]|write|unlink|remove|rename|replace\(|truncate|chmod|chown|rmtree|copy|move\(|symlink|link\(|touch|mkdir|rmSync|system|subprocess|popen|spawn|exec|[\"']\+?[<>]{1,2}[^&[:space:]=]"
+# Interpreter code (0.16.1: a reader passes). The code is what the interpreter
+# runs, cut out of the command (interp_code): the argument of -c, -e, -E, -r or
+# --eval (node, deno, bun: -p and --print too), a here-string, the body of a
+# heredoc read by an interpreter, and any later argument of that call that names
+# a guarded file (the code may open sys.argv[1]). When the code cannot be cut
+# out for sure, the whole command is read instead (an unterminated quote); and
+# when the code is not in the command at all (a double-quoted code holding a $
+# or a backtick, an interpreter reading a pipe or a file redirection), a command
+# that names a guarded file anywhere refuses: unseen code given a guarded path. Then (code_writes), triple-quoted strings and comment lines
+# dropped: code that names no guarded file passes; code that names one passes
+# only when it holds no write pattern on any line: open() with a mode holding w,
+# a, x or + (or a mode given by a name), a write method (.write( except to
+# stdout or stderr, write_text, writeFile, appendFile…), a file-system call that
+# changes something (os.* other than a read, shutil, unlink, rename, a one-
+# argument .replace(), mkdir, chmod, touch, truncate…), a process (subprocess,
+# system, popen, spawn, exec, child_process, a backtick, %x, qx), eval, exec and
+# dynamic imports (__import__, importlib, getattr), Perl's in-place $^I, a quoted
+# redirection (">", "+<", "|-": Perl, Ruby), open flags (O_WRONLY, O_CREAT…).
+# In doubt, refuse. A shell redirection on the same line is the shell's (read
+# above), not the code's.
+interp_code() {  # stdin: the command lines -> stdout: the inline code; UNSEEN, FALLBACK
+  G4_GP='\.claude/(hooks|settings)' awk '
+  function endword() { if (inw) { nw++; W[nw] = cur; D[nw] = dol } cur = ""; inw = 0; dol = 0 }
+  function emit(j) { if (j > nw || D[j]) print "UNSEEN"; else print W[j] }
+  function endseg(   k, c, j, cf, code, script, stdin, hd) {
+    k = 1
+    while (k <= nw && (W[k] ~ /^(sudo|command|exec|time|nohup|env|if|elif|while|until|do|then|else|!|\{)$/ || W[k] ~ /^[A-Za-z_][A-Za-z0-9_]*=/)) k++
+    if (k <= nw) {
+      c = W[k]; sub(/^.*\//, "", c)
+      if (c ~ /^(python[0-9.]*|node|ruby|perl|php|deno|bun|osascript|lua|Rscript)$/) {
+        cf = (c ~ /^(node|deno|bun)$/) ? "^-([A-Za-z]*[ep]|-eval|-print)$" : "^-([A-Za-z]*[ceEr]|-eval)$"
+        code = 0; script = 0; stdin = 0; hd = 0
+        for (j = k + 1; j <= nw; j++) {
+          if (W[j] ~ cf) { code = 1; emit(j + 1); j++; continue }
+          if (W[j] ~ /^[0-9]*<<</) { code = 1; if (W[j] ~ /^[0-9]*<<<$/) { emit(j + 1); j++ } else { if (D[j]) print "UNSEEN"; else { x = W[j]; sub(/^[0-9]*<<</, "", x); print x } } continue }
+          if (W[j] ~ /^[0-9]*<</) { hd = 1; if (W[j] ~ /^[0-9]*<<-?$/) j++; continue }
+          if (W[j] ~ /^[0-9]*</) { stdin = 1; if (W[j] ~ /^[0-9]*<$/) j++; continue }
+          if (W[j] ~ /^[0-9&]*>/) { if (W[j] ~ /^[0-9&]*>>?[|]?$/) j++; continue }
+          if (W[j] == "-" && !code && !script) { stdin = 1; continue }
+          if (W[j] ~ ENVIRON["G4_GP"]) print W[j]
+          if (!code && !stdin && W[j] !~ /^-/) script = 1
+        }
+        if (!code && !hd && (stdin || !script)) print "UNSEEN"
+      }
+    }
+    nw = 0
+  }
+  { s = s $0 "\n" }
+  END {
+    n = length(s); i = 1; nw = 0; cur = ""; inw = 0; dol = 0
+    while (i <= n) {
+      ch = substr(s, i, 1)
+      if (ch == "\047") {
+        j = index(substr(s, i + 1), "\047"); if (!j) { bad = 1; break }
+        cur = cur substr(s, i + 1, j - 1); i += j + 1; inw = 1; continue
+      }
+      if (ch == "\"") {
+        i++
+        while (i <= n) {
+          c2 = substr(s, i, 1)
+          if (c2 == "\\") { d2 = substr(s, i + 1, 1); if (d2 ~ /["\\$`]/) { cur = cur d2; i += 2; continue } if (d2 == "\n") { i += 2; continue } cur = cur c2; i++; continue }
+          if (c2 == "\"") break
+          if (c2 == "$" || c2 == "`") dol = 1
+          cur = cur c2; i++
+        }
+        if (i > n) { bad = 1; break }
+        i++; inw = 1; continue
+      }
+      if (ch == "\\") { cur = cur substr(s, i + 1, 1); i += 2; inw = 1; continue }
+      if (ch == " " || ch == "\t") { endword(); i++; continue }
+      if (ch ~ /[;&|()\n]/) { endword(); endseg(); i++; continue }
+      if (ch == "$" || ch == "`") dol = 1
+      cur = cur ch; inw = 1; i++
+    }
+    if (bad) print "FALLBACK"; else { endword(); endseg() }
+  }'
+}
+
 INTERP_GP='\.claude/(hooks|settings)|["'\'']\.claude["'\''].*["'\''](hooks|settings(\.local)?\.json)["'\'']'
-interp_writes() {
+CW_N='(^|[^A-Za-z0-9_])'; CW_E='([^A-Za-z0-9_]|$)'
+CODE_WRITE="${CW_N}(write_text|write_bytes|writelines|writeFile|writeFileSync|appendFile|appendFileSync|createWriteStream|unlink|unlinkSync|rename|renames|renameSync|rmtree|rmdir|rmdirSync|rmSync|rm|removedirs|mkdir|mkdirSync|makedirs|touch|chmod|chmodSync|lchmod|chown|lchown|chflags|symlink|symlink_to|symlinkSync|hardlink_to|link_to|linkSync|truncate|ftruncate|truncateSync|utime|utimes|utimesSync|copyfile|copyFile|copyFileSync|cpSync|copytree|copy2|copymode|copystat|sysopen|binwrite|syswrite|system|popen|spawn|spawnSync|execSync|execFile|execFileSync|exec|execv|execvp|fork|eval|__import__|import_module|importlib|getattr|builtins|__builtins__|subprocess|child_process|shutil|FileUtils|ctypes|pty|qx|O_WRONLY|O_RDWR|O_CREAT|O_APPEND|O_TRUNC|WRONLY|RDWR|CREAT|TRUNC)${CW_E}|\.write(lines)?[[:space:]]*\(|\.replace[[:space:]]*\([^,()]*\)|\.(copy|copy_into|move|move_into)[[:space:]]*\([[:space:]]*[^)[:space:]]|(^|[^A-Za-z0-9_.])remove[[:space:]]*\(|from[[:space:]]+(os|posix|nt)[[:space:]]+import|import[[:space:]]+(os|posix|nt)[[:space:]]+as|\`|%x|\\\$\^I|[\"'](\+?>|\+<|\|-|-\|)|flag[[:space:]]*:[[:space:]]*[\"'][^\"']*[wax+]|File\.(write|delete|binwrite)|IO\.(write|binwrite|popen|sysopen)"
+OPEN_WRITE="[\"'][rbtU]*[wax+][rbtU+]*[\"']|mode[[:space:]]*=[[:space:]]*([^\"'[:space:]]|[\"'][^\"']*[wax+])|open(Sync)?[[:space:]]*\([^,]*,[[:space:]]*[A-Za-z_][A-Za-z0-9_.]*[[:space:]]*[,)]|\.open[[:space:]]*\([[:space:]]*[A-Za-z_][A-Za-z0-9_.]*[[:space:]]*[,)]"
+OS_READS='path|environ|getenv|getcwd|getcwdb|listdir|scandir|walk|stat|lstat|sep|linesep|pathsep|extsep|access|fspath|name|curdir|pardir|devnull|getpid|getppid|cpu_count|get_terminal_size|isatty|fsencode|fsdecode|getuid|getgid|getlogin|uname|times|urandom|readlink|R_OK|F_OK|X_OK'
+code_writes() {  # stdin: interpreter code -> true when it names a guarded file and may write
   local code
   code=$(awk '{ s = $0; out = ""
       while (s != "") {
@@ -539,15 +617,17 @@ interp_writes() {
         if (!p1 || (p2 && p2 < p1)) { p = p2; q = "\047\047\047" } else { p = p1; q = "\"\"\"" }
         out = out substr(s, 1, p - 1); s = substr(s, p + 3); inq = 1
       }
-      print out }' | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
-  printf '%s\n' "$code" | grep -E "$INTERP_GP" | grep -qE "$INTERP_WRITE" && return 0
-  printf '%s\n' "$code" | grep -E "$INTERP_GP" | grep -qE "[A-Za-z_][A-Za-z0-9_.]*[[:space:]]*=[^=]|chdir|cwd=" \
-    && printf '%s\n' "$code" | grep -qE "$INTERP_WRITE" && return 0
+      print out }' | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -vE '^[[:space:]]*(#|//)')
+  printf '%s\n' "$code" | grep -qE "$INTERP_GP" || return 1
+  code=$(printf '%s\n' "$code" | sed -E 's/(sys\.|process\.|\$)?std(out|err)\.write/STD_OUT/g')
+  printf '%s\n' "$code" | grep -qE "$CODE_WRITE" && return 0
+  printf '%s\n' "$code" | grep -oE '(^|[^A-Za-z0-9_.])os\.[A-Za-z_]+' | sed 's/.*os\./os./' | grep -qvxE "os\.($OS_READS)" && return 0
+  printf '%s\n' "$code" | grep -E 'open(Sync)?[[:space:]]*\(' | grep -qE "$OPEN_WRITE" && return 0
   return 1
 }
 
 guard_files_write() {  # true when the command writes one of the guardrail's files
-  local tagged cmdtext text flags mention_re full TAB
+  local tagged cmdtext text flags mention_re full TAB icode
   TAB=$(printf '\t')
   tagged=$(printf '%s\n' "$JOINED" | split_heredocs) && [ -n "$tagged" ] || return 0
   cmdtext=$(printf '%s\n' "$tagged" | sed -n "s/^C${TAB}//p")
@@ -561,7 +641,15 @@ guard_files_write() {  # true when the command writes one of the guardrail's fil
   mention_re='\.claude/(hooks|settings)'
   full=$(printf '%s\n' "$JOINED" | fold_paths | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g')
   case "$flags" in *RISKY*) printf '%s\n' "$full" | grep -qE "$mention_re" && return 0 ;; esac
-  { case "$flags" in *INTERP*) printf '%s\n' "$cmdtext" ;; esac; printf '%s\n' "$tagged" | sed -n "s/^I${TAB}//p"; } | interp_writes && return 0
+  icode=""
+  if printf '%s\n' "$cmdtext" | grep -qE '(^|[^A-Za-z0-9_])(python[0-9.]*|node|ruby|perl|php|deno|bun|osascript|lua|Rscript)([^A-Za-z0-9_.]|$)'; then
+    icode=$(printf '%s\n' "$cmdtext" | interp_code)
+    case "$icode" in *UNSEEN*)
+      printf '%s\n' "$cmdtext" | fold_paths | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -qE "$mention_re" && return 0 ;;
+    esac
+    case "$icode" in *FALLBACK*) icode=$cmdtext ;; esac
+  fi
+  { printf '%s\n' "$icode"; printf '%s\n' "$tagged" | sed -n "s/^I${TAB}//p"; } | code_writes && return 0
   printf '%s\n' "$tagged" | sed -n "s/^U${TAB}//p" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -qE "$mention_re" && return 0
   case "$flags" in *RUNS*)
     printf '%s\n' "$tagged" | sed -n "s/^D${TAB}//p" | sed 's#implementation/mos/\.claude#implementation/mos/_claude#g' | grep -qE "$mention_re" && return 0 ;;

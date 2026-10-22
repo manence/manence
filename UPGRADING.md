@@ -40,7 +40,7 @@ An upgrade is not one gesture but three, and the script is explicit about which 
 
 Skills you wrote yourself are never touched, and never counted — the script names them and leaves them alone.
 
-**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `PEOPLE.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`, `consignes/**`. **Never touched, ever**, with one declared exception: the 0.15 migration moves the instruction items out of `inbox/` into `consignes/` (a move, never a rewrite). These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
+**Identity** — `AGENTS.md`, `CLAUDE.md`, `CLAUDE.local.md`, `PEOPLE.md`, `SOUL.md`, `STRATEGY.md`, `.claude/settings.json`, `.env*`, `log.md`, `knowledge-base/**`, `inbox/**`, `consignes/**`. **Never touched, ever**, with two declared exceptions: the 0.15 migration moves the instruction items out of `inbox/` into `consignes/` (a move, never a rewrite), and the 0.16.1 migration appends the shipped `permissions.allow` rules `.claude/settings.json` lacks (an addition, never a removal). These files are your system, not the framework's. What a version expects of them is listed below, per version, and the script prints that list for every version it walks over.
 
 **Declared migrations** — the gestures a version needs on your data, played in version order, each idempotent, each announced before it runs. They are listed below, per version, under *Automatic*.
 
@@ -48,7 +48,7 @@ The version stamp, `.claude/manence-version`, is written **last**, and only when
 
 ## What the script never does
 
-- It never writes to your identity files, and never to `knowledge-base/` or `inbox/` (the 0.15 migration moves instruction items out of `inbox/`, and rewrites none).
+- It never writes to your identity files, and never to `knowledge-base/` or `inbox/` (the 0.15 migration moves instruction items out of `inbox/`, and rewrites none; the 0.16.1 migration appends rules to `permissions.allow` in `.claude/settings.json`, and removes none).
 - It never deletes anything. A retired organ moves to `<core>/.upgrade-removed/`, keeping its path; you delete it when you are satisfied, or you don't.
 - It never commits and never pushes. Reading the diff is your gesture; so is the commit message.
 - It never touches another system: everything it writes is under the core you named (and under the production root that core declares).
@@ -73,6 +73,22 @@ The *By hand* list sits between two machine-readable markers so that `upgrade.sh
 Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSIONS` list in `upgrade.sh` too — the script walks that list and reads its manual blocks from this file.
 
 ---
+
+## 0.16.1 — The skills' gestures in `allow`, a reading interpreter, the `.agents/skills` line
+
+The shipped `.claude/settings.json` declares the skills' gestures in `permissions.allow`, so that closing a workstream or processing instructions no longer asks for a permission at every command outside bypass mode (Spec §12: a comfort, not a safety path; `deny` outranks it and the guard still reads every command). The guard lets an interpreter that only reads its files through. The weekly review flags a `settings.local.json` that keeps collecting approvals.
+
+**Automatic**
+
+- `guard.sh` and `test-guard.sh` are replaced or merged (279 cases); `weekly-review` is replaced or merged.
+- Declared migration, `permissions.allow`: the shipped rules your `.claude/settings.json` lacks are appended, in the shipped order. Nothing is removed or reordered, `deny`, the hooks and every other key are left as they are; a dated copy of the file as it was is left beside it (`.claude/settings.json.before-0.16.1-<date>`: trash it once you have read the diff). This is the one gesture `upgrade.sh` plays on that identity file, and it only adds. A file that does not parse, or whose `permissions` or `allow` has another shape, is left untouched and named (`MANUAL`).
+- Declared migration, `.gitignore`: `/.agents/skills` is added when missing, whether or not the core ignores `/skills` (0.16.0 added it only beside `/skills`); a core without `.gitignore` gets one with that line. A core that already tracks `.agents/skills` in git keeps tracking it: the line only stops new links from being added.
+
+<!-- manual v0.16.1 -->
+- If the upgrade named `.claude/settings.json` `MANUAL` (it does not parse, or its `allow` is not a list): fix the file by hand, then add the shipped `permissions.allow` rules it lacks (take them from the shipped `settings.json`).
+- Optional, wording only: in `AGENTS.md`, under "Security, hard vs soft", the line on the declarative path (take it from the shipped `AGENTS.md`).
+- Optional: if `.claude/settings.local.json` holds `allow` rules the shipped list now covers, trim them by hand (the review counts them).
+<!-- /manual -->
 
 ## 0.16.0 — Each person sorts their own share of the inbox
 
