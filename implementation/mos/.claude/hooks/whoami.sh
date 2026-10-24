@@ -21,7 +21,17 @@
 # payload when present, never required.
 set -u
 
-if [ -t 0 ]; then INPUT=""; else INPUT=$(cat 2>/dev/null || true); fi
+# The payload is only needed for its cwd, when the harness does not name the
+# project dir. Run by hand or by the agent, stdin may be a terminal, or a pipe
+# that nobody writes to nor closes (an agent's shell tool): never wait on it
+# (0.16.2). With CLAUDE_PROJECT_DIR set, stdin is not read; otherwise it is read
+# for at most 2 seconds (bash 3.2: read -t), and an empty or silent stdin is
+# said on stderr, then the core is taken from the current folder.
+INPUT=""
+if [ -z "${CLAUDE_PROJECT_DIR:-}" ] && [ ! -t 0 ]; then
+  IFS= read -r -d '' -t 2 INPUT 2>/dev/null || true
+  [ -n "$INPUT" ] || echo "whoami.sh: no hook payload on standard input (run by hand?): reading the core from the current folder." >&2
+fi
 
 # The core's root: the harness's project dir, else the payload's cwd, else here.
 ROOT="${CLAUDE_PROJECT_DIR:-}"

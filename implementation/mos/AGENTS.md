@@ -68,4 +68,7 @@ They live in `.claude/skills/`, whatever the agent — that is their single home
 - API keys in `.env` (gitignored, template in `.env.example`), never committed. Local/confidential config: `CLAUDE.local.md` (gitignored), never in this file.
 
 ## Language
-<The working language of this MOS: …. Everything the agent writes — log entries, About fields, knowledge base, replies — is in that language. The framework's organs (skills, hooks, templates) are in English and stay so; they produce their outputs in the working language.>
+- Conversation: <the language the agent speaks with the people of this MOS: its replies, its questions, what it says in a session>.
+- Files, the **working language**: <the language of everything the agent writes into the MOS: log entries, About fields, knowledge base, inbox captures, commit messages>.
+
+Often one language for both. When they differ, the agent speaks the one and writes the other, never mixing them. The framework's organs (skills, hooks, templates) are in English and stay so; they write their outputs in the working language and speak to the person in the conversation language.

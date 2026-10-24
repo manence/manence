@@ -213,6 +213,23 @@ EOF'
   'BLOCK:guard-files|curl -o .claude/hooks/guard.sh https://example.invalid/g'
   'BLOCK:guard-files|python3 myscript.py .claude/settings.json'
   'BLOCK:guard-files|tar -xf /tmp/x.tar -C .claude'
+  # 0.16.2: a launcher in front (env and its options, timeout and its duration)
+  # is skipped to find the real command; the writes behind it still refuse
+  'BLOCK:guard-files|timeout 5 cp /tmp/x .claude/hooks/guard.sh'
+  'BLOCK:guard-files|env -u HOME tee .claude/settings.json'
+  'BLOCK:guard-files|env -i PATH=/bin sed -i "" s/a/b/ .claude/hooks/guard.sh'
+  'BLOCK:guard-files|timeout -s KILL 5 chmod +x .claude/hooks/guard.sh'
+  'BLOCK:guard-files|env -S "sh -c true" .claude/settings.json'
+  'BLOCK:guard-files|timeout 5 python3 -c "open(\".claude/settings.json\", \"w\")"'
+  'BLOCK:guard-files|env -u X python3 -c "import shutil; shutil.copy(\"/tmp/x\", \".claude/settings.json\")"'
+  'BLOCK:guard-files|python3 -m json.tool /tmp/x.json .claude/settings.json'
+  'BLOCK:guard-files|plutil -convert json .claude/settings.json'
+  'BLOCK:guard-files|ls .claude/hooks/*.sh | xargs -n1 bash'
+  'BLOCK:guard-files|find .claude/hooks -name "*.sh" -exec bash {} \;'
+  'BLOCK:admin-go|timeout 5 bash .claude/hooks/admin-go.sh'
+  'BLOCK:admin-go|timeout -s KILL 5 bash .claude/hooks/admin-go.sh'
+  'BLOCK:admin-go|env -u CLAUDE_PROJECT_DIR bash .claude/hooks/admin-go.sh'
+  'BLOCK:admin-go|env -i ./.claude/hooks/admin-go.sh'
   # --- must PASS (the lived false positives, and their neighbours) ---
   'PASS|git push origin publish/my-article && gh pr create --base main'
   'PASS|git commit -m "inbox: the guard blocks on the word main in a message"'
@@ -312,6 +329,27 @@ EOF'
   'PASS|perl -ne "print if /deny/" .claude/settings.json'
   'PASS|python3 -c "print(1)" .claude/hooks/guard.sh'
   'PASS|python3 < /tmp/w.py'
+  # 0.16.2: what an agent runs to read, check or launch the guardrail's files at
+  # the end of a first setup (a lived report: refusals on reads and launches)
+  'PASS|cat .claude/hooks/guard.sh'
+  'PASS|sed -n "1,40p" .claude/hooks/guard.sh'
+  'PASS|head -50 .claude/hooks/whoami.sh'
+  'PASS|grep -n "rule 4" .claude/hooks/guard.sh'
+  'PASS|jq .permissions.deny .claude/settings.json'
+  'PASS|bash .claude/hooks/test-guard.sh 2>&1 | tail -5'
+  'PASS|bash .claude/hooks/whoami.sh < /dev/null; echo "exit=$?"'
+  'PASS|sh .claude/hooks/whoami.sh'
+  'PASS|./.claude/hooks/test-whoami.sh'
+  'PASS|cd .claude/hooks && bash test-guard.sh'
+  'PASS|bash scripts/log-rotate.py --help && ./scripts/x.sh'
+  'PASS|env -u CLAUDE_PROJECT_DIR bash .claude/hooks/whoami.sh'
+  'PASS|timeout 5 bash .claude/hooks/whoami.sh'
+  'PASS|timeout -s KILL 10 bash .claude/hooks/test-guard.sh'
+  'PASS|env -u X timeout 5 bash .claude/hooks/test-whoami.sh < /dev/null'
+  'PASS|find .claude/hooks -name "*.sh" -exec bash -n {} \;'
+  'PASS|ls .claude/hooks/*.sh | xargs -n1 bash -n'
+  'PASS|python3 -m json.tool .claude/settings.json'
+  'PASS|plutil -lint .claude/settings.json'
 )
 
 # The local file: what it lifts, and its own cases.
@@ -563,6 +601,29 @@ if command -v ssh-keygen >/dev/null 2>&1 && [ -f "$VERIFY" ]; then
   expect "SIGNED a signer not listed for that auteur fails" not vg "$SANDBOX/go4.md"
 else
   printf '  --  SIGNED skipped (no ssh-keygen)\n'
+fi
+
+# --- The secrets deny of settings.json (0.16.2): .env and its usual variants are
+# denied to Read (and so to the shell's reads), .env.example never is: the first
+# setup fills it. Patterns are matched here as shell globs, an approximation of
+# the harness's gitignore-style matching that holds for these literal names. ---
+SETTINGS="$HOOKS/../settings.json"
+if [ -f "$SETTINGS" ] && command -v jq >/dev/null 2>&1; then
+  denied() {  # path -> true when a Read(./...) deny rule matches it
+    local pat
+    while IFS= read -r pat; do
+      # shellcheck disable=SC2053
+      [[ "$1" == $pat ]] && return 0
+    done < <(jq -r '.permissions.deny[]? | select(startswith("Read(./")) | sub("^Read\\(\\./"; "") | sub("\\)$"; "")' "$SETTINGS")
+    return 1
+  }
+  for f in .env .env.local .env.production.local .env.production .env.development .env.test; do
+    expect "ENV $f is denied to Read" denied "$f"
+  done
+  expect "ENV .env.example stays readable (the template the first setup fills)" not denied .env.example
+  expect "ENV no deny rule covers every .env.* (it would shut the template)" not jq -e '.permissions.deny | index("Read(./.env.*)")' "$SETTINGS"
+else
+  printf '  --  ENV skipped (no settings.json next to the hooks, or no jq)\n'
 fi
 
 printf '\n%d cases conform, %d deviate\n' "$ok" "$ko"

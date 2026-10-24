@@ -11,6 +11,25 @@ Log of Manence's public releases. Format based on [Keep a Changelog](https://kee
 
 ## [Unreleased]
 
+## [0.16.2] - 2026-10-24
+
+The first startup, as a person who is not technical lived it (one installation, 2026-10-24). The ritual asked one language where she wanted two, never offered to read what already existed about her on the machine, spoke technical words before knowing who it was talking to, asked the agent to fill a template the deny list kept shut, and ended on checks that hung or were refused. Each of these is fixed; none adds a question that was not needed.
+
+### Added
+- **The profile first.** `BOOTSTRAP.md` opens with "who you are talking to": until it is known, the agent speaks without technical vocabulary; its first question asks whether the person is at ease with technical things and how they want to be spoken to. The answer goes into their section of `PEOPLE.md` (`notes`) and sets the replies register of `SOUL.md`, whose template gains that line.
+- **Two languages.** The conversation language and the working language (the files) may differ: one question, "the same" answers both, two lines under Language in `AGENTS.md`. Spec §14 says it; `skill-craft` and `consignes` tell the two apart (what a skill writes follows the working language, what it says the conversation language; a "Close" or "Abandon" instruction counts in either).
+- **What already exists.** Before the identity questions, the ritual asks once whether material about the person or the activity is on the machine (another MOS, folders, documents) and, with their yes, reads it, read only, to propose answers they confirm. Another MOS is pointed to, never copied.
+- **`test-guard.sh`, the secrets deny** (8 checks): `.env` and its usual variants denied, `.env.example` readable, no rule on the whole `.env.*`.
+
+### Changed
+- **Guard, rule 4: reads and launches pass behind a launcher.** `env` with its options (`-u`, `-i`, `-C`) and `timeout` with its duration are skipped before the command is judged; `find -exec` and `xargs` accept `bash -n`; `python3 -m json.tool` refuses only when it writes a second, guarded file; `plutil -lint` and `-p` pass. Writes behind the same launchers still refuse, and `env -S` counts as a shell string. Rule 4bis sees `admin-go.sh` run behind any launcher the classifier knows. Still refused, by design: `bash -c` and `source` naming a guarded file, any `chmod` on one, `open` or an editor given one.
+- **`test-guard.sh`**: 279 cases in 0.16.1, 321 in 0.16.2 (19 reads and launches that pass, 15 writes and admin-GO forgeries behind launchers that refuse, the 8 secrets checks).
+- **`BOOTSTRAP.md` no longer asks for `chmod +x`** on the hooks: every harness runs them through `bash`, and the guard refuses any change of rights on its own files. A production root outside the default goes into `.env`, not `.env.example`.
+
+### Fixed
+- **The deny list shut the template.** `Read(./.env.*)` denied `.env.example` to the file tools and to the shell, while the first setup asked the agent to fill it: the person had to edit it by hand. The deny now names `.env`, `.env.local`, `.env.*.local`, `.env.development`, `.env.production`, `.env.staging`, `.env.test`, `.env.keys`, `.env.vault`, `.env.bak`, `.env.old`. A deny rule cannot carve out an exception, and a negated character class is not honoured by the harness (checked on 2026-10-24), hence the list.
+- **`whoami.sh` hung when the agent ran it.** Its stdin is a pipe nobody closes in an agent's shell; it read it to the end. It now leaves stdin alone when the harness names the project folder, otherwise reads it for 2 seconds at most, says on stderr that no payload came, and takes the core from the current folder. `test-whoami.sh`: 25 cases in 0.16.1, 28 in 0.16.2 (stdin `/dev/null`, a silent open pipe, the project folder set).
+
 ## [0.16.1] - 2026-10-22
 
 Discipline should not cost clicks. The shipped `settings.json` carried hooks and a deny list, and nothing in `allow`: outside bypass mode, closing a workstream asked for a permission at every `mv` and every `sed -i`, the review at every run of the lint, and an operator worn down by the prompts ends in bypass mode, worse than what the prompts protect (lived on one core on 2026-10-21, "a billion permissions to close"). The skills' gestures are now declared. Two fixes from the 0.16.0 upgrades come with it: the guard lets an interpreter that only reads its files through, and the `.agents/skills` line reaches every core's `.gitignore`.

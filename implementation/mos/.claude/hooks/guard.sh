@@ -428,7 +428,8 @@ subst_vars() {
 
 # Classifies each segment (stdin, one per line) by its command word, as listed
 # above. Prints HIT (a guarded path written), and the flags RISKY (sh -c, eval,
-# source, xargs), INTERP (inline interpreter code) and RUNS (a script is run).
+# source, env -S, xargs), INTERP (inline interpreter code), RUNS (a script is
+# run) and ADMINRUN (the script run is admin-go.sh, for rule 4bis).
 GPW='^(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/)?\.claude/(hooks(/.*)?|settings(\.local)?\.json)$'
 GDW='^(\$\{?[A-Za-z_][A-Za-z0-9_]*\}?/)?\.claude(/hooks)?/?$'
 READS='^(cat|less|more|head|tail|grep|egrep|fgrep|rg|ag|ack|ls|stat|file|wc|diff|diff3|cmp|comm|jq|yq|uniq|cut|tr|nl|od|xxd|hexdump|strings|md5|md5sum|shasum|sha1sum|sha256sum|cksum|readlink|realpath|basename|dirname|test|\[|\[\[|echo|printf|bat|column|tree|du|shellcheck|pbcopy|true|false|type|which|whence|for|case|in|select|esac|done|fi|export|local|declare|readonly|typeset|unset|set|shift|return|exit|wait|sleep|date|pwd|gh|popd|read|fold|fmt|base64)$'
@@ -464,24 +465,46 @@ classify_segments() {
       }
       a[++na] = t
     }
+    # the launchers in front of the command word (0.16.2: env with its options,
+    # timeout with its duration; a check run under them is still a check)
     i = 1
-    while (i <= na && (a[i] ~ /^(sudo|command|exec|time|nohup|env|if|elif|while|until|do|then|else|!|[({]+)$/ || a[i] ~ /^[A-Za-z_][A-Za-z0-9_]*=/)) i++
+    while (i <= na) {
+      if (a[i] ~ /^(sudo|command|exec|time|nohup|if|elif|while|until|do|then|else|!|[({]+)$/ || a[i] ~ /^[A-Za-z_][A-Za-z0-9_]*=/) { i++; continue }
+      if (a[i] == "env") {
+        for (i++; i <= na && (a[i] ~ /^-/ || a[i] ~ /^[A-Za-z_][A-Za-z0-9_]*=/); i++) {
+          if (a[i] ~ /^-[A-Za-z]*S|^--split-string/) { RISKY = 1; next }
+          if (a[i] ~ /^(-u|--unset|-C|--chdir)$/) i++
+        }
+        continue
+      }
+      if (a[i] ~ /^g?timeout$/) {
+        for (i++; i <= na && a[i] ~ /^-/; i++) if (a[i] ~ /^(-s|-k|--signal|--kill-after)$/) i++
+        i++; continue
+      }
+      break
+    }
     if (i > na) next
     cmd = a[i]; sub(/^[({]+/, "", cmd); c = cmd; sub(/^.*\//, "", c); gsub(/["\047]/, "", c)
+    if (c == "admin-go.sh") ADMINRUN = 1
     if (c == "cd" || c == "pushd") {
       e = path(a[i + 1]); cddir = (e != "" && e ~ GDW) ? e : ""; sub(/\/$/, "", cddir); next
     }
     if (cmd ~ /\// && isgp(cmd)) { RUNS = 1; next }                       # running a guarded script
     if (c ~ /^(ba|z|da|k)?sh$/) {
       for (k = i + 1; k <= na && a[k] ~ /^-/; k++) { if (a[k] ~ /^-[A-Za-z]*c/) { RISKY = 1; next }; if (a[k] == "-n") next }
-      if (k <= na) { RUNS = 1; if (!isgp(a[k]) && anygp(k + 1)) hit() }
+      if (k <= na) { RUNS = 1; if (a[k] ~ /admin-go\.sh["\047]?$/) ADMINRUN = 1; if (!isgp(a[k]) && anygp(k + 1)) hit() }
       next
     }
+    if (c == "plutil") { if (a[i + 1] ~ /^-(lint|p|help)$/) next; if (anygpd(i + 1)) hit(); next }
     if (c ~ /^(python[0-9.]*|node|ruby|php|deno|bun|osascript|lua|Rscript|perl)$/) {
       if (c == "perl") for (k = i + 1; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i/) { if (anygp(i + 1)) hit(); next }
       for (k = i + 1; k <= na && a[k] ~ /^-/; k++) {
         if (a[k] ~ /^-([A-Za-z]*[ceEr]|-eval|-print)?$/) { INTERP = 1; next }
-        if (a[k] == "-m") { if (anygp(k + 1)) hit(); next }
+        if (a[k] == "-m") {   # json.tool reads its first file and writes only a second one (0.16.2)
+          if (a[k + 1] == "json.tool") { np = 0; for (j = k + 2; j <= na; j++) if (a[j] !~ /^-/ && ++np >= 2 && isgp(a[j])) hit() }
+          else if (anygp(k + 1)) hit()
+          next
+        }
       }
       if (k > na) { INTERP = 1; next }
       RUNS = 1; if (!isgp(a[k]) && anygp(k + 1)) hit()
@@ -491,7 +514,7 @@ classify_segments() {
     if (c == "xargs") {
       for (k = i + 1; k <= na && a[k] ~ /^-/; k++) if (a[k] ~ /^-[nIPLdEsa]$/) k++
       s = a[k]; sub(/^.*\//, "", s)
-      if (k > na || !(s ~ READS || (s == "sed" && !anyinplace(k)))) RISKY = 1
+      if (k > na || !(s ~ READS || (s == "sed" && !anyinplace(k)) || (s ~ /^(ba|z|da|k)?sh$/ && a[k + 1] == "-n"))) RISKY = 1
       next
     }
     if (c == "sed") { for (k = i + 1; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i|^--in-place/) { if (anygp(i + 1)) hit(); break } next }
@@ -501,7 +524,7 @@ classify_segments() {
       if (!anygp(i + 1)) next
       for (k = i + 1; k <= na; k++) {
         if (a[k] ~ /^-(delete|fprint|fprint0|fprintf|fls)$/) { hit(); break }
-        if (a[k] ~ /^-(exec|execdir|ok|okdir)$/) { s = a[k + 1]; sub(/^.*\//, "", s); if (!(s ~ READS) || (s == "sed")) { hit(); break } }
+        if (a[k] ~ /^-(exec|execdir|ok|okdir)$/) { s = a[k + 1]; sub(/^.*\//, "", s); if ((!(s ~ READS) && !(s ~ /^(ba|z|da|k)?sh$/ && a[k + 2] == "-n")) || (s == "sed")) { hit(); break } }
       }
       next
     }
@@ -521,7 +544,7 @@ classify_segments() {
     if (anygpd(i + 1)) hit()
   }
   function anyinplace(from,   k) { for (k = from; k <= na; k++) if (a[k] ~ /^-[A-Za-z]*i/) return 1; return 0 }
-  END { print "DONE"; if (HIT) print "HIT"; if (RISKY) print "RISKY"; if (INTERP) print "INTERP"; if (RUNS) print "RUNS" }'
+  END { print "DONE"; if (HIT) print "HIT"; if (RISKY) print "RISKY"; if (INTERP) print "INTERP"; if (RUNS) print "RUNS"; if (ADMINRUN) print "ADMINRUN" }'
 }
 
 # Interpreter code (0.16.1: a reader passes). The code is what the interpreter
@@ -550,7 +573,12 @@ interp_code() {  # stdin: the command lines -> stdout: the inline code; UNSEEN, 
   function emit(j) { if (j > nw || D[j]) print "UNSEEN"; else print W[j] }
   function endseg(   k, c, j, cf, code, script, stdin, hd) {
     k = 1
-    while (k <= nw && (W[k] ~ /^(sudo|command|exec|time|nohup|env|if|elif|while|until|do|then|else|!|\{)$/ || W[k] ~ /^[A-Za-z_][A-Za-z0-9_]*=/)) k++
+    while (k <= nw) {   # the same launchers as classify_segments: env and its options, timeout and its duration
+      if (W[k] ~ /^(sudo|command|exec|time|nohup|if|elif|while|until|do|then|else|!|\{)$/ || W[k] ~ /^[A-Za-z_][A-Za-z0-9_]*=/) { k++; continue }
+      if (W[k] == "env") { for (k++; k <= nw && (W[k] ~ /^-/ || W[k] ~ /^[A-Za-z_][A-Za-z0-9_]*=/); k++) if (W[k] ~ /^(-u|--unset|-C|--chdir)$/) k++; continue }
+      if (W[k] ~ /^g?timeout$/) { for (k++; k <= nw && W[k] ~ /^-/; k++) if (W[k] ~ /^(-s|-k|--signal|--kill-after)$/) k++; k++; continue }
+      break
+    }
     if (k <= nw) {
       c = W[k]; sub(/^.*\//, "", c)
       if (c ~ /^(python[0-9.]*|node|ruby|perl|php|deno|bun|osascript|lua|Rscript)$/) {
@@ -674,8 +702,15 @@ fi
 # Not liftable, and an admin GO does not open it.
 ADMIN_WORDS='(^|[^[:alnum:]_])(go[[:space:]]+admin|admin[[:space:]]+go)([^[:alnum:]_]|$)'
 LAUNCH="${PREFIX}((env|npx|exec)[[:space:]]+([^[:space:]]+=[^[:space:]]*[[:space:]]+)*)?"
+admin_go_run() {  # true when the classifier sees admin-go.sh run or sourced, whatever launcher stands before it (0.16.2)
+  local TAB; TAB=$(printf '\t')
+  printf '%s\n' "$JOINED" | split_heredocs | sed -n "s/^C${TAB}//p" | sed '/^[[:space:]]*#/d' | fold_paths \
+    | tr ';|&' '\n' | classify_segments | grep -qx ADMINRUN
+}
 if [ -z "$REASON" ]; then
-  if echo "$SEGMENTS" | grep -E "${LAUNCH}([^[:space:]]*/)?((ba|z|da)?sh[[:space:]]+((-[^n[:space:]][^[:space:]]*|--[^[:space:]]+)[[:space:]]+)*|source[[:space:]]+|\.[[:space:]]+)?[^[:space:]]*admin-go\.sh([[:space:]]|$)" \
+  if admin_go_run; then
+    REASON="admin-go.sh is the user's: it runs on their prompt, never by the agent (guard.sh rule 4bis). Ask the user for an admin GO instead."; RULE="admin-go-forge"
+  elif echo "$SEGMENTS" | grep -E "${LAUNCH}([^[:space:]]*/)?((ba|z|da)?sh[[:space:]]+((-[^n[:space:]][^[:space:]]*|--[^[:space:]]+)[[:space:]]+)*|source[[:space:]]+|\.[[:space:]]+)?[^[:space:]]*admin-go\.sh([[:space:]]|$)" \
      | grep -vqE "(^|[[:space:]])sh[[:space:]]+-n[[:space:]]|bash[[:space:]]+-n[[:space:]]"; then
     REASON="admin-go.sh is the user's: it runs on their prompt, never by the agent (guard.sh rule 4bis). Ask the user for an admin GO instead."; RULE="admin-go-forge"
   elif echo "$SEGMENTS" | grep -qE "${LAUNCH}([^[:space:]]*/)?(claude|codex|grok)([[:space:]]|$)" \

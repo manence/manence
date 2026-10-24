@@ -74,6 +74,20 @@ Each bullet is one line. When you add a version here, add it to the `KNOWN_VERSI
 
 ---
 
+## 0.16.2: the first startup, from a person who is not technical
+
+The ritual asks who it is talking to before anything else, asks two languages in one question, offers to read what already exists, and no longer asks a gesture the deny list forbids. The guard lets reads and launches of its own files through behind `env` or `timeout`; `whoami.sh` no longer waits forever when run by hand. A core already set up does not replay the ritual: what concerns it is the deny list, the hooks and the Language section.
+
+**Automatic**
+
+- `guard.sh`, `test-guard.sh` (321 cases), `whoami.sh` and `test-whoami.sh` (28) are replaced or merged; `skill-craft` and `consignes` are replaced or merged.
+
+<!-- manual v0.16.2 -->
+- In `.claude/settings.json`, `permissions.deny`: replace `Read(./.env.*)` with the shipped rules on `.env` and its variants (take them from the shipped file), so that `.env.example` becomes readable again. An admin GO or your own hand: the guard holds that file. Until then, `test-guard.sh` reports its two `ENV` checks on the template red.
+- If the people of this MOS speak a language other than the one of its files: in `AGENTS.md`, under Language, write the two lines of the shipped template (conversation, working language). With one language for both, optional.
+- Optional: in `SOUL.md`, under Registers, the line on how the people of this MOS want to be spoken to; in `PEOPLE.md`, the same per person under `notes`.
+<!-- /manual -->
+
 ## 0.16.1 — The skills' gestures in `allow`, a reading interpreter, the `.agents/skills` line
 
 The shipped `.claude/settings.json` declares the skills' gestures in `permissions.allow`, so that closing a workstream or processing instructions no longer asks for a permission at every command outside bypass mode (Spec §12: a comfort, not a safety path; `deny` outranks it and the guard still reads every command). The guard lets an interpreter that only reads its files through. The weekly review flags a `settings.local.json` that keeps collecting approvals.

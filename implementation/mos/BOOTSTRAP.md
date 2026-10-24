@@ -1,7 +1,7 @@
 ---
 type: guide
 title: "BOOTSTRAP: first setup (one-time ritual)"
-description: "The one-time setup of a new Manence OS, executed by the agent: language, interview, identity files filled, checks, then this file deletes itself."
+description: "The one-time setup of a new Manence OS, executed by the agent: who it is talking to, languages, what already exists, interview, identity files filled, checks, then this file deletes itself."
 timestamp: 2026-07-11
 ---
 
@@ -12,6 +12,17 @@ timestamp: 2026-07-11
 ---
 
 **To the agent.** You are performing the one-time setup of a new Manence OS — one installation for one activity. Work through every step, in order. Ask; never invent an answer. When every check passes, this file gets deleted: a system that still contains BOOTSTRAP.md is not set up.
+
+## First: who you are talking to
+
+The person in front of you may never have opened a terminal. Until they have told you otherwise, speak to them as to someone who is not technical: plain words, short sentences, and no technical vocabulary (repository, commit, hook, frontmatter, environment variable, terminal, path, prompt, markdown...). When such a word cannot be avoided, say in a few plain words what it means. Speak the language of their first message.
+
+Your first two questions come before any check, one at a time:
+
+1. **Who am I talking to?** Ask whether they are at ease with technical things (a terminal, code, configuration files) or would rather have everything said plainly, and how they like to be spoken to (formal or familiar, brief or detailed). Their answer sets your register for the whole ritual and after it: you record it at step 3 (their section of `PEOPLE.md`, under `notes`), and the replies register of `SOUL.md` follows from it.
+2. **Which languages?** The language you talk in and the language of their files (the journal, the notes, the knowledge) may differ. Ask it as one question, for instance: "Shall I talk with you and write your files in <the language of their first message>, or do you want your files in another language?" If they say "the same", that one answer covers both; otherwise you hold two. Step 2 writes them down.
+
+Then run steps 0 and 1 without commentary: they ask nothing. If one of them blocks, tell the person, in their register, what it means for them and what to do, and nothing more.
 
 ## 0. Integrity — is the copy whole?
 
@@ -32,7 +43,7 @@ If anything is missing, **stop the ritual** and say so plainly. The near-certain
 cp -R manence/implementation/mos <container>/core
 ```
 
-(Or, to repair in place without losing what has already been written: `cp -R manence/implementation/mos/. .` — the trailing `/.` is what carries the dotfiles.) Then restart the ritual. Also check `.claude/hooks/*.sh` are executable (`chmod +x` otherwise): some copy paths drop the bit. (On Windows/NTFS `chmod` is moot — harmless: the hooks are invoked through `bash`, which does not need the bit.)
+(Or, to repair in place without losing what has already been written: `cp -R manence/implementation/mos/. .` — the trailing `/.` is what carries the dotfiles.) Then restart the ritual. The execute bit on `.claude/hooks/*.sh` does not matter (some copy paths drop it, NTFS has none): every harness invokes the hooks through `bash`, and you run them the same way (`bash .claude/hooks/test-guard.sh`). Do not `chmod` them: the guard refuses any change of rights on its own files (rule 4), and nothing needs one.
 
 ## 1. Prerequisites first
 
@@ -40,18 +51,20 @@ cp -R manence/implementation/mos <container>/core
 
 Then, version control. This folder must become **its own** repository: run `git rev-parse --git-dir` first. If it reports an existing repository — the manence clone you copied from, or a project of the human's — **stop the ritual** and tell the human: copy the default MOS to a fresh folder outside any repository, then restart there. A core entangled in another history is not a Manence OS (its journal, its commits and its guardrails assume they own the repository). Otherwise: `git init`, then a first commit of everything as it stands (`Init Manence OS`). The ritual itself must be traceable.
 
-## 2. Language
+## 2. Languages
 
-Ask which language this system should **work in** — the language of the human's files, log entries, workstream notes and of your replies. Write the answer into the Language section of `AGENTS.md` (it is a placeholder until you do). The framework's organs (skills, hooks, templates, the structure of the identity files) are in English and stay so: they read as programs and produce their outputs in the working language. There is no French install set to swap in (removed in 0.10): a French MOS runs the English organs and writes in French.
+Write the answer to the languages question into the Language section of `AGENTS.md` (it is a placeholder until you do), both lines: the **conversation language** (your replies, your questions, everything you say to the people of this MOS) and the **working language** (the language of the files: log entries, workstream notes and About fields, the knowledge base, inbox captures, commit messages). When the person answered "the same", both lines name it. When they differ, you never mix them: you speak the one and write the other, from this step on. The framework's organs (skills, hooks, templates, the structure of the identity files) are in English and stay so: they read as programs and produce their outputs in the working language. There is no French install set to swap in (removed in 0.10): a French MOS runs the English organs and writes in French.
 
 ## 3. Interview
 
-One question at a time, and use every answer — they become the system's identity:
+**Start from what already exists.** Before the first identity question, ask one: does something about them or this activity already exist on this computer? Another Manence OS (a folder holding an `AGENTS.md` and a `log.md`), folders, documents, notes. If they do not know where, you may look for other cores next to this one's container, listing folder names only, and show what you found before opening anything. With their yes, read what they point to, **read only**, and turn it into proposed answers instead of asking from scratch: read each proposal back, and let them confirm or amend it (a confirmed proposal counts as their answer; one they did not confirm is an invention). Never copy another MOS into this one: its facts stay in its own files, and where this system needs them it points to them (a line in the connectors map of `AGENTS.md`, later through `connect-adapter`, or a textual pointer in the knowledge base). If nothing exists, the interview runs as below. One question, not a second questionnaire.
+
+Then one question at a time (skipping what the existing material already answered and they confirmed), and use every answer — they become the system's identity:
 
 1. **The name** of the project or activity. It replaces every `<project name>` / `<nom du projet>` gap, and derives the env prefix (uppercase, non-alphanumeric → `_`) that replaces `<PROJECT>` / `<PROJET>`.
 2. **What this activity does**, in 2-3 sentences (→ AGENTS.md, "What this project does").
-3. **Who works here** (→ `PEOPLE.md`). First the person in front of you: a handle (lowercase, `a-z0-9-`, short: it signs their decisions), their name, their role, constraints worth knowing; they are the owner, so `authority: *` and `admin: yes`. Replace the placeholder section with theirs, and write their handle, one line, into `.claude/operator` (gitignored: it says who is at the screen on this machine). Anyone else who works here gets a section too, with the authority the owner gives them (the perimeters their GO covers, `admin: yes` or `no`); someone who joins later goes through "Add a person" below.
-4. **The voice** — how should the assistant sound (a few words), and is there anything it should never say or promise (→ SOUL.md).
+3. **Who works here** (→ `PEOPLE.md`). First the person in front of you: a handle (lowercase, `a-z0-9-`, short: it signs their decisions), their name, their role, constraints worth knowing (under `notes`, with how they want to be spoken to, from your first question: technical or not, the register they chose); they are the owner, so `authority: *` and `admin: yes`. Replace the placeholder section with theirs, and write their handle, one line, into `.claude/operator` (gitignored: it says who is at the screen on this machine). Anyone else who works here gets a section too, with the authority the owner gives them (the perimeters their GO covers, `admin: yes` or `no`); someone who joins later goes through "Add a person" below.
+4. **The voice** — how should the assistant sound (a few words), and is there anything it should never say or promise (→ SOUL.md; the register of replies starts from what they told you at the very first question).
 5. **The direction** — one to three goals at 12 months (measurable when possible), and 2-3 operational guardrails the human wants respected (→ STRATEGY.md, Goals and Guardrails).
 
 Fill **every** `<...>` gap in `AGENTS.md`, `SOUL.md`, and `STRATEGY.md` — plus the project name in the title line of `CLAUDE.md`, the short Claude Code file that imports `AGENTS.md`. Two kinds of gaps, two rules:
@@ -59,19 +72,19 @@ Fill **every** `<...>` gap in `AGENTS.md`, `SOUL.md`, and `STRATEGY.md` — plus
 - **Identity facts** (names, numbers, goals, guardrails, never-says) come from the human only — a gap the answers don't cover gets a follow-up question, never an invention.
 - **Structural sections the interview doesn't reach** (the pillars, the cadence, the metrics table, the registers of the voice): draft a proposal from what you've heard, read it back, and let the human confirm or amend it — a confirmed proposal counts as their answer. A table with nothing real to hold yet says so plainly ("none yet — the first connector will bring them").
 
-Some placeholders fill from the setup itself, not the interview: the connectors map ("none yet"), the project-skills line ("none yet"), the Language line (from step 2). The env prefix also lands in `.env.example` — `<PREFIX>_PRODUCTION_ROOT=` keeps an empty value when the default location is used, but the `<PROJECT>`/`<PROJET>` token must be resolved.
+Some placeholders fill from the setup itself, not the interview: the connectors map ("none yet"), the project-skills line ("none yet"), the two Language lines (from step 2). The env prefix also lands in `.env.example` — `<PREFIX>_PRODUCTION_ROOT=` keeps an empty value when the default location is used, but the `<PROJECT>`/`<PROJET>` token must be resolved.
 
 ## 4. Configuration
 
-- **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env.example`'s documented slot.
+- **Production root.** Production (workstreams, disposable artifacts) lives *outside* this repository, **in the container** — the parent folder that holds this core and is, itself, the MOS (Spec §0). Propose the default: `../production/` next to this folder. Look at that parent before creating anything: if it is a home directory, a repository, or an otherwise crowded folder, this core was copied without its container — say so, and let the human choose (move the core into a container of its own, or name another location). Never scatter `production/` into a folder that is not the MOS. If accepted, create it with a short README stating: workstreams live here, outside git; one folder per domain, each with `in-progress/` and `done/`; durability goes through the `close-work` skill. If the human wants another location, create it there and record `<PREFIX>_PRODUCTION_ROOT=<path>` in `.env` (a value for this machine, gitignored; `.env.example` keeps the variable without a value). On a fresh core `.env` does not exist yet: create it with that one line. If it already exists, you may not read it (the deny rule of `.claude/settings.json` keeps secrets out of your reach): give the human the line to add, once.
 - **Dates.** Stamp today's date into every remaining `<YYYY-MM-DD>` gap — `log.md`, `knowledge-base/log.md`, and the frontmatters of `PEOPLE.md`, `SOUL.md` and `STRATEGY.md` — and the project name into `knowledge-base/index.md`.
-- **The system's declaration.** Open `.claude/mos.json` — the machine-readable declaration of this MOS: what is plugged into it (shipped with the two pillars: production and the knowledge base) and what runs on its own (the routines, each with the proof that says it ran). Make it this system's: rewrite the two one-line summaries in the system's language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand. If this system works in French, point each routine's `proof_glob` at the French folders (`knowledge-base/veille/*.md` for the watch): a proof is looked for where this system really writes it.
+- **The system's declaration.** Open `.claude/mos.json` — the machine-readable declaration of this MOS: what is plugged into it (shipped with the two pillars: production and the knowledge base) and what runs on its own (the routines, each with the proof that says it ran). Make it this system's: rewrite the two one-line summaries in the working language, from the interview's answers. Connectors will join it later, one per wiring, through `connect-adapter` — never by hand. If its working language is French, point each routine's `proof_glob` at the French folders (`knowledge-base/veille/*.md` for the watch): a proof is looked for where this system really writes it.
 
 ## 5. Verify — run the checks, don't assume
 
 - `bash .claude/hooks/lint.sh .` → must report **0 findings**.
 - `grep -rn '<project name>\|<PROJECT>\|<nom du projet>\|<PROJET>\|<YYYY-MM-DD>' --exclude=BOOTSTRAP.md *.md knowledge-base/ .env.example` → must return **nothing** (this file quotes those tokens, hence the exclude).
-- `bash .claude/hooks/whoami.sh` names the person you set up as the one at the screen when `PEOPLE.md` holds several people, and prints nothing when it holds one (a solo is not told who they are); in both cases `bash .claude/hooks/test-whoami.sh` ends with 0 deviating cases.
+- `bash .claude/hooks/whoami.sh < /dev/null` names the person you set up as the one at the screen when `PEOPLE.md` holds several people, and prints nothing on its standard output when it holds one (a solo is not told who they are); run by hand, it says on stderr that no hook payload came, which is expected. In both cases `bash .claude/hooks/test-whoami.sh` ends with 0 deviating cases.
 - In `PEOPLE.md`, `SOUL.md` and `STRATEGY.md`, `grep -n '<'` must return **nothing** — the interview-and-confirm covers every slot, prose gaps included. In `AGENTS.md`, the only `<...>` left must be the structural notation of the routing table (`<domain>/in-progress/YYYYMMDD-<slug>/` and kin), never an identity gap.
 - `AGENTS.md`, `SOUL.md`, `STRATEGY.md` read back coherently (open them; a half-filled identity is a failed setup), and `CLAUDE.md` still opens with its `@AGENTS.md` import.
 
@@ -82,7 +95,7 @@ If a check fails, fix and re-run. Do not proceed on red.
 - Delete this file (`git rm BOOTSTRAP.md`).
 - Commit: `First startup complete`.
 - **Show the system as it stands.** Open `AGENTS.md` and `log.md` with the human and read them back: their newborn MOS is a filled-in identity, two pillars (a knowledge base about to fill, a production waiting for its first workstream) and a journal of one entry. That is what the system *is* — plain files they own, legible without any tool.
-- **End on the first real gesture, not on a description of it.** Ask the human, in their language, for *one thing they are actually working on this week* — then run `open-work` with them, right now: the production root resolved, the domain created on first need, the folder `<domain>/in-progress/YYYYMMDD-<slug>/` born with its date, the `About.md` written in front of them (goal in one sentence, `awaiting: []`, next step), the `work-open` entry in the log. Open the `About.md` and show it: their system is no longer empty, and everything they just saw happen is a file they can read.
+- **End on the first real gesture, not on a description of it.** Ask the human, in the conversation language and their register, for *one thing they are actually working on this week* — then run `open-work` with them, right now: the production root resolved, the domain created on first need, the folder `<domain>/in-progress/YYYYMMDD-<slug>/` born with its date, the `About.md` written in front of them (goal in one sentence, `awaiting: []`, next step), the `work-open` entry in the log. Open the `About.md` and show it: their system is no longer empty, and everything they just saw happen is a file they can read.
 - Tell them what to say next time (*"open a workstream for…"*, *"close it"*, *"where are we?"* → the weekly review), and, once, without insisting, that a separate reader exists: **Manence UI**, its own program in its own repository, which opens a MOS and shows what is in progress, what is done and what is waiting on someone, without ever writing to it. It is optional — a MOS is complete without one. The setup ends where the work has already begun.
 
 ## Add a person (replayable, any time after the setup)

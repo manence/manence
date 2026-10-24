@@ -44,7 +44,7 @@
   },
 
   "permissions": {
-    "//": "allow: A declarative path (Spec §12, since 0.16.1), not a safety one: these gestures are the skills' own (close-work moves a folder and repairs its links, consignes rewrites an item and moves it, the review and the upgrade run the lint and the benches, every skill commits its trace). Without them, outside bypass mode, each variant of a command asks for a permission, and an operator who ends up in bypass mode is worse off than the rule protects. deny outranks allow; the guard (guard.sh) still stands before every command, in every mode. A push is not here: it publishes (the golden rule), so it asks. deny: the second hard path (Spec §12), a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are NOT listed here since 0.13: a deny rule outranks every hook, and Claude Code applies Edit(...) rules to shell redirections too, so a deny would keep them shut even after the user's admin GO (observed 2026-10-05). guard.sh rule 4 holds them instead, for the file tools and the shell, and a hook deny holds in every permission mode, bypass included.",
+    "//": "allow: A declarative path (Spec §12, since 0.16.1), not a safety one: these gestures are the skills' own (close-work moves a folder and repairs its links, consignes rewrites an item and moves it, the review and the upgrade run the lint and the benches, every skill commits its trace). Without them, outside bypass mode, each variant of a command asks for a permission, and an operator who ends up in bypass mode is worse off than the rule protects. deny outranks allow; the guard (guard.sh) still stands before every command, in every mode. A push is not here: it publishes (the golden rule), so it asks. deny: the second hard path (Spec §12), a blocklist evaluated before any call, redundant with guard.sh by design (defense in depth), not a replacement. An Edit(...) rule covers every file-editing tool (Edit, Write, MultiEdit, NotebookEdit); Claude Code ignores Write(...) rules with a warning, so none is written. The guardrail's own files are NOT listed here since 0.13: a deny rule outranks every hook, and Claude Code applies Edit(...) rules to shell redirections too, so a deny would keep them shut even after the user's admin GO (observed 2026-10-05). guard.sh rule 4 holds them instead, for the file tools and the shell, and a hook deny holds in every permission mode, bypass included. The secrets: .env and its usual variants are denied by name, never .env.example, a template without values that the first setup fills and every session may read (0.16.2: a deny on .env.* kept it shut, to the file tools and to the shell alike, and the setup asked the human to edit it by hand; a deny rule cannot carve out an exception, a negated character class is not honoured, observed 2026-10-24).",
     "allow": [
       "Bash(ls:*)",
       "Bash(cat:*)",
@@ -87,7 +87,16 @@
       "Bash(rm -rf:*)",
       "Bash(git push --force:*)",
       "Read(./.env)",
-      "Read(./.env.*)"
+      "Read(./.env.local)",
+      "Read(./.env.*.local)",
+      "Read(./.env.development)",
+      "Read(./.env.production)",
+      "Read(./.env.staging)",
+      "Read(./.env.test)",
+      "Read(./.env.keys)",
+      "Read(./.env.vault)",
+      "Read(./.env.bak)",
+      "Read(./.env.old)"
     ]
   }
 }

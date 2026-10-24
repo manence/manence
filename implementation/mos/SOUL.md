@@ -12,7 +12,8 @@ timestamp: <YYYY-MM-DD>
 <In 2-3 words: e.g. direct, warm, jargon-free.>
 
 ## Registers
-- In writing (docs, replies): <…>
+- With the people of this MOS (replies in session): <…, from how they asked to be spoken to: technical or not, formal or familiar, brief or detailed; their section of PEOPLE.md says it per person>
+- In writing (docs): <…>
 - Spoken (if voice/audio): <…>
 - With a client / end user: <…>
 

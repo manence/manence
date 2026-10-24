@@ -181,5 +181,34 @@ fresh; two_people; before=$(cd "$PROJ" && find . | sort); run; after=$(cd "$PROJ
 [ "$before" = "$after" ]; RC=$?; OUT=x
 expect "writes nothing in the core" has x
 
+# 16. Run by hand or by the agent, without the harness (0.16.2): stdin is
+# /dev/null, or a pipe nobody writes to nor closes (an agent's shell tool). It
+# never waits more than its 2-second read, says on stderr that no payload came,
+# and reads the core from the current folder.
+bare() {  # how stdin is fed: "null" or "pipe"; stdout in $OUT, stderr in $ERR, seconds in $ELAPSED
+  local t0=$SECONDS
+  if [ "$1" = null ]; then
+    OUT=$(cd "$PROJ" && env -u CLAUDE_PROJECT_DIR bash "$WHOAMI" < /dev/null 2>"$SANDBOX/err2"); RC=$?
+  else
+    OUT=$(cd "$PROJ" && env -u CLAUDE_PROJECT_DIR bash "$WHOAMI" < <(sleep 6) 2>"$SANDBOX/err2"); RC=$?
+  fi
+  ELAPSED=$((SECONDS - t0)); ERR=$(cat "$SANDBOX/err2")
+}
+fresh; two_people; printf 'sam\n' > "$PROJ/.claude/operator"
+for feed in null pipe; do
+  bare "$feed"; bad=""
+  [ "$RC" -eq 0 ] || bad="exit $RC"
+  [ "$ELAPSED" -le 4 ] || bad="$bad; waited ${ELAPSED}s"
+  printf '%s\n' "$OUT" | grep -qE '^At the screen: @sam ' || bad="$bad; operator not named"
+  printf '%s\n' "$ERR" | grep -q 'no hook payload on standard input' || bad="$bad; no stderr notice"
+  if [ -z "$bad" ]; then ok=$((ok+1)); printf '  ok  run by hand, stdin %s: %ss, operator named, notice on stderr\n' "$feed" "$ELAPSED"
+  else ko=$((ko+1)); printf '  KO  run by hand, stdin %s (%s)\n' "$feed" "${bad#; }"; fi
+done
+# with the harness's project dir, a silent pipe is not even read
+t0=$SECONDS
+OUT=$(CLAUDE_PROJECT_DIR="$PROJ" bash "$WHOAMI" < <(sleep 6) 2>"$SANDBOX/err"); RC=$?
+[ $((SECONDS - t0)) -le 1 ] || RC=124
+expect "project dir set: a silent pipe is not read" has '^At the screen: @sam '
+
 printf '\n%d cases conform, %d deviate\n' "$ok" "$ko"
 [ "$ko" -eq 0 ]
